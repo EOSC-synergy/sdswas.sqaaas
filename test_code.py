@@ -7,6 +7,8 @@ import plotly
 import plotly.graph_objs as go
 from plotly.graph_objs import \
         Contour, Scatter, Annotations, Figure, Layout
+import matplotlib as mpl
+from matplotlib import cm
 import numpy as np
 from netCDF4 import Dataset as nc_file
 import math
@@ -35,14 +37,23 @@ COLORS = ['#ffffff', '#a1ede3', '#5ce3ba', '#fcd775', '#da7230',
           '#9e6226', '#714921', '#392511', '#1d1309']
 
 
+COLORMAP = mpl.colors.ListedColormap(COLORS[1:-1])
+COLORMAP.set_under(COLORS[0])
+COLORMAP.set_over(COLORS[-1])
+
+
 VARS = {
     'od550_dust': {
         'name': 'Dust Optical Depth',
         'bounds': [0, .1, .2, .4, .8, 1.2, 1.6, 3.2, 6.4, 10],
+        #'bounds': [.1, .2, .4, .8, 1.2, 1.6, 3.2, 6.4],
+        'mul': 1,
     },
     'sconc_dust': {
         'name': 'Dust Surface Concentration',
         'bounds': [0, 5, 20, 50, 200, 500, 2000, 5000, 20000, 100000],
+        #'bounds': [5, 20, 50, 200, 500, 2000, 5000, 20000],
+        'mul': 1e9,
     },
 }
 
@@ -51,12 +62,31 @@ def magnitude(x):
     return int(math.floor(math.log10(x)))
 
 
-def normalize_bounds(bounds, rnd=2):
+def normalize_vals(vals, valsmin, valsmax, rnd=2):
+    vals = np.array(vals)
     if rnd < 2: rnd = 2
-    return np.around((bounds-bounds.min())/(bounds.max()-bounds.min()), rnd)
+    return np.around((vals-valsmin)/(valsmax-valsmin), rnd)
 
 
-class FigureHandler(object):
+#def scalarmappable(cmap, cmin, cmax):
+#    colormap = cm.get_cmap(cmap)
+#    norm = Normalize(vmin=cmin, vmax=cmax)
+#    return cm.ScalarMappable(norm=norm, cmap=colormap)
+#
+#def get_scatter_colors(sm, df):
+#    grey = 'rgba(128,128,128,1)'
+#    return ['rgba' + str(sm.to_rgba(m, bytes = True, alpha = 1)) \
+#            if not np.isnan(m) else grey for m in df]
+#
+def get_colorscale(n_bounds, bounds):
+    norm = mpl.colors.BoundaryNorm(n_bounds, len(n_bounds)-1, clip=True)
+    s_map = cm.ScalarMappable(norm=norm, cmap=COLORMAP)
+
+    return [[i, 'rgba' + str(s_map.to_rgba(v, bytes=True))] for i,v in
+            zip(n_bounds, bounds) ]
+
+
+class FigureHandler:
 
     def __init__(self, filepath):
         self.f = nc_file(filepath, 'r')
@@ -66,27 +96,32 @@ class FigureHandler(object):
         self.tim = time_obj[:]
         self.what, _, rdate = time_obj.units.split()[:3]
         self.rdatetime = datetime.strptime("{}".format(rdate), "%Y-%m-%d")
+#        self.varmax = None
+#        self.varmin = None
         self.varlist = [v for v in self.f.variables if v not in
                         ('lon', 'lat', 'alt', 'lev', 'longitude',
                          'latitude', 'altitude', 'levels', 'time')]
+        self.xlon, self.ylat = np.meshgrid(self.lon, self.lat)
 
-    def set_data(self, var, tstep=0):
-        """ """
-        self.var = self.f.variables[var][:]
-        self.varmax = np.nanmax(self.var)
-        self.varmin = np.nanmin(self.var)
-        x, y = np.meshgrid(self.lon, self.lat)
+
+    def set_data(self, varname, tstep=0):
+        """ Set time dependent data """
+        mul = VARS[varname]['mul']
+        var = self.f.variables[varname][tstep]*mul
+#        self.varmax = np.nanmax(self.var)
+#        self.varmin = np.nanmin(self.var)
         #print(self.var)
-        idx = np.where(self.var[tstep].ravel()>=VARS[var]['bounds'][1]) #!=-9.e+33)
+        idx = np.where(var.ravel() >= VARS[varname]['bounds'][1]) #!=-9.e+33)
         #print(x.ravel()[idx])
-        x = x.ravel()[idx]
-        y = y.ravel()[idx]
-        var = self.var[tstep].ravel()[idx]
-        return x, y, var
+        xlon = self.xlon.ravel()[idx]
+        ylat = self.ylat.ravel()[idx]
+        var = var.ravel()[idx]
+
+        return xlon, ylat, var
 
     def retrieve_cdatetime(self, tstep=0):
         # Retrieve data from NetCDF file
-        #print(type(self.tim[:]), self.tim[:][tstep])
+        #print(type(self.tim), self.tim[tstep], type(tstep), tstep)
         if self.what == 'days':
             cdatetime = self.rdatetime + relativedelta(days=self.tim[tstep])
         elif self.what == 'hours':
@@ -101,30 +136,39 @@ class FigureHandler(object):
 
     def run_plot(self, tstep=0):
         """ run plot """
-        # Get list of of coastline, country, and state lon/lat traces
-        #traces_cc = get_coastline_traces() #+get_country_traces()
-        data = []
+        fig = go.Figure()
+        tstep = int(tstep)
+        #data = []
         cdatetime = self.retrieve_cdatetime(tstep)
         for var in self.varlist:
-            x, y, val = self.set_data(var, tstep)
+            xlon, ylat, val = self.set_data(var, tstep)
             bounds = np.array(VARS[var]['bounds']).astype('float32')
             name = VARS[var]['name']
             magn = magnitude(bounds[-1])
-            norm_bounds = normalize_bounds(bounds, magn)
-            colorscale = list(zip(norm_bounds, COLORS))
+            norm_bounds = normalize_vals(bounds, bounds[0], bounds[-1], magn)
+            #colorscale = list(zip(norm_bounds, COLORS))
+            colorscale = get_colorscale(norm_bounds, bounds)
             print(name, magn, norm_bounds, colorscale)
-            data.append(
-                go.Scattermapbox(
-                    lon=x,
-                    lat=y,
+            visible = True
+            if name != 'Dust Optical Depth':
+                visible = 'legendonly'
+                #continue
+            fig.add_trace(
+            #data.append(
+                dict( #go.Scattermapbox(
+                    type='scattermapbox',
+                    visible=visible,
+                    lon=xlon,
+                    lat=ylat,
                     text=val,
                     mode='markers',
                     showlegend=True,
                     opacity=0.4,
                     name=name,
-                    hovertemplate="""lon: %{lon:.4f}<br>lat: %{lat:.4f}<br>value: %{text:.4f}<br>""",
-                    marker=go.scattermapbox.Marker(
-                        #autocolorscale=False,
+                    hovertemplate=
+                        """lon: %{lon:.4f}<br>lat: %{lat:.4f}<br>value: %{text:.4f}<br>""",
+                    marker=dict( #go.scattermapbox.Marker(
+                        autocolorscale=False,
                         color=val,
                         colorscale=colorscale,
                         opacity=0.6,
@@ -137,9 +181,8 @@ class FigureHandler(object):
                             "tickvals" : bounds,
                             #"title": "ºC",
                         }, #gives your legend some units
-                        #zauto=True,  # custom contour levels
-                        cmin=self.varmin,      # first contour level
-                        cmax=self.varmax,        # last contour level  => colorscale is centered about 0
+                        cmin=bounds[0], #self.varmin,      # first contour level
+                        cmax=bounds[-1], #self.varmax,        # last contour level  => colorscale is centered about 0
                         showscale=True,
                     ),
 
@@ -165,7 +208,8 @@ class FigureHandler(object):
 #            showticklabels=False,
 #        )
 
-        layout = dict(
+        #layout = dict(
+        fig.update_layout(
             #title=title,
             showlegend=True,
 #            autosize=True,
@@ -219,11 +263,12 @@ class FigureHandler(object):
     #                showarrow=False
     #            )
     #        ]),
-            width="1200",
-            height="1000",
+            width=1200,
+            height=1000,
         )
 
-        return dict(data=data, layout=layout)
+        #return dict(data=data, layout=layout)
+        return fig
 # Shift 'lon' from [0,360] to [-180,180], make numpy array
 #tmp_lon = np.array([lon[n]-360 if l>=180 else lon[n]
 #                   for n,l in enumerate(lon)])  # => [0,180]U[-180,2.5]
@@ -341,6 +386,6 @@ def get_country_traces():
 
 
 if __name__ == "__main__":
-    FIG = run_plot()
+    FIG = FigureHandler().run_plot()
 #    py.iplot(FIG, filename="dust_out.html") #, width=1000)
-    plotly.offline.plot(FIG, filename='/esarchive/scratch/Earth/fbeninca/plotly_test/tasanomaly.html', auto_open=False)
+    plotly.plot(FIG, filename='/esarchive/scratch/Earth/fbeninca/plotly_test/test.html', auto_open=False)

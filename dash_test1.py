@@ -27,44 +27,43 @@ def get_figure(tstep=0):
     figure['layout']['font'] = {'color': colors['text']}
     return figure
 
+app = dash.Dash()
+
 app.layout = html.Div(
-    style={'backgroundColor': colors['background'], 'textAlign': 'center'},
+    style={
+        'backgroundColor': colors['background'],
+        'textAlign': 'center',
+        'margin': 0,
+        'padding': '10px',
+        },
     children=[
-        html.H2(children='Dust Forecast Dashboard',
+
+        html.H1(children='Dust Forecast Dashboard',
             style={
                 'textAlign': 'center',
                 'color': colors['text']
               }
            ),
 
-#    html.Div(children='''
-#        Dash: A web application framework for Python.
-#        ''',
-#        style={
-#            'textAlign': 'center',
-#            'color': colors['text']
-#        }
-#    ),
-
-    html.Div(
-        dcc.Graph(
-            id='graph-with-slider',
-            figure=get_figure(tstep=0),
-            animate=True,
+        html.Div(
+            dcc.Graph(
+                id='graph-with-slider',
+                figure=get_figure(tstep=0),
+                animate=True,
+            ),
         ),
-    ),
-    html.Div(
-        dcc.Slider(
-            id='timestep-slider',
-            min=0,
-            max=72,
-            marks={str(i): 'H+{}'.format(i) for i in range(0,75,3)},
-            value=0,
+        html.Div(
+            dcc.Slider(
+                id='timestep-slider',
+                min=0,
+                max=72,
+                marks={str(i): 'H+{}'.format(i) for i in range(0,75,3)},
+                value=0,
+            ),
+            style={'width': '55%',
+                   'padding': '0px 20px 20px 20px',
+                   'margin-bottom': '0px' },
         ),
-        style={'width': '55%',
-               'padding': '0px 20px 20px 20px',
-               'margin-bottom': '50px' },
-    ),
 #    html.Div(
 #        dcc.Interval(
 #            id='interval-component',
@@ -72,7 +71,7 @@ app.layout = html.Div(
 #            n_intervals=0,
 #        ),
 #    ),
-],
+    ],
 )
 
 @app.callback(
