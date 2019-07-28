@@ -19,6 +19,10 @@ from dateutil.relativedelta import relativedelta
 mapbox_access_token = \
 "pk.eyJ1IjoiZmJlbmluY2EiLCJhIjoiY2p1ODZhdW9qMDZ3eTN5b2IxN2JzdzUyeSJ9.m0QotzSgIz0Bi0gIynzG6A"
 
+animation_time = 1000
+transition_time = 300
+slider_transition_time = 300
+
 
 _COLORS = [[0, 'rgb(255,255,255)'],
            [0.01, 'rgb(255,255,255)'],
@@ -46,42 +50,42 @@ VARS = {
         'name': 'Dust Optical Depth',
         'bounds': [0, .1, .2, .4, .8, 1.2, 1.6, 3.2, 6.4, 10],
         'mul': 1,
-        'title' : u"Dust Optical Depth (550nm) Forecast for %(hour)s %(day)s %(month)s %(year)s",
+        'title' : u"Dust Optical Depth (550nm) Forecast run on %(hour)s %(day)s %(month)s %(year)s",
         'default': True,
     },
     'sconc_dust': {
         'name': 'Dust Surface Concentration',
         'bounds': [0, 5, 20, 50, 200, 500, 2000, 5000, 20000, 100000],
         'mul': 1e9,
-        'title' : u"Dust Surface Conc. Forecast for %(hour)s %(day)s %(month)s %(year)s",
+        'title' : u"Dust Surface Conc. Forecast run on %(hour)s %(day)s %(month)s %(year)s",
         'default': False,
     },
     'dust_load': {
         'name': 'Dust Load',
         'bounds': [0, .1, .2, .4, .8, 1.2, 1.6, 3.2, 6.4, 10],
         'mul': 1e3,
-        'title' : "Dust Load Forecast for %(hour)s %(day)s %(month)s %(year)s",
+        'title' : "Dust Load Forecast run on %(hour)s %(day)s %(month)s %(year)s",
         'default': False,
     },
     'dust_depw': {
         'name': 'Dust Wet Deposition',
         'bounds': [0, 0.5, 5, 10, 50, 100, 400, 800, 1600, 10000],
         'mul': 1e6,
-        'title' : u"Dust Wet Deposition Forecast for %(hour)s %(day)s %(month)s %(year)s",
+        'title' : u"Dust Wet Deposition Forecast run on %(hour)s %(day)s %(month)s %(year)s",
         'default': False,
     },
     'dust_depd': {
         'name': 'Dust Dry Deposition',
         'bounds': [0, 0.5, 5, 10, 50, 100, 400, 800, 1600, 10000],
         'mul': 1e6,
-        'title' : u"Dust Dry Deposition Forecast for %(hour)s %(day)s %(month)s %(year)s",
+        'title' : u"Dust Dry Deposition Forecast run on %(hour)s %(day)s %(month)s %(year)s",
         'default': False,
     },
     'dust_ext_sfc': {
         'name': 'Dust Surface Extinction',
         'bounds': [0, 5, 10, 25, 100, 250, 1000, 2500, 10000, 100000],
         'mul': 1e6,
-        'title' : u"Dust Surface Extinction Forecast for %(hour)s %(day)s %(month)s %(year)s",
+        'title' : u"Dust Surface Extinction Forecast run on %(hour)s %(day)s %(month)s %(year)s",
         'default': False,
     },
 }
@@ -134,7 +138,7 @@ class FigureHandler:
                         ('lon', 'lat', 'alt', 'lev', 'longitude',
                          'latitude', 'altitude', 'levels', 'time')]
         self.xlon, self.ylat = np.meshgrid(self.lon, self.lat)
-        self.styles = ["dark", "light", "streets", "outdoors", "satellite", "satellite-streets"]
+        self.styles = ["dark", "light", "streets", "satellite-streets"]
 
     def get_mpb(self, style='dark', relayout=False):
         """ Returns mapbox layout """
@@ -191,7 +195,7 @@ class FigureHandler:
         elif self.what == 'seconds':
             cdatetime = self.rdatetime + relativedelta(seconds=self.tim[tstep])
 
-        print(cdatetime.strftime("%Y%m%d %H:%M"), tstep)
+        #print(cdatetime.strftime("%Y%m%d %H:%M"), tstep)
         return cdatetime
 
     def generate_var_tstep_trace(self, varname, tstep=0):
@@ -203,7 +207,7 @@ class FigureHandler:
         norm_bounds = normalize_vals(bounds, bounds[0], bounds[-1], magn)
         #colorscale = list(zip(norm_bounds, COLORS))
         colorscale = get_colorscale(norm_bounds, bounds)
-        print(name, magn, norm_bounds, colorscale)
+        #print(name, magn, norm_bounds, colorscale)
         return dict(
             type='scattermapbox',
             lon=xlon,
@@ -216,9 +220,9 @@ class FigureHandler:
             hovertemplate=\
                 """lon: %{lon:.4f}<br>lat: %{lat:.4f}<br>value: %{text:.4f}<br>""",
             marker=dict(
-                #autocolorscale=False,
+                autocolorscale=False,
                 color=val,
-                size=4,
+                size=8,
                 colorscale=colorscale,
                 opacity=0.6,
                 colorbar={
@@ -261,29 +265,59 @@ class FigureHandler:
 
         frames=[dict(
             data=self.generate_var_tstep_trace(varname, tstep=num),
-            traces=[0],
+            #traces=[0],
             name=varname+str(num))
-            for num in range(0,25,3)]
+            for num in range(0,25,1)]
+
+        fig['frames'] = frames
+
+        #print([f['name'] for f in frames])
+
+#        slider = dict(
+#            # GENERAL
+#            plotlycommand = "animate",
+#            values = range(0,25),
+#            initialValue = 0,
+#            visible = True,
+#
+#            # ARGUMENTS
+#            args = [
+#                    "slider.value",
+#                    dict(
+#                        duration = 100,
+#                        ease = "cubic-in-out",
+#                    ),
+#            ],
+#        )
+
 
         sliders = [dict(steps=
                         [dict(method='animate',
                               args=[[varname+str(tstep)],
-                              dict(mode='immediate',
-                                   frame=dict(duration=100, redraw=True),
-                                   transition=dict(duration=0)
+                                  dict(mode='immediate',
+                                       frame=dict(duration=animation_time,
+                                                  redraw=True),
+                                       transition=dict(duration=slider_transition_time,
+                                                       easing="cubic-in-out",
+                                                  )
                                   )
                               ],
-                              label='{:d}'.format(tstep)
-                             ) for tstep in range(0,25,3)],
-                        transition=dict(duration=0),
-                        x=0.3,#slider starting position  
+                              label='{:d}'.format(tstep*3),
+                              value=tstep,
+                             ) for tstep in range(0,25,1)],
+                        transition=dict(duration=slider_transition_time,
+                                        easing="cubic-in-out"),
+                        x=0.08,#slider starting position  
                         y=0,
+                        len=0.93,
                         currentvalue=dict(font=dict(size=12),
-                            prefix='Point: ',
+                            prefix='Timestep: ',
                             visible=True,
                             xanchor= 'center'),
                         )
                    ]
+
+        #print([st['args'][0] for st in sliders[0]['steps']])
 
         fig.update_layout(
             title=dict(text=title, y=0.93),
@@ -300,16 +334,18 @@ class FigureHandler:
                     buttons=[dict(label="Play",
                                   method="animate",
                                   args=[None,
-                                        dict(frame=dict(duration=100, redraw=True),
-                                        transition=dict(duration=0),
+                                        dict(frame=dict(duration=animation_time, redraw=True),
+                                        transition=dict(duration=transition_time,
+                                                       easing="quadratic-in-out"),
                                         fromcurrent=True,
                                         mode='immediate'
                                         )
                                     ]),
                              dict(label="Pause",
                                   method="animate",
-                                  args=[None,
-                                        dict(frame=dict(duration=0, redraw=False),
+                                  args=[[None],
+                                        dict(frame=dict(duration=0,
+                                                        redraw=True),
                                         transition=dict(duration=0),
                                         mode='immediate'
                                         )
@@ -317,8 +353,8 @@ class FigureHandler:
                             ],
                     x=0,
                     xanchor="left",
-                    y=0,
-                    #yanchor=""
+                    y=-0.04,
+                    yanchor="top"
                 ),
                 go.layout.Updatemenu(
                     type="buttons",
@@ -327,9 +363,9 @@ class FigureHandler:
                                     self.styles]),
                     pad={"r": 10, "t": 10},
                     showactive=True,
-                    x=0.6,
+                    x=0.7,
                     xanchor="left",
-                    y=1.07,
+                    y=1.08,
                     yanchor="top"
                 ),
 #                go.layout.Updatemenu(
@@ -360,6 +396,8 @@ class FigureHandler:
 #                    yanchor="top"
 #                )
 #            ]
+
+#            slider=slider,
             sliders=sliders
         )
 
