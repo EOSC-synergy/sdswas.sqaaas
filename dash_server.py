@@ -61,29 +61,10 @@ app.layout = html.Div(
 #                animate=True,
             ),
         ),
-#        html.Div(
-#            dcc.Slider(
-#                id='timestep-slider',
-#                min=0,
-#                max=72,
-#                marks={str(i): 'H+{}'.format(i) for i in range(0,75,3)},
-#                value=0,
-#            ),
-#            style={'width': '50%',
-#                   'padding': '20px',
-#                   'margin-bottom': '0px',
-#                   'margin-left': '50px'},
-#        ),
-#    html.Div(
-#        dcc.Interval(
-#            id='interval-component',
-#            interval=.5*1000,
-#            n_intervals=0,
-#        ),
-#    ),
         html.Div(
 #            dcc.Input(id='input-variable', type='text', value=DEFAULT_VAR)),
-            #[html.Button(VARS[varname]['name'], id='button_'+varname) for varname in VARS],
+#            [html.Button(VARS[varname]['name'], id='button_'+varname) for
+#             varname in VARS if varname in FH.varlist],
 #        html.Div(
 #            dcc.DatePickerSingle(
 #                id='model-date-picker',
@@ -98,9 +79,25 @@ app.layout = html.Div(
 
 #@app.callback(
 #    Output('graph-with-slider', 'figure'),
-#    [Input('button_'+varname, 'value') for varname in VARS]
+#    [Input('button_'+varname, 'n_clicks') for varname in VARS if varname in
+#     FH.varlist]
 #)
 #
+#def update_figure(*nc):
+#    global N_CLICKS
+#    print("UPDATE", nc)
+#    btn_clicked = ''
+#    n_clicks_clicked = 0
+#    for (button, n_click_old), n_click_new in \
+#        zip(N_CLICKS.items(), new_clicks):
+#            if n_click_new > n_click_old:
+#                btn_clicked = button
+#                n_clicks_clicked = n_click_new
+#                N_CLICKS[state_clicked] = n_clicks_clicked
+#   #     return btn_clicked 
+#
+#    return get_figure(button.replace('button_', '')) #, int(tvalue)/3)
+
 #@app.callback(
 #    Output('graph-with-slider', 'figure'),
 #    [Input('timestep-slider', 'value'),]

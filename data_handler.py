@@ -4,8 +4,6 @@
 
 import plotly
 import plotly.graph_objs as go
-from plotly.graph_objs import \
-        Contour, Scatter, Annotations, Figure, Layout
 import matplotlib as mpl
 from matplotlib import cm
 import numpy as np
@@ -273,24 +271,6 @@ class FigureHandler:
 
         #print([f['name'] for f in frames])
 
-#        slider = dict(
-#            # GENERAL
-#            plotlycommand = "animate",
-#            values = range(0,25),
-#            initialValue = 0,
-#            visible = True,
-#
-#            # ARGUMENTS
-#            args = [
-#                    "slider.value",
-#                    dict(
-#                        duration = 100,
-#                        ease = "cubic-in-out",
-#                    ),
-#            ],
-#        )
-
-
         sliders = [dict(steps=
                         [dict(method='animate',
                               args=[[varname+str(tstep)],
@@ -299,9 +279,9 @@ class FigureHandler:
                                                   redraw=True),
                                        transition=dict(duration=slider_transition_time,
                                                        easing="cubic-in-out",
-                                                  )
-                                  )
-                              ],
+                                                     )
+                                    )
+                                ],
                               label='{:d}'.format(tstep*3),
                               value=tstep,
                              ) for tstep in range(0,25,1)],
@@ -321,8 +301,6 @@ class FigureHandler:
 
         fig.update_layout(
             title=dict(text=title, y=0.93),
-            #showlegend=True,
-            #legend=dict(x=1.1, y=0.95, borderwidth=1),
             autosize=True,
             hovermode="closest",        # highlight closest point on hover
             mapbox=self.get_mpb(),
@@ -356,7 +334,7 @@ class FigureHandler:
                     y=-0.04,
                     yanchor="top"
                 ),
-                go.layout.Updatemenu(
+                dict(
                     type="buttons",
                     direction="left",
                     buttons = list([self.get_mpb(style, relayout=True) for style in
@@ -368,10 +346,10 @@ class FigureHandler:
                     y=1.08,
                     yanchor="top"
                 ),
-#                go.layout.Updatemenu(
+#                dict(
 #                    type="buttons",
 #                    direction="down",
-#                    buttons = list([self.get_updated_trace(varname) for
+#                    buttons = list([self.retrieve_var_tstep(varname) for
 #                                    varname in self.varlist if varname !=
 #                                    DEFAULT_VAR]),
 #                    pad={"r": 10, "t": 10},
