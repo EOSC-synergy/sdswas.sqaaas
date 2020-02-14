@@ -61,10 +61,10 @@ app.layout = html.Div(
 #                animate=True,
             ),
         ),
-        html.Div(
-#            dcc.Input(id='input-variable', type='text', value=DEFAULT_VAR)),
-#            [html.Button(VARS[varname]['name'], id='button_'+varname) for
-#             varname in VARS if varname in FH.varlist],
+#        html.Div(
+#            dcc.Input(
+#                id='input-variable', type='text', value=DEFAULT_VAR)),
+#        [html.Button(VARS[varname]['name'], id='button_'+varname) for varname in VARS if varname in FH.varlist],
 #        html.Div(
 #            dcc.DatePickerSingle(
 #                id='model-date-picker',
@@ -73,7 +73,7 @@ app.layout = html.Div(
 #                initial_visible_month=dt.strptime(end_date, "%Y%m%d"),
 #                date=str(dt.strptime(end_date, "%Y%m%d")),
 #            ),
-        ),
+#        ),
     ],
 )
 
@@ -114,4 +114,4 @@ app.layout = html.Div(
 #    return get_figure(int(tstep)%25)
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=True, processes=4, threaded=False, port=9999)

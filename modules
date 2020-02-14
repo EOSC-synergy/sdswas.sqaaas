@@ -1,2 +1,7 @@
-module purge
-module load dash/1.0.2-foss-2015a-Python-3.7.3 numpy/1.16.4-foss-2015a-Python-3.7.3 matplotlib/3.1.1-foss-2015a-Python-3.7.3 netcdf4-python/1.5.1.2-foss-2015a-Python-3.7.3 plotly/4.0.0-foss-2015a-Python-3.7.3 IPython/7.8.0-foss-2015a-Python-3.7.3
+module load \
+    dash/1.9.0-foss-2015a-Python-3.7.3 \
+    numpy/1.16.4-foss-2015a-Python-3.7.3 \
+    matplotlib/3.1.1-foss-2015a-Python-3.7.3 \
+    netcdf4-python/1.5.3-foss-2015a-Python-3.7.3 \
+    plotly/4.5.0-foss-2015a-Python-3.7.3
+
