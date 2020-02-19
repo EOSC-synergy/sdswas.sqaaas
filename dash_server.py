@@ -8,11 +8,13 @@ import dash_html_components as html
 from dash.dependencies import Input, Output
 from datetime import datetime as dt
 from data_handler import FigureHandler
-from data_handler import VARS
 from data_handler import DEFAULT_VAR
 
+import os
 
-external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+# external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+external_stylesheets = ['{}/css/dZVMbK.css'.format(os.getcwd())]
+print(external_stylesheets)
 
 colors = {
     'background': '#111111',
@@ -94,7 +96,7 @@ app.layout = html.Div(
 #                btn_clicked = button
 #                n_clicks_clicked = n_click_new
 #                N_CLICKS[state_clicked] = n_clicks_clicked
-#   #     return btn_clicked 
+#        return btn_clicked
 #
 #    return get_figure(button.replace('button_', '')) #, int(tvalue)/3)
 
@@ -114,4 +116,4 @@ app.layout = html.Div(
 #    return get_figure(int(tstep)%25)
 
 if __name__ == '__main__':
-    app.run_server(debug=True, processes=4, threaded=False, port=9999)
+    app.run_server(debug=True, processes=8, threaded=False, port=9999)

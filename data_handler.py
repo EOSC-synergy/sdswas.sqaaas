@@ -10,10 +10,71 @@ import numpy as np
 from netCDF4 import Dataset as nc_file
 import math
 
+import json
+import jmespath
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
+test_mapbox2 = {
+    'style': "stamen-terrain",
+    'center': {'lon': -73.6, 'lat': 45.5},
+    'zoom': 12, 'layers': [{
+        'source': {
+            'type': "FeatureCollection",
+            'features': [{
+                'type': "Feature",
+                'geometry': {
+                    'type': "MultiPolygon",
+                    'coordinates': [[[
+                        [-73.606352888, 45.507489991], [-73.606133883, 45.50687600],
+                        [-73.605905904, 45.506773980], [-73.603533905, 45.505698946],
+                        [-73.602475870, 45.506856969], [-73.600031904, 45.505696003],
+                        [-73.599379992, 45.505389066], [-73.599119902, 45.505632008],
+                        [-73.598896977, 45.505514039], [-73.598783894, 45.505617001],
+                        [-73.591308727, 45.516246185], [-73.591380782, 45.516280145],
+                        [-73.596778656, 45.518690062], [-73.602796770, 45.521348046],
+                        [-73.612239983, 45.525564037], [-73.612422919, 45.525642061],
+                        [-73.617229085, 45.527751983], [-73.617279234, 45.527774160],
+                        [-73.617304713, 45.527741334], [-73.617492052, 45.527498362],
+                        [-73.617533258, 45.527512253], [-73.618074188, 45.526759105],
+                        [-73.618271651, 45.526500673], [-73.618446320, 45.526287943],
+                        [-73.618968507, 45.525698560], [-73.619388002, 45.525216750],
+                        [-73.619532966, 45.525064183], [-73.619686662, 45.524889290],
+                        [-73.619787038, 45.524770086], [-73.619925742, 45.524584939],
+                        [-73.619954486, 45.524557690], [-73.620122362, 45.524377961],
+                        [-73.620201713, 45.524298907], [-73.620775593, 45.523650879]
+                    ]]]
+                }
+            }]
+        },
+        'type': "fill", 'below': "traces", 'color': "royalblue"}]
+}
 
+def test_mapbox():
+    print('loading geojson ...')
+    data = json.load(open("/home/Earth/fbeninca/Programs/VISCA/VISCA/out-data/202001/Metadata_2601/00_feb_2601_monthly_prlr.geojson"))
+    print('done')
+    colors = "#FEEDA3", "#FDD97B", "#FDB154", "#FB8C44"
+    print('extracting features ...')
+    features = {color: jmespath.search("features[?properties.fill=='{}']".format(color), data)
+                for color in colors}
+    print([(c, len(f)) for (c, f) in features.items()], 'done')
+    ret = {
+        'style': "open-street-map",
+        'center': {'lon': 5, 'lat': 15.5},
+        'zoom': 3,
+        'layers': [{
+            'sourcetype': 'geojson',
+            'source': {"type":"FeatureCollection", "features":
+                       features[color]},
+            'type': "fill",
+            'below': "traces",
+            'color': color,
+        } for color in features],
+        #'customdata': [feat['properties']['value'] for color in colors for feat in features[color]]
+    }
+    print('returning', features["#FEEDA3"][0])
+    return ret
 # mapbox_access_token = \
 # "pk.eyJ1IjoiZmJlbmluY2EiLCJhIjoiY2p1ODZhdW9qMDZ3eTN5b2IxN2JzdzUyeSJ9.m0QotzSgIz0Bi0gIynzG6A"
 
@@ -155,10 +216,57 @@ class FigureHandler(object):
         self.colormaps = {varname:get_colorscale(varname)
                           for varname in self.varlist}
 
+    def get_animation_buttons(self):
+        """ Returns play and stop buttons """
+        return dict(
+            type="buttons",
+            direction="left",
+            buttons=[dict(label="&#9654;",
+                          method="animate",
+                          args=[None,
+                                dict(frame=dict(duration=animation_time,
+                                                redraw=True),
+                                     transition=dict(duration=transition_time,
+                                                     easing="quadratic-in-out"),
+                                     fromcurrent=True,
+                                     mode='immediate'
+                                    )
+                               ]),
+                     dict(label="&#9724;",
+                          method="animate",
+                          args=[[None],
+                                dict(frame=dict(duration=0,
+                                                redraw=False),
+                                     transition=dict(duration=0),
+                                     mode='immediate'
+                                    )
+                               ])
+                    ],
+            pad={"r": 0, "t": 0},
+            x=0.50,
+            y=1.06,
+            xanchor="right",
+            yanchor="top"
+        )
+
+    def get_mapbox_style_buttons(self):
+        """ Relayout map with different styles """
+        return dict(
+            type="buttons",
+            direction="left",
+            buttons=list([self.get_mapbox(style, relayout=True) for style in
+                          self.styles.keys()]),
+            pad={"r": 0, "t": 0},
+            showactive=True,
+            x=1.0,
+            y=-0.01,
+            xanchor="right",
+            yanchor="top",
+        )
+
     def get_mapbox(self, style='open-street-map', relayout=False):
         """ Returns mapbox layout """
         mapbox_dict = dict(
-            # accesstoken=mapbox_access_token,
             bearing=0,
             center=go.layout.mapbox.Center(
                 lat=(self.lat.max()-self.lat.min())/2 + self.lat.min(),
@@ -175,7 +283,7 @@ class FigureHandler(object):
         return dict(
             args=["mapbox", mapbox_dict],
             label=self.styles[style].capitalize(),
-            method="relayout"
+            method="relayout",
         )
 
     def get_updated_trace(self, varname, tstep=0):
@@ -218,8 +326,6 @@ class FigureHandler(object):
         """ Generate trace to be added to data, per variable and timestep """
         xlon, ylat, val = self.set_data(varname, tstep)
         name = VARS[varname]['name']
-        #colorscale = list(zip(norm_bounds, COLORS))
-        # colorscale = get_colorscale(norm_bounds, bounds)
         colorscale = self.colormaps[varname]
         #print(name, magn, norm_bounds, colorscale)
         return dict(
@@ -227,10 +333,10 @@ class FigureHandler(object):
             lon=xlon,
             lat=ylat,
             text=val,
-            mode='markers',
+            #mode='lines',
             showlegend=False,
             opacity=0.6,
-            #fill=val,
+            #fill="toself",
             name=name,
             hovertemplate=\
                 """lon: %{lon:.4f}<br>lat: %{lat:.4f}<br>value: %{text:.4f}<br>""",
@@ -253,7 +359,6 @@ class FigureHandler(object):
                 cmax=self.bounds[varname][-1],
                 #showscale=True,
             ),
-
         )
 
     def retrieve_var_tstep(self, varname, tstep=0):
@@ -326,52 +431,14 @@ class FigureHandler(object):
             title=dict(text=title, y=0.95),
             autosize=True,
             hovermode="closest",        # highlight closest point on hover
-            mapbox=self.get_mapbox(),
+            mapbox=test_mapbox(),
+            showlegend=False,
+            # margin={'l':0, 'r':0, 'b':0, 't':0},
             width=1200,
             height=800,
             updatemenus=[
-                dict(
-                    type="buttons",
-                    direction="left",
-                    buttons=[dict(label="&#9654;",
-                                  method="animate",
-                                  args=[None,
-                                        dict(frame=dict(duration=animation_time,
-                                                        redraw=True),
-                                             transition=dict(duration=transition_time,
-                                                             easing="quadratic-in-out"),
-                                             fromcurrent=True,
-                                             mode='immediate'
-                                            )
-                                       ]),
-                             dict(label="&#9724;",
-                                  method="animate",
-                                  args=[[None],
-                                        dict(frame=dict(duration=0,
-                                                        redraw=False),
-                                             transition=dict(duration=0),
-                                             mode='immediate'
-                                            )
-                                       ])
-                            ],
-                    pad={"r": 0, "t": 0},
-                    x=0.50,
-                    y=1.06,
-                    xanchor="right",
-                    yanchor="top"
-                ),
-                dict(
-                    type="buttons",
-                    direction="left",
-                    buttons=list([self.get_mapbox(style, relayout=True) for style in
-                                  self.styles.keys()]),
-                    pad={"r": 0, "t": 0},
-                    showactive=True,
-                    x=1.0,
-                    y=-0.01,
-                    xanchor="right",
-                    yanchor="top",
-                ),
+                self.get_animation_buttons(),
+                self.get_mapbox_style_buttons(),
                 # dict(
                 #     type="buttons",
                 #     direction="down",
@@ -406,88 +473,6 @@ class FigureHandler(object):
 
         #return dict(data=data, layout=layout)
         return fig
-
-#        geo=go.layout.Geo(
-#            scope='europe',
-#            projection=go.layout.geo.Projection(type='equirectangular'),
-#            showland=True,
-#            showcountries=True,
-#            showcoastlines=True,
-#            landcolor='rgb(243, 243, 243)',
-#            countrycolor='rgb(204, 204, 204)',
-#            lonaxis=go.layout.geo.Lonaxis(
-#                showgrid=True,
-#                gridcolor='rgb(102, 102, 102)',
-#                gridwidth=0.5
-#            ),
-#            lataxis=go.layout.geo.Lataxis(
-#                showgrid=True,
-#                gridcolor='rgb(102, 102, 102)',
-#                gridwidth=0.5
-#            ),
-#        ),
-#        annotations=Annotations([
-#            Annotation(
-#                text=anno_text,
-#                xref='paper',
-#                yref='paper',
-#                x=0,
-#                y=1,
-#                yanchor='bottom',
-#                showarrow=False
-#            )
-#        ]),
-# Shift 'lon' from [0,360] to [-180,180], make numpy array
-#tmp_lon = np.array([lon[n]-360 if l>=180 else lon[n]
-#                   for n,l in enumerate(lon)])  # => [0,180]U[-180,2.5]
-#
-#i_east, = np.where(tmp_lon>=0)  # indices of east lon
-#i_west, = np.where(tmp_lon<0)   # indices of west lon
-#lon = np.hstack((tmp_lon[i_west], tmp_lon[i_east]))  # stack the 2 halves
-
-# Correspondingly, shift the 'air' array
-#tmp_air = np.array(air)
-#air = np.hstack((tmp_air[:,i_west], tmp_air[:,i_east]))
-
-#print(np.nanmax(var))
-#print(np.nanmin(var))
-#print(type(var))
-
-#trace1 = go.Contour(
-#    showlegend=True,
-#    opacity=0.6,
-#    name='Dust Optical Depth',
-#    hovertemplate="""lon: %{x}\n
-#lat: %{y}\n
-#aod: %{z}\n""",
-#    hoverlabel=dict(bordercolor='yellow'),
-#    z=var[0],
-#    x=lon,
-#    y=lat,
-#    #    [ 0.  ,  0.01,  0.02,  0.04,  0.08,  0.12,  0.16,  0.32,  0.64,  1.  ]
-#    zauto=True,  # custom contour levels
-#    zmin=np.nanmin(var),      # first contour level
-#    zmax=np.nanmax(var),        # last contour level  => colorscale is centered about 0
-#    colorscale=colorscale,
-#    colorbar={
-#        "borderwidth": 0,
-#        "outlinewidth": 0,
-#        "thickness": 15,
-#        "tickfont": {"size": 14},
-#        #"title": "ºC",
-#    }, #gives your legend some units
-#
-#    contours={
-#        "end": np.nanmax(var),
-#        "showlines": False,
-#        "size": 0.5, #this is your contour interval
-#        "start": np.nanmin(var)
-#    },
-#
-#
-#)
-
-
 
 #if __name__ == "__main__":
 #    FIG = FigureHandler().run_plot()
