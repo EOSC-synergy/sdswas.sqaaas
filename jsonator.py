@@ -10,7 +10,8 @@ https://github.com/mapbox/simplestyle-spec/tree/master/1.1.0
 
 import json
 
-import matplotlib as mpl; mpl.use('agg')
+import matplotlib as mpl
+mpl.use('agg')
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import numpy as np
@@ -116,22 +117,22 @@ def contourf(lon, lat, values, levels=None, cmap_file=None, cmap_rev=False,
         hilimit = cs.levels[i+1]
 
         properties = {
-            'title': '',
-            'description': 'Contour: {} to {}'.format(lolimit, hilimit),
-
-            # Propiedades de estilo
-            'marker-size': 'medium',
-            'marker-symbol': '',
-            'marker-color': '#7e7e7e',
-            'stroke': '#555555',
-            'stroke-opacity': 1.0,
-            'stroke-width': 0.0,
-            'fill': fill,
-            'fill-opacity': 0.6,
-
-            # Opcionales
-            'hilimit': hilimit,
-            'lolimit': lolimit
+#             'title': '',
+#             'description': 'Contour: {} to {}'.format(lolimit, hilimit),
+# 
+#             # Propiedades de estilo
+#             'marker-size': 'medium',
+#             'marker-symbol': '',
+#             'marker-color': '#7e7e7e',
+#             'stroke': '#555555',
+#             'stroke-opacity': 1.0,
+#             'stroke-width': 0.0,
+#             'fill': fill,
+#             'fill-opacity': 0.6,
+# 
+#             # Opcionales
+#             'hilimit': hilimit,
+#             'lolimit': lolimit
         }
 
         properties.update(custom_properties)
@@ -161,7 +162,8 @@ def contourf(lon, lat, values, levels=None, cmap_file=None, cmap_rev=False,
 
 
 def pcolormesh(x, y, values, levels=12, proj=None, gridded_metadata={},
-               cmap=None, cmap_file=None, cmap_rev=False, pretty_print=False, properties={}):
+               cmap=None, cmap_file=None, cmap_rev=False, pretty_print=False,
+               properties={}):
     """Representa celdas con metadatos.
 
         x, y -- Coordenadas del dominio (1D) correspondientes a la
@@ -226,14 +228,14 @@ def pcolormesh(x, y, values, levels=12, proj=None, gridded_metadata={},
     y0 = y - dy / 2
     y1 = y + dy / 2
 
-    x0 = np.where(x0==-180, -179.9, x0)
-    x0 = np.where(x0==180, 179.99, x0)
-    x1 = np.where(x1==-180, -179.9, x1)
-    x1 = np.where(x1==180, 179.9, x1)
-    y0 = np.where(y0==-90, -89.9, y0)
-    y0 = np.where(y0==90, 89.9, y0)
-    y1 = np.where(y1==-90, -89.9, y1)
-    y1 = np.where(y1==90, 89.9, y1)
+    x0 = np.where(x0 == -180, -179.9, x0)
+    x0 = np.where(x0 == 180, 179.99, x0)
+    x1 = np.where(x1 == -180, -179.9, x1)
+    x1 = np.where(x1 == 180, 179.9, x1)
+    y0 = np.where(y0 == -90, -89.9, y0)
+    y0 = np.where(y0 == 90, 89.9, y0)
+    y1 = np.where(y1 == -90, -89.9, y1)
+    y1 = np.where(y1 == 90, 89.9, y1)
 
     lon_sw, lat_sw = np.meshgrid(x0, y0)
     lon_se, lat_se = np.meshgrid(x1, y0)
@@ -263,10 +265,10 @@ def pcolormesh(x, y, values, levels=12, proj=None, gridded_metadata={},
 
     # Colormap
 
-    if cmap != None and type(cmap) == str:
+    if cmap is not None and type(cmap) == str:
         cmap = mpl.cm.get_cmap(cmap, n)
         colors = None
-    elif cmap != None:
+    elif cmap is not None:
         cmap = mpl.colors.ListedColormap(cmap)
         colors = None
     elif cmap_file is None:
@@ -334,21 +336,22 @@ def pcolormesh(x, y, values, levels=12, proj=None, gridded_metadata={},
                     },
                     'properties':
                     {
-                        'title': '',
-                        'description': 'Level: {} to {}'.format(lolimit, hilimit),
-
-                        # Propiedades de estilo
-                        'stroke': '#555555',
-                        'stroke-opacity': 1.0,
-                        'stroke-width': 0.0,
-                        #'fill': fill,
-                        'fill-opacity': 0.6,
-
-                        # Opcionales
-                        'hilimit': hilimit,
-                        'lolimit': lolimit,
+#                         'title': '',
+#                         'description': 'Level: {} to {}'.format(lolimit,
+#                                                                 hilimit),
+# 
+#                         # Propiedades de estilo
+#                         'stroke': '#555555',
+#                         'stroke-opacity': 1.0,
+#                         'stroke-width': 0.0,
+#                         #'fill': fill,
+#                         'fill-opacity': 0.6,
+# 
+#                         # Opcionales
+#                         'hilimit': hilimit,
+#                         'lolimit': lolimit,
                     }
-                }
+                    }
 
                 for k, v in gridded_metadata.items():
 #                    print(k, v[..., j, i])

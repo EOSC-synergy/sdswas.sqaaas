@@ -1,0 +1,38 @@
+{
+    "od550_dust": {
+        "name": "Dust Optical Depth",
+        "bounds": [0.1, 0.2, 0.4, 0.8, 1.2, 1.6, 3.2, 6.4],
+        "mul": 1,
+        "title": "Dust Optical Depth (550nm) Forecast run on %(hour)s %(day)s %(month)s %(year)s"
+    },
+    "sconc_dust": {
+        "name": "Dust Surface Concentration",
+        "bounds": [5, 20, 50, 200, 500, 2000, 5000, 20000],
+        "mul": 1e9,
+        "title": "Dust Surface Conc. Forecast run on %(hour)s %(day)s %(month)s %(year)s"
+    },
+    "dust_load": {
+        "name": "Dust Load",
+        "bounds": [0.1, 0.2, 0.4, 0.8, 1.2, 1.6, 3.2, 6.4],
+        "mul": 1e3,
+        "title": "Dust Load Forecast run on %(hour)s %(day)s %(month)s %(year)s"
+    },
+    "dust_depw": {
+        "name": "Dust Wet Deposition",
+        "bounds": [0.5, 5, 10, 50, 100, 400, 800, 1600],
+        "mul": 1e6,
+        "title": "Dust Wet Deposition Forecast run on %(hour)s %(day)s %(month)s %(year)s"
+    },
+    "dust_depd": {
+        "name": "Dust Dry Deposition",
+        "bounds": [0.5, 5, 10, 50, 100, 400, 800, 1600],
+        "mul": 1e6,
+        "title": "Dust Dry Deposition Forecast run on %(hour)s %(day)s %(month)s %(year)s"
+    },
+    "dust_ext_sfc": {
+        "name": "Dust Surface Extinction",
+        "bounds": [5, 10, 25, 100, 250, 1000, 2500, 10000],
+        "mul": 1e6,
+        "title": "Dust Surface Extinction Forecast run on %(hour)s %(day)s %(month)s %(year)s"
+    }
+}

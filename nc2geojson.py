@@ -26,14 +26,15 @@ COLORS = ['#a1ede3', '#5ce3ba', '#fcd775', '#da7230',
 
 BOUNDS = [.1, .2, .4, .8, 1.2, 1.6, 3.2, 6.4]
 
-VARIABLES = ['od550_dust',]
+VARIABLES = ['od550_dust']
+
 
 def nc2geojson(filelist, outdir='.', outfile_tpl=''):
     """ NetCDF(s) to geojson converter """
     print("Converting netCDF(s) ...")
     outfiles = []
 
-    levels = np.array(BOUNDS) # arange(25, 115, 15)
+    levels = np.array(BOUNDS)  # arange(25, 115, 15)
 
     if isinstance(filelist, str):
         # file is global
@@ -87,17 +88,16 @@ def nc2geojson(filelist, outdir='.', outfile_tpl=''):
 
                 metadata = {
                     'value': values,
-                   # 'fill' : fill,
+                    # 'fill' : fill,
                 }
 
                 geojson = jsonator.pcolormesh(lons, lats, values,
                                               levels=levels,
                                               gridded_metadata=metadata,
-                                              #properties=properties,
-                                             )
+                                              properties={},
+                                              )
                 if geojson:
                     features.append(geojson)
-
 
                 if features:
                     merged = json.loads(features[0]).copy()
@@ -111,6 +111,7 @@ def nc2geojson(filelist, outdir='.', outfile_tpl=''):
                         out.write(json.dumps(merged, separators=(',', ':')))
 
             fp.close()
+
 
 if __name__ == "__main__":
     filenames = sys.argv[1]

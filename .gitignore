@@ -2,7 +2,6 @@
 .idea
 *.png
 test-reports
-providentia.egg-info
 .vscode
 .pytest_cache
 .eggs

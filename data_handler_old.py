@@ -7,17 +7,15 @@ import plotly.graph_objs as go
 import matplotlib as mpl
 from matplotlib import cm
 import numpy as np
-from netCDF4 import Dataset as nc_file
-# import xarray as xr
 import math
-import json
+import xarray as xr
+import os.path
 
+import json
+import jmespath
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
-
-# mapbox_access_token = \
-# "pk.eyJ1IjoiZmJlbmluY2EiLCJhIjoiY2p1ODZhdW9qMDZ3eTN5b2IxN2JzdzUyeSJ9.m0QotzSgIz0Bi0gIynzG6A"
 
 animation_time = 900
 transition_time = 300
@@ -40,6 +38,7 @@ _COLORS = [[0, 'rgb(255,255,255)'],
 #           '#9e6226', '#714921', '#392511', '#1d1309']
 COLORS = ['#a1ede3', '#5ce3ba', '#fcd775', '#da7230',
           '#9e6226', '#714921', '#392511', '#1d1309']
+
 
 COLORMAP = mpl.colors.ListedColormap(COLORS)
 # COLORMAP.set_under(COLORS[0])
@@ -72,6 +71,17 @@ def normalize_vals(vals, valsmin, valsmax, rnd=2):
     return np.around((vals-valsmin)/(valsmax-valsmin), rnd)
 
 
+# def scalarmappable(cmap, cmin, cmax):
+#     colormap = cm.get_cmap(cmap)
+#     norm = Normalize(vmin=cmin, vmax=cmax)
+#     return cm.ScalarMappable(norm=norm, cmap=colormap)
+#
+# def get_scatter_colors(sm, df):
+#     grey = 'rgba(128,128,128,1)'
+#     return ['rgba' + str(sm.to_rgba(m, bytes = True, alpha = 1)) \
+#             if not np.isnan(m) else grey for m in df]
+
+
 def get_colorscale(varname):
     """ Create colorscale """
     bounds = np.array(VARS[varname]['bounds']).astype('float32')
@@ -84,7 +94,7 @@ def get_colorscale(varname):
             zip(n_bounds, bounds)]
 
 
-def get_animation_buttons():
+def get_animation_buttons(self):
     """ Returns play and stop buttons """
     return dict(
         type="buttons",
@@ -102,7 +112,7 @@ def get_animation_buttons():
                          fromcurrent=True,
                          mode='immediate'
                          )
-                 ]),
+                      ]),
             dict(label="&#9724;",
                  method="animate",
                  args=[
@@ -113,7 +123,7 @@ def get_animation_buttons():
                          transition=dict(duration=0),
                          mode='immediate'
                          )
-                 ])
+                      ])
             ],
         pad={"r": 0, "t": 0},
         x=0.50,
@@ -123,50 +133,122 @@ def get_animation_buttons():
     )
 
 
+def get_mapbox_style_buttons(self):
+    """ Relayout map with different styles """
+    return dict(
+        type="buttons",
+        direction="left",
+        buttons=list([self.get_mapbox(style, relayout=True) for style in
+                      STYLES.keys()]),
+        pad={"r": 0, "t": 0},
+        showactive=True,
+        x=1.0,
+        y=-0.01,
+        xanchor="right",
+        yanchor="top",
+    )
+
+
+# dict(
+#     type="buttons",
+#     direction="down",
+#     buttons = list([self.retrieve_var_tstep(varname) for
+#                     varname in self.varlist if varname !=
+#                     DEFAULT_VAR]),
+#     pad={"r": 10, "t": 10},
+#     showactive=True,
+#     x=1.1,
+#     xanchor="left",
+#     y=1.06,
+#     yanchor="top"
+# ),
+# annotations=[
+#     dict(
+#         x=1.13,
+#         y=0.99,
+#         align="right",
+#         valign="top",
+#         text='VARIABLES',
+#         showarrow=False,
+#         xref="paper",
+#         yref="paper",
+#         xanchor="center",
+#         yanchor="top"
+#     )
+# ]
+
+
 class FigureHandler(object):
     """ Class to manage the figure creation """
 
-    def __init__(self, filepath):
-        self.input_file = nc_file(filepath)
-        self.lon = self.input_file.variables['lon'][:]
-        self.lat = self.input_file.variables['lat'][:]
-        time_obj = self.input_file.variables['time']
-        self.tim = time_obj[:]
-        self.what, _, rdate = time_obj.units.split()[:3]
-        self.rdatetime = datetime.strptime("{}".format(rdate), "%Y-%m-%d")
-        self.varlist = [var for var in self.input_file.variables if var not in
-                        ('lon', 'lat', 'alt', 'lev', 'longitude',
-                         'latitude', 'altitude', 'levels', 'time')]
-        self.xlon, self.ylat = np.meshgrid(self.lon, self.lat)
+    def __init__(self, filepath, rdate):
+        """ Class initialization """
+        self.filetpl = os.path.join(filepath,
+                                    "{step}_{date}_{variable}.geojson"
+                                    .format(date=rdate))
+        self.rdatetime = datetime.strptime(rdate, "%Y-%m-%d")
+        # self.varlist = [var for var in VARS if var not in
+        #                 ('lon', 'lat', 'alt', 'lev', 'longitude',
+        #                  'latitude', 'altitude', 'levels', 'time')]
         self.bounds = {
             varname: np.array(VARS[varname]['bounds']).astype('float32')
-            for varname in self.varlist
+            for varname in VARS
         }
-
         self.colormaps = {
             varname: get_colorscale(varname)
-            for varname in self.varlist
+            for varname in VARS
+        }
+        self.loaded_data = {}
+
+    def get_geojson(self, filename, varname):
+        """ Return geojson features per color layer """
+        if filename in self.loaded_data:
+            layers = self.loaded_data[filename]
+        else:
+            bounds = self.bounds[varname]
+            print('loading geojson ...')
+            data = json.load(open(filename))
+            print('done')
+
+            print('extractinig features ...')
+            features = {
+                COLORS[b]: jmespath.search(
+                    "features[?properties.value > `{}`] && features[?properties.value <= `{}`]"
+                    .format(bounds[b], bounds[b+1]), data)
+                for b in range(len(bounds)-1)
+            }
+
+            features[COLORS[len(bounds)]] = jmespath.search(
+                "features[?properties.value > `{}`]".format(bounds[-1]), data)
+
+            print([(c, len(f)) for (c, f) in features.items()], 'done')
+
+            layers = [{
+                'sourcetype': 'geojson',
+                'source': {"type": "FeatureCollection", "features":
+                           features[color]},
+                'type': "fill",
+                'below': "traces",
+                'color': color,
+            } for color in features]
+
+            self.loaded_data[filename] = layers
+
+        ret = {
+            'style': "open-street-map",
+            'center': {'lon': 5, 'lat': 15.5},
+            'zoom': 3,
+            'layers': layers,
+            # 'customdata': [feat['properties']['value'] for color in colors
+            # for feat in features[color]]
         }
 
-    def get_mapbox_style_buttons(self):
-        """ Relayout map with different styles """
-        return dict(
-            type="buttons",
-            direction="left",
-            buttons=list([self.get_mapbox(style, relayout=True) for style in
-                          STYLES.keys()]),
-            pad={"r": 0, "t": 0},
-            showactive=True,
-            x=1.0,
-            y=-0.01,
-            xanchor="right",
-            yanchor="top",
-        )
+        print('returning', features["#FEEDA3"][0])
+        return ret
 
     def get_mapbox(self, style='open-street-map', relayout=False):
         """ Returns mapbox layout """
         mapbox_dict = dict(
-            # accesstoken=mapbox_access_token,
             bearing=0,
             center=go.layout.mapbox.Center(
                 lat=(self.lat.max()-self.lat.min())/2 + self.lat.min(),
@@ -183,7 +265,7 @@ class FigureHandler(object):
         return dict(
             args=["mapbox", mapbox_dict],
             label=STYLES[style].capitalize(),
-            method="relayout"
+            method="relayout",
         )
 
     def get_updated_trace(self, varname, tstep=0):
@@ -224,59 +306,56 @@ class FigureHandler(object):
 
     def generate_var_tstep_trace(self, varname, tstep=0):
         """ Generate trace to be added to data, per variable and timestep """
-        xlon, ylat, val = self.set_data(varname, tstep)
+        geojson_file = self.filetpl.format(step=tstep, variable=varname)
         name = VARS[varname]['name']
-        # colorscale = list(zip(norm_bounds, COLORS))
-        # colorscale = get_colorscale(norm_bounds, bounds)
-        colorscale = self.colormaps[varname]
+        # colorscale = self.colormaps[varname]
         # print(name, magn, norm_bounds, colorscale)
         return dict(
             type='scattermapbox',
-            lon=xlon,
-            lat=ylat,
-            text=val,
-            mode='markers',
-            showlegend=False,
-            opacity=0.6,
-            # fill=val,
-            name=name,
-            hovertemplate="""lon: %{lon:.4f}<br>
-                       lat: %{lat:.4f}<br>
-                       value: %{text:.4f}<br>""",
-            marker=dict(
-                # autocolorscale=True,
-                color=val,
-                size=8,
-                colorscale=colorscale,
-                opacity=0.6,
-                colorbar={
-                    "borderwidth": 0,
-                    "outlinewidth": 0,
-                    "thickness": 15,
-                    "tickfont": {"size": 14},
-                    "tickmode": "array",
-                    "tickvals": self.bounds[varname],
-                },
-                cmin=self.bounds[varname][0],
-                cmax=self.bounds[varname][-1],
-                # showscale=True,
-            ),
-
+#             lon=xlon,
+#             lat=ylat,
+#             text=val,
+#             # mode='lines',
+#             showlegend=False,
+#             opacity=0.6,
+#             # fill="toself",
+#             name=name,
+#             hovertemplate=\
+#                 """lon: %{lon:.4f}<br>lat: %{lat:.4f}<br>value:%{text:.4f}<br>""",
+#             marker=dict(
+#                 autocolorscale=True,
+#                 color=val,
+#                 size=8,
+#                 colorscale=colorscale,
+#                 opacity=0.6,
+#                 colorbar={
+#                     "borderwidth": 0,
+#                     "outlinewidth": 0,
+#                     "thickness": 15,
+#                     "tickfont": {"size": 14},
+#                     "tickmode": "array",
+#                     "tickvals": self.bounds[varname],
+#                     # "title": "ºC",
+#                 },  # gives your legend some units
+#                 cmin=self.bounds[varname][0],
+#                 cmax=self.bounds[varname][-1],
+#                 # showscale=True,
+#             ),
         )
 
     def retrieve_var_tstep(self, varname, tstep=0):
         """ run plot """
         fig = go.Figure()
         tstep = int(tstep)
-        cdatetime = self.retrieve_cdatetime(tstep)
-        fig.add_trace(self.generate_var_tstep_trace(varname, tstep))
+#         cdatetime = self.retrieve_cdatetime(tstep)
+#         fig.add_trace(self.generate_var_tstep_trace(varname, tstep))
 
-        title = VARS[varname]['title'] % {
-            'hour':  cdatetime.strftime("%H"),
-            'day':   cdatetime.strftime("%d"),
-            'month': cdatetime.strftime("%b"),
-            'year':  cdatetime.strftime("%Y"),
-        }
+#         title = VARS[varname]['title'] % {
+#             'hour':  cdatetime.strftime("%H"),
+#             'day':   cdatetime.strftime("%d"),
+#             'month': cdatetime.strftime("%b"),
+#             'year':  cdatetime.strftime("%Y"),
+#         }
 
         # axis_style = dict(
         #     zeroline=False,
@@ -312,7 +391,7 @@ class FigureHandler(object):
                                 transition=dict(
                                     duration=slider_transition_time,
                                     easing="quadratic-in-out",
-                                )
+                                 )
                             )
                         ],
                         label='{:d}'.format(tstep*3),
@@ -336,19 +415,30 @@ class FigureHandler(object):
                 )
         ]
 
+        # print([st['args'][0] for st in sliders[0]['steps']])
+
         fig.update_layout(
             title=dict(text=title, y=0.95),
             autosize=True,
-            hovermode="closest",        # highlight closest point on hover
-            mapbox=self.get_mapbox(),
+            hovermode="closest",
+            mapbox=get_mapbox(),
+            showlegend=False,
+            # margin={'l':0, 'r':0, 'b':0, 't':0},
             width=1200,
             height=800,
             updatemenus=[
                 get_animation_buttons(),
-                self.get_mapbox_style_buttons(),
+                get_mapbox_style_buttons(),
             ],
-
             sliders=sliders
         )
 
+        # return dict(data=data, layout=layout)
         return fig
+
+# if __name__ == "__main__":
+#     FIG = FigureHandler().run_plot()
+#     py.iplot(FIG, filename="dust_out.html") #, width=1000)
+#     plotly.plot(FIG,
+#     filename='/esarchive/scratch/Earth/fbeninca/plotly_test/test.html',
+#     auto_open=False)
