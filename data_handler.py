@@ -5,6 +5,7 @@
 # import plotly
 import plotly.graph_objs as go
 import matplotlib as mpl
+import matplotlib.pyplot as plt
 from matplotlib import cm
 import numpy as np
 from netCDF4 import Dataset as nc_file
@@ -15,9 +16,6 @@ import json
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
-
-# mapbox_access_token = \
-# "pk.eyJ1IjoiZmJlbmluY2EiLCJhIjoiY2p1ODZhdW9qMDZ3eTN5b2IxN2JzdzUyeSJ9.m0QotzSgIz0Bi0gIynzG6A"
 
 animation_time = 900
 transition_time = 300
@@ -41,9 +39,9 @@ _COLORS = [[0, 'rgb(255,255,255)'],
 COLORS = ['#a1ede3', '#5ce3ba', '#fcd775', '#da7230',
           '#9e6226', '#714921', '#392511', '#1d1309']
 
-COLORMAP = mpl.colors.ListedColormap(COLORS)
+COLORMAP = mpl.colors.ListedColormap(COLORS[:-1])
 # COLORMAP.set_under(COLORS[0])
-# COLORMAP.set_over(COLORS[-1])
+COLORMAP.set_over(COLORS[-1])
 
 VARS = json.load(open('conf/vars.json'))
 
@@ -57,6 +55,53 @@ STYLES = {
     "stamen-toner": "White/Black",
     "stamen-watercolor": "Watercolor"
 }
+
+
+def get_polygons(cs):
+    """ """
+    filled_areas = {}
+    # parent = None
+    for i, patch in enumerate(cs.collections):  # Contour
+        polygons = {
+            'lon': [],
+            'lat': []
+        }
+
+        for path in patch.get_paths():
+            # get numpy array
+            for poly in path.to_polygons():  # Poligons in a contour
+                # curr = mpl.path.Path(poly, closed=True)
+                # coords = poly.tolist()
+
+                polygons['lon'].extend(
+                    [None] + poly.T[0].round(4).tolist()
+                )
+                polygons['lat'].extend(
+                    [None] + poly.T[1].round(4).tolist()
+                )
+
+#                if len(coords) > 3:
+#                    if parent is None or not parent.contains_path(curr):
+#                        polygons['lon'].extend(
+#                            [None] + poly.T[0].round(4).tolist()
+#                        )
+#                        polygons['lat'].extend(
+#                            [None] + poly.T[1].round(4).tolist()
+#                        )
+#                        parent = curr
+#                    else:
+#                        polygons['lon'].extend(poly.T[0].round(4).tolist())
+#                        polygons['lat'].extend(poly.T[1].round(4).tolist())
+
+        # Get color
+
+        color = cs.tcolors[i]
+        r, g, b, a = [int(c * 255) for c in color[0]]
+        fill = '#{:02x}{:02x}{:02x}'.format(r, g, b)
+
+        filled_areas[fill] = polygons
+
+    return filled_areas
 
 
 def magnitude(num):
@@ -199,7 +244,7 @@ class FigureHandler(object):
         """ Set time dependent data """
         mul = VARS[varname]['mul']
         var = self.input_file.variables[varname][tstep]*mul
-        idx = np.where(var.ravel() >= VARS[varname]['bounds'][1])  # !=-9.e+33)
+        idx = np.where(var.ravel() >= VARS[varname]['bounds'][0])  # !=-9.e+33)
         # print(x.ravel()[idx])
         xlon = self.xlon.ravel()[idx]
         ylat = self.ylat.ravel()[idx]
@@ -222,6 +267,37 @@ class FigureHandler(object):
         # print(cdatetime.strftime("%Y%m%d %H:%M"), tstep)
         return cdatetime
 
+    def generate_contour_tstep_trace(self, varname, tstep=0):
+        """ Generate trace to be added to data, per variable and timestep """
+        mul = VARS[varname]['mul']
+        var = self.input_file.variables[varname][tstep]*mul
+        bounds = self.bounds[varname]
+        norm = mpl.colors.BoundaryNorm(bounds, len(bounds)-1, clip=True)
+        cs = plt.contourf(self.xlon, self.ylat, var, bounds, norm=norm,
+                          cmap=COLORMAP, extend='max')
+        filled_areas = get_polygons(cs)
+        traces = []
+        for fill in filled_areas:
+            print(fill)  # , filled_areas[fill])
+            traces.append(dict(
+                type='scattermapbox',
+                lon=filled_areas[fill]['lon'],
+                lat=filled_areas[fill]['lat'],
+                mode='lines',
+                showlegend=False,
+                opacity=0.6,
+                fill='toself',
+                fillcolor=fill,
+                hoverinfo='none',
+                marker=dict(
+                    opacity=0.6,
+                    color='red',
+                    size=0,
+                )
+            ))
+
+        return traces
+
     def generate_var_tstep_trace(self, varname, tstep=0):
         """ Generate trace to be added to data, per variable and timestep """
         xlon, ylat, val = self.set_data(varname, tstep)
@@ -237,18 +313,17 @@ class FigureHandler(object):
             text=val,
             mode='markers',
             showlegend=False,
-            opacity=0.6,
+            # opacity=0.6,
             # fill=val,
             name=name,
-            hovertemplate="""lon: %{lon:.4f}<br>
-                       lat: %{lat:.4f}<br>
-                       value: %{text:.4f}<br>""",
+            hovertemplate="lon: %{lon:.4f}<br>lat: %{lat:.4f}<br>" + \
+                          "value: %{text:.4f}",
             marker=dict(
                 # autocolorscale=True,
                 color=val,
-                size=8,
+                size=0,
                 colorscale=colorscale,
-                opacity=0.6,
+                # opacity=0.6,
                 colorbar={
                     "borderwidth": 0,
                     "outlinewidth": 0,
@@ -259,7 +334,7 @@ class FigureHandler(object):
                 },
                 cmin=self.bounds[varname][0],
                 cmax=self.bounds[varname][-1],
-                # showscale=True,
+                showscale=True,
             ),
 
         )
@@ -270,6 +345,8 @@ class FigureHandler(object):
         tstep = int(tstep)
         cdatetime = self.retrieve_cdatetime(tstep)
         fig.add_trace(self.generate_var_tstep_trace(varname, tstep))
+        for trace in self.generate_contour_tstep_trace(varname, tstep):
+            fig.add_trace(trace)
 
         title = VARS[varname]['title'] % {
             'hour':  cdatetime.strftime("%H"),
@@ -291,7 +368,7 @@ class FigureHandler(object):
                 data=self.generate_var_tstep_trace(varname, tstep=num),
                 # traces=[0],
                 name=varname+str(num))
-            for num in range(25)
+            for num in range(self.tim.size)
         ]
 
         fig['frames'] = frames
@@ -318,7 +395,7 @@ class FigureHandler(object):
                         label='{:d}'.format(tstep*3),
                         value=tstep,
                     )
-                    for tstep in range(25)
+                    for tstep in range(self.tim.size)
                 ],
                 transition=dict(duration=slider_transition_time,
                                 easing="cubic-in-out"),
