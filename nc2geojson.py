@@ -91,7 +91,7 @@ def nc2geojson(filelist, outdir='.', outfile_tpl=''):
                     # 'fill' : fill,
                 }
 
-                geojson = jsonator.pcolormesh(lons, lats, values,
+                geojson = jsonator.contourf(lons, lats, values,
                                               levels=levels,
                                               gridded_metadata=metadata,
                                               properties={},

@@ -15,10 +15,10 @@ import os
 external_stylesheets = ['{}/css/dZVMbK.css'.format(os.getcwd())]
 print(external_stylesheets)
 
-colors = {
-    'background': '#111111',
-    'text': '#7FDBFF'
-}
+#colors = {
+#    'background': '#111111',
+#    'text': '#7FDBFF'
+#}
 
 start_date = "20190701"
 end_date = "20190710"
@@ -31,9 +31,9 @@ FH = FigureHandler(F_PATH)
 def get_figure(var, tstep=0):
     """ Retrieve figure """
     figure = FH.retrieve_var_tstep(var, tstep)
-    figure['layout']['plot_bgcolor'] = colors['background']
-    figure['layout']['paper_bgcolor'] = colors['background']
-    figure['layout']['font'] = {'color': colors['text']}
+#    figure['layout']['plot_bgcolor'] = colors['background']
+#    figure['layout']['paper_bgcolor'] = colors['background']
+#    figure['layout']['font'] = {'color': colors['text']}
     return figure
 
 
@@ -41,7 +41,7 @@ app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
 app.layout = html.Div(
     style={
-        'backgroundColor': colors['background'],
+#        'backgroundColor': colors['background'],
         'textAlign': 'center',
         'margin': 0,
         'padding': '10px',

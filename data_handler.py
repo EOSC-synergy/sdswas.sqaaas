@@ -60,7 +60,7 @@ STYLES = {
 def get_polygons(cs):
     """ """
     filled_areas = {}
-    # parent = None
+    parent = None
     for i, patch in enumerate(cs.collections):  # Contour
         polygons = {
             'lon': [],
@@ -70,8 +70,8 @@ def get_polygons(cs):
         for path in patch.get_paths():
             # get numpy array
             for poly in path.to_polygons():  # Poligons in a contour
-                # curr = mpl.path.Path(poly, closed=True)
-                # coords = poly.tolist()
+                curr = mpl.path.Path(poly, closed=True)
+                coords = poly.tolist()
 
                 polygons['lon'].extend(
                     [None] + poly.T[0].round(4).tolist()
@@ -90,14 +90,15 @@ def get_polygons(cs):
 #                        )
 #                        parent = curr
 #                    else:
-#                        polygons['lon'].extend(poly.T[0].round(4).tolist())
-#                        polygons['lat'].extend(poly.T[1].round(4).tolist())
+#                        polygons['lon'].append(poly.T[0].round(4).tolist())
+#                        polygons['lat'].append(poly.T[1].round(4).tolist())
 
         # Get color
 
         color = cs.tcolors[i]
         r, g, b, a = [int(c * 255) for c in color[0]]
-        fill = '#{:02x}{:02x}{:02x}'.format(r, g, b)
+        # fill = '#{:02x}{:02x}{:02x}'.format(r, g, b)
+        fill = 'rgba({},{},{},.5)'.format(r, g, b)
 
         filled_areas[fill] = polygons
 
@@ -284,19 +285,43 @@ class FigureHandler(object):
                 lon=filled_areas[fill]['lon'],
                 lat=filled_areas[fill]['lat'],
                 mode='lines',
-                showlegend=False,
-                opacity=0.6,
+                showlegend=True,
+                visible='legendonly',
                 fill='toself',
                 fillcolor=fill,
                 hoverinfo='none',
                 marker=dict(
-                    opacity=0.6,
-                    color='red',
+                    color=fill,
                     size=0,
                 )
             ))
 
         return traces
+
+    def generate_density_tstep_trace(self, varname, tstep=0):
+        """ Generate trace to be added to data, per variable and timestep """
+        xlon, ylat, val = self.set_data(varname, tstep)
+        name = VARS[varname]['name']
+        # colorscale = list(zip(norm_bounds, COLORS))
+        # colorscale = get_colorscale(norm_bounds, bounds)
+        colorscale = self.colormaps[varname]
+        # print(name, magn, norm_bounds, colorscale)
+        return dict(
+            type='densitymapbox',
+            lon=xlon,
+            lat=ylat,
+            text=val,
+            # mode='markers',
+            showlegend=True,
+            visible='legendonly',
+            opacity=0.6,
+            z=val,
+            radius=5,
+            name=name+'_density',
+            colorscale=colorscale,
+            hovertemplate="lon: %{lon:.4f}<br>lat: %{lat:.4f}<br>" + \
+                          "value: %{text:.4f}",
+        )
 
     def generate_var_tstep_trace(self, varname, tstep=0):
         """ Generate trace to be added to data, per variable and timestep """
@@ -311,17 +336,16 @@ class FigureHandler(object):
             lon=xlon,
             lat=ylat,
             text=val,
-            mode='markers',
-            showlegend=False,
-            # opacity=0.6,
-            # fill=val,
-            name=name,
+            # mode='markers',
+            showlegend=True,
+            opacity=0.6,
+            name=name+'_points',
             hovertemplate="lon: %{lon:.4f}<br>lat: %{lat:.4f}<br>" + \
                           "value: %{text:.4f}",
             marker=dict(
                 # autocolorscale=True,
                 color=val,
-                size=0,
+                size=5,
                 colorscale=colorscale,
                 # opacity=0.6,
                 colorbar={
@@ -345,6 +369,7 @@ class FigureHandler(object):
         tstep = int(tstep)
         cdatetime = self.retrieve_cdatetime(tstep)
         fig.add_trace(self.generate_var_tstep_trace(varname, tstep))
+        fig.add_trace(self.generate_density_tstep_trace(varname, tstep))
         for trace in self.generate_contour_tstep_trace(varname, tstep):
             fig.add_trace(trace)
 
@@ -366,7 +391,6 @@ class FigureHandler(object):
         frames = [
             dict(
                 data=self.generate_var_tstep_trace(varname, tstep=num),
-                # traces=[0],
                 name=varname+str(num))
             for num in range(self.tim.size)
         ]

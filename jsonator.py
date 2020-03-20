@@ -51,7 +51,7 @@ def ncl_colors(path, rev=False, n=None):
     return colors
 
 
-def contourf(lon, lat, values, levels=None, cmap_file=None, cmap_rev=False,
+def contourf(lon, lat, values, levels=None, cmap=None, cmap_file=None, cmap_rev=False,
              pretty_print=False, custom_properties={}):
 
     data = np.ma.fix_invalid(values)
@@ -61,10 +61,16 @@ def contourf(lon, lat, values, levels=None, cmap_file=None, cmap_rev=False,
     else:
         n = len(levels)
 
-    if cmap_file is None:
+    if cmap is not None and type(cmap) == str:
+        cmap = mpl.cm.get_cmap(cmap, n)
+        colors = None
+    elif cmap is not None:
+        cmap = mpl.colors.ListedColormap(cmap)
+        colors = None
+    elif cmap_file is None:
         cmap = None
     else:
-        cmap = ncl_colors(cmap_file, n=n-1, rev=cmap_rev)
+        cmap = ncl_colors(cmap_file, n=n, rev=cmap_rev)
 
     if levels is None:
         cs = plt.contourf(lon, lat, data, n, colors=cmap)
@@ -127,7 +133,7 @@ def contourf(lon, lat, values, levels=None, cmap_file=None, cmap_rev=False,
 #             'stroke': '#555555',
 #             'stroke-opacity': 1.0,
 #             'stroke-width': 0.0,
-#             'fill': fill,
+             'fillcolor': fill,
 #             'fill-opacity': 0.6,
 # 
 #             # Opcionales
