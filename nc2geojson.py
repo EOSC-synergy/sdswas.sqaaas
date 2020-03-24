@@ -93,8 +93,8 @@ def nc2geojson(filelist, outdir='.', outfile_tpl=''):
 
                 geojson = jsonator.contourf(lons, lats, values,
                                               levels=levels,
-                                              gridded_metadata=metadata,
-                                              properties={},
+                                              # gridded_metadata=metadata,
+                                              # properties={},
                                               )
                 if geojson:
                     features.append(geojson)

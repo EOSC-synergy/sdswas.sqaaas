@@ -63,10 +63,8 @@ def contourf(lon, lat, values, levels=None, cmap=None, cmap_file=None, cmap_rev=
 
     if cmap is not None and type(cmap) == str:
         cmap = mpl.cm.get_cmap(cmap, n)
-        colors = None
     elif cmap is not None:
         cmap = mpl.colors.ListedColormap(cmap)
-        colors = None
     elif cmap_file is None:
         cmap = None
     else:
@@ -134,11 +132,12 @@ def contourf(lon, lat, values, levels=None, cmap=None, cmap_file=None, cmap_rev=
 #             'stroke-opacity': 1.0,
 #             'stroke-width': 0.0,
              'fillcolor': fill,
+             'value': (hilimit+lolimit)/2,
 #             'fill-opacity': 0.6,
 # 
 #             # Opcionales
-#             'hilimit': hilimit,
-#             'lolimit': lolimit
+             'hilimit': hilimit,
+             'lolimit': lolimit
         }
 
         properties.update(custom_properties)

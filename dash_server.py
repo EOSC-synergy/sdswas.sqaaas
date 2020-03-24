@@ -5,14 +5,15 @@
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
+
 # from dash.dependencies import Input, Output
 from data_handler import FigureHandler
 from data_handler import DEFAULT_VAR
 
-import os
+# import os
 
-# external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
-external_stylesheets = ['{}/css/dZVMbK.css'.format(os.getcwd())]
+external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+# external_stylesheets = ['{}/css/dZVMbK.css'.format(os.getcwd())]
 print(external_stylesheets)
 
 #colors = {
@@ -30,14 +31,12 @@ FH = FigureHandler(F_PATH)
 
 def get_figure(var, tstep=0):
     """ Retrieve figure """
-    figure = FH.retrieve_var_tstep(var, tstep)
-#    figure['layout']['plot_bgcolor'] = colors['background']
-#    figure['layout']['paper_bgcolor'] = colors['background']
-#    figure['layout']['font'] = {'color': colors['text']}
-    return figure
+    return FH.retrieve_var_tstep(var, tstep)
 
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+# server = app.server
+app.config.suppress_callback_exceptions = True
 
 app.layout = html.Div(
     style={

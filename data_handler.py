@@ -5,7 +5,7 @@
 # import plotly
 import plotly.graph_objs as go
 import matplotlib as mpl
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 from matplotlib import cm
 import numpy as np
 from netCDF4 import Dataset as nc_file
@@ -18,8 +18,8 @@ from dateutil.relativedelta import relativedelta
 
 
 animation_time = 900
-transition_time = 300
-slider_transition_time = 300
+transition_time = 500
+slider_transition_time = 500
 
 
 _COLORS = [[0, 'rgb(255,255,255)'],
@@ -39,6 +39,29 @@ _COLORS = [[0, 'rgb(255,255,255)'],
 COLORS = ['#a1ede3', '#5ce3ba', '#fcd775', '#da7230',
           '#9e6226', '#714921', '#392511', '#1d1309']
 
+COLORSCALE = [
+    [0.0, 'rgba(161, 237, 227, 255)'],
+    [0.02, 'rgba(161, 237, 227, 255)'],
+
+    [0.02, 'rgba(92, 227, 186, 255)'],
+    [0.05, 'rgba(92, 227, 186, 255)'],
+
+    [0.05, 'rgba(252, 215, 117, 255)'],
+    [0.11, 'rgba(252, 215, 117, 255)'],
+
+    [0.11, 'rgba(218, 114, 48, 255)'],
+    [0.17, 'rgba(218, 114, 48, 255)'],
+
+    [0.17, 'rgba(158, 98, 38, 255)'],
+    [0.24, 'rgba(158, 98, 38, 255)'],
+
+    [0.24, 'rgba(113, 73, 33, 255)'],
+    [0.49, 'rgba(113, 73, 33, 255)'],
+
+    [0.49, 'rgba(57, 37, 17, 255)'],
+    [1.0, 'rgba(57, 37, 17, 255)']
+]
+
 COLORMAP = mpl.colors.ListedColormap(COLORS[:-1])
 # COLORMAP.set_under(COLORS[0])
 COLORMAP.set_over(COLORS[-1])
@@ -55,54 +78,6 @@ STYLES = {
     "stamen-toner": "White/Black",
     "stamen-watercolor": "Watercolor"
 }
-
-
-def get_polygons(cs):
-    """ """
-    filled_areas = {}
-    parent = None
-    for i, patch in enumerate(cs.collections):  # Contour
-        polygons = {
-            'lon': [],
-            'lat': []
-        }
-
-        for path in patch.get_paths():
-            # get numpy array
-            for poly in path.to_polygons():  # Poligons in a contour
-                curr = mpl.path.Path(poly, closed=True)
-                coords = poly.tolist()
-
-                polygons['lon'].extend(
-                    [None] + poly.T[0].round(4).tolist()
-                )
-                polygons['lat'].extend(
-                    [None] + poly.T[1].round(4).tolist()
-                )
-
-#                if len(coords) > 3:
-#                    if parent is None or not parent.contains_path(curr):
-#                        polygons['lon'].extend(
-#                            [None] + poly.T[0].round(4).tolist()
-#                        )
-#                        polygons['lat'].extend(
-#                            [None] + poly.T[1].round(4).tolist()
-#                        )
-#                        parent = curr
-#                    else:
-#                        polygons['lon'].append(poly.T[0].round(4).tolist())
-#                        polygons['lat'].append(poly.T[1].round(4).tolist())
-
-        # Get color
-
-        color = cs.tcolors[i]
-        r, g, b, a = [int(c * 255) for c in color[0]]
-        # fill = '#{:02x}{:02x}{:02x}'.format(r, g, b)
-        fill = 'rgba({},{},{},.5)'.format(r, g, b)
-
-        filled_areas[fill] = polygons
-
-    return filled_areas
 
 
 def magnitude(num):
@@ -126,8 +101,12 @@ def get_colorscale(varname):
     norm = mpl.colors.BoundaryNorm(bounds, len(bounds)-1, clip=True)
     s_map = cm.ScalarMappable(norm=norm, cmap=COLORMAP)
 
-    return [[idx, 'rgba' + str(s_map.to_rgba(val, bytes=True))] for idx, val in
+    colorscale = [[idx, 'rgba' + str(s_map.to_rgba(val, alpha=True, bytes=True,
+                                             norm=True))] for idx, val in
             zip(n_bounds, bounds)]
+
+    print(colorscale)
+    return colorscale
 
 
 def get_animation_buttons():
@@ -163,7 +142,7 @@ def get_animation_buttons():
             ],
         pad={"r": 0, "t": 0},
         x=0.50,
-        y=1.06,
+        y=1.07,
         xanchor="right",
         yanchor="top"
     )
@@ -270,85 +249,55 @@ class FigureHandler(object):
 
     def generate_contour_tstep_trace(self, varname, tstep=0):
         """ Generate trace to be added to data, per variable and timestep """
-        mul = VARS[varname]['mul']
-        var = self.input_file.variables[varname][tstep]*mul
-        bounds = self.bounds[varname]
-        norm = mpl.colors.BoundaryNorm(bounds, len(bounds)-1, clip=True)
-        cs = plt.contourf(self.xlon, self.ylat, var, bounds, norm=norm,
-                          cmap=COLORMAP, extend='max')
-        filled_areas = get_polygons(cs)
-        traces = []
-        for fill in filled_areas:
-            print(fill)  # , filled_areas[fill])
-            traces.append(dict(
-                type='scattermapbox',
-                lon=filled_areas[fill]['lon'],
-                lat=filled_areas[fill]['lat'],
-                mode='lines',
-                showlegend=True,
-                visible='legendonly',
-                fill='toself',
-                fillcolor=fill,
-                hoverinfo='none',
-                marker=dict(
-                    color=fill,
-                    size=0,
-                )
-            ))
-
-        return traces
-
-    def generate_density_tstep_trace(self, varname, tstep=0):
-        """ Generate trace to be added to data, per variable and timestep """
-        xlon, ylat, val = self.set_data(varname, tstep)
+        geojson = \
+            json.load(open("./data/geojson/{:02d}_2019-07-10_{}.geojson"
+                           .format(tstep, varname)))
         name = VARS[varname]['name']
-        # colorscale = list(zip(norm_bounds, COLORS))
-        # colorscale = get_colorscale(norm_bounds, bounds)
-        colorscale = self.colormaps[varname]
-        # print(name, magn, norm_bounds, colorscale)
+        bounds = self.bounds[varname]
+        colorscale = COLORSCALE  # self.colormaps[varname]
+        # mul = VARS[varname]['mul']
+        # ivar = self.input_file.variables[varname][tstep]*mul
+        values = []
+        for geo_id, feature in enumerate(geojson['features']):
+            values.append(feature['properties']['value'])
+            feature['id'] = geo_id
         return dict(
-            type='densitymapbox',
-            lon=xlon,
-            lat=ylat,
-            text=val,
-            # mode='markers',
-            showlegend=True,
-            visible='legendonly',
-            opacity=0.6,
-            z=val,
-            radius=5,
-            name=name+'_density',
+            type='choroplethmapbox',
+            name=name+'_contours',
+            geojson=geojson,
+            z=values,
+            locations=["{}".format(i) for i in range(len(values))],
+            zmin=bounds[0], zmax=bounds[-1],
             colorscale=colorscale,
-            hovertemplate="lon: %{lon:.4f}<br>lat: %{lat:.4f}<br>" + \
-                          "value: %{text:.4f}",
+            showscale=False,
+            hoverinfo='none',
+            marker=dict(
+                opacity=0.6,
+                line_width=0,
+            )
         )
 
     def generate_var_tstep_trace(self, varname, tstep=0):
         """ Generate trace to be added to data, per variable and timestep """
         xlon, ylat, val = self.set_data(varname, tstep)
         name = VARS[varname]['name']
-        # colorscale = list(zip(norm_bounds, COLORS))
-        # colorscale = get_colorscale(norm_bounds, bounds)
-        colorscale = self.colormaps[varname]
-        # print(name, magn, norm_bounds, colorscale)
+        colorscale = COLORSCALE  # self.colormaps[varname]
         return dict(
             type='scattermapbox',
             lon=xlon,
             lat=ylat,
             text=val,
-            # mode='markers',
-            showlegend=True,
-            opacity=0.6,
-            name=name+'_points',
-            hovertemplate="lon: %{lon:.4f}<br>lat: %{lat:.4f}<br>" + \
+            name=name,
+            hovertemplate="lon: %{lon:.4f}<br>lat: %{lat:.4f}<br>" +
                           "value: %{text:.4f}",
             marker=dict(
                 # autocolorscale=True,
                 color=val,
-                size=5,
+                size=0,
                 colorscale=colorscale,
-                # opacity=0.6,
                 colorbar={
+                    "tick0": self.bounds[varname][0],
+                    "dtick": 1,
                     "borderwidth": 0,
                     "outlinewidth": 0,
                     "thickness": 15,
@@ -368,10 +317,8 @@ class FigureHandler(object):
         fig = go.Figure()
         tstep = int(tstep)
         cdatetime = self.retrieve_cdatetime(tstep)
+        fig.add_trace(self.generate_contour_tstep_trace(varname, tstep))
         fig.add_trace(self.generate_var_tstep_trace(varname, tstep))
-        fig.add_trace(self.generate_density_tstep_trace(varname, tstep))
-        for trace in self.generate_contour_tstep_trace(varname, tstep):
-            fig.add_trace(trace)
 
         title = VARS[varname]['title'] % {
             'hour':  cdatetime.strftime("%H"),
@@ -388,16 +335,13 @@ class FigureHandler(object):
         #     showticklabels=False,
         # )
 
-        frames = [
+        fig['frames'] = [
             dict(
-                data=self.generate_var_tstep_trace(varname, tstep=num),
+                data=[self.generate_var_tstep_trace(varname, tstep=num),
+                      self.generate_contour_tstep_trace(varname, tstep=num)],
                 name=varname+str(num))
             for num in range(self.tim.size)
         ]
-
-        fig['frames'] = frames
-
-        # print([f['name'] for f in frames])
 
         sliders = [
             dict(
@@ -424,7 +368,7 @@ class FigureHandler(object):
                 transition=dict(duration=slider_transition_time,
                                 easing="cubic-in-out"),
                 x=1.0,
-                y=1.06,
+                y=1.08,
                 len=0.49,
                 pad={"r": 0, "t": 0},
                 xanchor="right",
@@ -448,7 +392,7 @@ class FigureHandler(object):
                 get_animation_buttons(),
                 self.get_mapbox_style_buttons(),
             ],
-
+            # margin={"r": 0, "t": 0.1, "l": 0.1, "b": 0.1},
             sliders=sliders
         )
 

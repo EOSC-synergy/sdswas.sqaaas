@@ -2,7 +2,7 @@ module load \
     dash/1.9.0-foss-2015a-Python-3.7.3 \
     numpy/1.16.4-foss-2015a-Python-3.7.3 \
     matplotlib/3.1.1-foss-2015a-Python-3.7.3 \
-    plotly/4.5.0-foss-2015a-Python-3.7.3 \
+    plotly/4.5.4-foss-2015a-Python-3.7.3 \
     jupyterlab/1.2.2-foss-2015a-Python-3.7.3 \
     wily/1.13.0-foss-2015a-Python-3.7.3 \
     xarray/0.13.0-foss-2015a-Python-3.7.3
