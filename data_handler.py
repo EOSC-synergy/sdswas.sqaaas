@@ -6,12 +6,13 @@
 import plotly.graph_objs as go
 import matplotlib as mpl
 # import matplotlib.pyplot as plt
-from matplotlib import cm
 import numpy as np
 from netCDF4 import Dataset as nc_file
 # import xarray as xr
-import math
 import json
+
+from utils import get_colorscale
+from utils import get_animation_buttons
 
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
@@ -80,74 +81,6 @@ STYLES = {
 }
 
 
-def magnitude(num):
-    """ Calculate magnitude """
-    return int(math.floor(math.log10(num)))
-
-
-def normalize_vals(vals, valsmin, valsmax, rnd=2):
-    """ Normalize values to 0-1 scale """
-    vals = np.array(vals)
-    if rnd < 2:
-        rnd = 2
-    return np.around((vals-valsmin)/(valsmax-valsmin), rnd)
-
-
-def get_colorscale(varname):
-    """ Create colorscale """
-    bounds = np.array(VARS[varname]['bounds']).astype('float32')
-    magn = magnitude(bounds[-1])
-    n_bounds = normalize_vals(bounds, bounds[0], bounds[-1], magn)
-    norm = mpl.colors.BoundaryNorm(bounds, len(bounds)-1, clip=True)
-    s_map = cm.ScalarMappable(norm=norm, cmap=COLORMAP)
-
-    colorscale = [[idx, 'rgba' + str(s_map.to_rgba(val, alpha=True, bytes=True,
-                                             norm=True))] for idx, val in
-            zip(n_bounds, bounds)]
-
-    print(colorscale)
-    return colorscale
-
-
-def get_animation_buttons():
-    """ Returns play and stop buttons """
-    return dict(
-        type="buttons",
-        direction="left",
-        buttons=[
-            dict(label="&#9654;",
-                 method="animate",
-                 args=[
-                     None,
-                     dict(
-                         frame=dict(duration=animation_time,
-                                    redraw=True),
-                         transition=dict(duration=transition_time,
-                                         easing="quadratic-in-out"),
-                         fromcurrent=True,
-                         mode='immediate'
-                         )
-                 ]),
-            dict(label="&#9724;",
-                 method="animate",
-                 args=[
-                     [None],
-                     dict(
-                         frame=dict(duration=0,
-                                    redraw=False),
-                         transition=dict(duration=0),
-                         mode='immediate'
-                         )
-                 ])
-            ],
-        pad={"r": 0, "t": 0},
-        x=0.50,
-        y=1.07,
-        xanchor="right",
-        yanchor="top"
-    )
-
-
 class FigureHandler(object):
     """ Class to manage the figure creation """
 
@@ -169,7 +102,7 @@ class FigureHandler(object):
         }
 
         self.colormaps = {
-            varname: get_colorscale(varname)
+            varname: get_colorscale(varname, self.bounds[varname], COLORMAP)
             for varname in self.varlist
         }
 
@@ -225,7 +158,6 @@ class FigureHandler(object):
         mul = VARS[varname]['mul']
         var = self.input_file.variables[varname][tstep]*mul
         idx = np.where(var.ravel() >= VARS[varname]['bounds'][0])  # !=-9.e+33)
-        # print(x.ravel()[idx])
         xlon = self.xlon.ravel()[idx]
         ylat = self.ylat.ravel()[idx]
         var = var.ravel()[idx]
@@ -234,7 +166,6 @@ class FigureHandler(object):
 
     def retrieve_cdatetime(self, tstep=0):
         """ Retrieve data from NetCDF file """
-        # print(type(self.tim), self.tim[tstep], type(tstep), tstep)
         if self.what == 'days':
             cdatetime = self.rdatetime + relativedelta(days=self.tim[tstep])
         elif self.what == 'hours':
@@ -244,7 +175,6 @@ class FigureHandler(object):
         elif self.what == 'seconds':
             cdatetime = self.rdatetime + relativedelta(seconds=self.tim[tstep])
 
-        # print(cdatetime.strftime("%Y%m%d %H:%M"), tstep)
         return cdatetime
 
     def generate_contour_tstep_trace(self, varname, tstep=0):
@@ -255,15 +185,14 @@ class FigureHandler(object):
         name = VARS[varname]['name']
         bounds = self.bounds[varname]
         colorscale = COLORSCALE  # self.colormaps[varname]
-        # mul = VARS[varname]['mul']
-        # ivar = self.input_file.variables[varname][tstep]*mul
+        mul = VARS[varname]['mul']
         values = []
         for geo_id, feature in enumerate(geojson['features']):
-            values.append(feature['properties']['value'])
+            values.append(feature['properties']['value']*mul)
             feature['id'] = geo_id
         return dict(
             type='choroplethmapbox',
-            name=name+'_contours',
+            name=name,  # +'_contours',
             geojson=geojson,
             z=values,
             locations=["{}".format(i) for i in range(len(values))],
@@ -284,6 +213,7 @@ class FigureHandler(object):
         colorscale = COLORSCALE  # self.colormaps[varname]
         return dict(
             type='scattermapbox',
+            below='',
             lon=xlon,
             lat=ylat,
             text=val,
@@ -312,20 +242,21 @@ class FigureHandler(object):
 
         )
 
-    def retrieve_var_tstep(self, varname, tstep=0):
-        """ run plot """
-        fig = go.Figure()
-        tstep = int(tstep)
+    def get_title(self, varname, tstep=0):
         cdatetime = self.retrieve_cdatetime(tstep)
-        fig.add_trace(self.generate_contour_tstep_trace(varname, tstep))
-        fig.add_trace(self.generate_var_tstep_trace(varname, tstep))
-
-        title = VARS[varname]['title'] % {
+        return VARS[varname]['title'] % {
             'hour':  cdatetime.strftime("%H"),
             'day':   cdatetime.strftime("%d"),
             'month': cdatetime.strftime("%b"),
             'year':  cdatetime.strftime("%Y"),
         }
+
+    def retrieve_var_tstep(self, varname, tstep=0):
+        """ run plot """
+        fig = go.Figure()
+        tstep = int(tstep)
+        fig.add_trace(self.generate_contour_tstep_trace(varname, tstep))
+        fig.add_trace(self.generate_var_tstep_trace(varname, tstep))
 
         # axis_style = dict(
         #     zeroline=False,
@@ -337,8 +268,11 @@ class FigureHandler(object):
 
         fig['frames'] = [
             dict(
-                data=[self.generate_var_tstep_trace(varname, tstep=num),
-                      self.generate_contour_tstep_trace(varname, tstep=num)],
+                data=[
+                    self.generate_contour_tstep_trace(varname, tstep=num),
+                    self.generate_var_tstep_trace(varname, tstep=num),
+                ],
+                layout=dict(title_text=self.get_title(varname, tstep=num)),
                 name=varname+str(num))
             for num in range(self.tim.size)
         ]
@@ -347,23 +281,23 @@ class FigureHandler(object):
             dict(
                 steps=[
                     dict(
-                        method='animate',
                         args=[
-                            [varname+str(tstep)],
+                            [frame.name],
                             dict(
                                 mode='immediate',
                                 frame=dict(duration=animation_time,
                                            redraw=True),
                                 transition=dict(
                                     duration=slider_transition_time,
-                                    easing="quadratic-in-out",
+                                    # easing="quadratic-in-out",
                                 )
                             )
                         ],
+                        method='animate',
                         label='{:d}'.format(tstep*3),
                         value=tstep,
                     )
-                    for tstep in range(self.tim.size)
+                    for tstep, frame in enumerate(fig.frames)
                 ],
                 transition=dict(duration=slider_transition_time,
                                 easing="cubic-in-out"),
@@ -382,11 +316,11 @@ class FigureHandler(object):
         ]
 
         fig.update_layout(
-            title=dict(text=title, y=0.95),
+            title=dict(text=self.get_title(varname, tstep), y=0.86),
             autosize=True,
             hovermode="closest",        # highlight closest point on hover
             mapbox=self.get_mapbox(),
-            width=1200,
+            # width="100%",
             height=800,
             updatemenus=[
                 get_animation_buttons(),
