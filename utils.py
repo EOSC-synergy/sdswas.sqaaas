@@ -3,10 +3,11 @@ from matplotlib import cm
 import numpy as np
 import math
 
-
-animation_time = 900
-transition_time = 500
-slider_transition_time = 500
+TIMES = {
+    'animation': 900,
+    'transition': 500,
+    'slider_transition': 500
+}
 
 
 def magnitude(num):
@@ -22,7 +23,7 @@ def normalize_vals(vals, valsmin, valsmax, rnd=2):
     return np.around((vals-valsmin)/(valsmax-valsmin), rnd)
 
 
-def get_colorscale(varname, bounds, colormap):
+def get_colorscale(bounds, colormap, discrete=True):
     """ Create colorscale """
     bounds = np.array(bounds).astype('float32')
     magn = magnitude(bounds[-1])
@@ -36,6 +37,13 @@ def get_colorscale(varname, bounds, colormap):
                                               bytes=True,
                                               norm=True))]
                   for idx, val in zip(n_bounds, bounds)]
+
+    if discrete:
+        for item in colorscale.copy():
+            if colorscale.index(item) < len(colorscale)-2:
+                colorscale.insert(colorscale.index(item)+1,
+                                  [colorscale[colorscale.index(item)+1][0],
+                                   colorscale[colorscale.index(item)][1]])
 
     return colorscale
 
@@ -51,9 +59,9 @@ def get_animation_buttons():
                  args=[
                      None,
                      dict(
-                         frame=dict(duration=animation_time,
-                                    redraw=False),
-                         transition=dict(duration=transition_time,
+                         frame=dict(duration=TIMES['animation'],
+                                    redraw=True),
+                         transition=dict(duration=TIMES['transition'],
                                          easing="quadratic-in-out"),
                          fromcurrent=True,
                          mode='immediate'
@@ -65,7 +73,7 @@ def get_animation_buttons():
                      [None],
                      dict(
                          frame=dict(duration=0,
-                                    redraw=False),
+                                    redraw=True),
                          transition=dict(duration=0),
                          mode='immediate'
                          )

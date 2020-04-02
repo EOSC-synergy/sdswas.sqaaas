@@ -13,59 +13,16 @@ import json
 
 from utils import get_colorscale
 from utils import get_animation_buttons
+from utils import TIMES
 
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
 
-animation_time = 900
-transition_time = 500
-slider_transition_time = 500
-
-
-_COLORS = [[0, 'rgb(255,255,255)'],
-           [0.01, 'rgb(255,255,255)'],
-           [0.02, 'rgb(161,237,227)'],
-           [0.04, 'rgb(92,227,186)'],
-           [0.08, 'rgb(252,215,117)'],
-           [0.12, 'rgb(218,114,48)'],
-           [0.16, 'rgb(158,98,38)'],
-           [0.32, 'rgb(113,73,33)'],
-           [0.64, 'rgb(57,37,17)'],
-           [1, 'rgb(29,19,9)']]
-
-
-# COLORS = ['#ffffff', '#a1ede3', '#5ce3ba', '#fcd775', '#da7230',
-#           '#9e6226', '#714921', '#392511', '#1d1309']
 COLORS = ['#a1ede3', '#5ce3ba', '#fcd775', '#da7230',
           '#9e6226', '#714921', '#392511', '#1d1309']
 
-COLORSCALE = [
-    [0.0, 'rgba(161, 237, 227, 255)'],
-    [0.02, 'rgba(161, 237, 227, 255)'],
-
-    [0.02, 'rgba(92, 227, 186, 255)'],
-    [0.05, 'rgba(92, 227, 186, 255)'],
-
-    [0.05, 'rgba(252, 215, 117, 255)'],
-    [0.11, 'rgba(252, 215, 117, 255)'],
-
-    [0.11, 'rgba(218, 114, 48, 255)'],
-    [0.17, 'rgba(218, 114, 48, 255)'],
-
-    [0.17, 'rgba(158, 98, 38, 255)'],
-    [0.24, 'rgba(158, 98, 38, 255)'],
-
-    [0.24, 'rgba(113, 73, 33, 255)'],
-    [0.49, 'rgba(113, 73, 33, 255)'],
-
-    [0.49, 'rgba(57, 37, 17, 255)'],
-    [1.0, 'rgba(57, 37, 17, 255)']
-]
-
-COLORMAP = mpl.colors.ListedColormap(COLORS[:-1])
-# COLORMAP.set_under(COLORS[0])
-COLORMAP.set_over(COLORS[-1])
+COLORMAP = mpl.colors.ListedColormap(COLORS)
 
 VARS = json.load(open('conf/vars.json'))
 
@@ -84,27 +41,32 @@ STYLES = {
 class FigureHandler(object):
     """ Class to manage the figure creation """
 
-    def __init__(self, filepath):
+    def __init__(self, filepath, selected_date):
         self.input_file = nc_file(filepath)
-        self.lon = self.input_file.variables['lon'][:]
-        self.lat = self.input_file.variables['lat'][:]
+        lon = self.input_file.variables['lon'][:]
+        lat = self.input_file.variables['lat'][:]
         time_obj = self.input_file.variables['time']
         self.tim = time_obj[:]
         self.what, _, rdate = time_obj.units.split()[:3]
         self.rdatetime = datetime.strptime("{}".format(rdate), "%Y-%m-%d")
-        self.varlist = [var for var in self.input_file.variables if var not in
-                        ('lon', 'lat', 'alt', 'lev', 'longitude',
-                         'latitude', 'altitude', 'levels', 'time')]
-        self.xlon, self.ylat = np.meshgrid(self.lon, self.lat)
+        varlist = [var for var in self.input_file.variables if var not in
+                   ('lon', 'lat', 'alt', 'lev', 'longitude',
+                    'latitude', 'altitude', 'levels', 'time')]
+        self.xlon, self.ylat = np.meshgrid(lon, lat)
         self.bounds = {
             varname: np.array(VARS[varname]['bounds']).astype('float32')
-            for varname in self.varlist
+            for varname in varlist
         }
 
         self.colormaps = {
-            varname: get_colorscale(varname, self.bounds[varname], COLORMAP)
-            for varname in self.varlist
+            varname: get_colorscale(self.bounds[varname], COLORMAP)
+            for varname in varlist
         }
+        try:
+            self.selected_date = datetime.strptime(selected_date,
+                                                   "%Y%m%d").strftime("%Y-%m-%d")
+        except:
+            self.selected_date = selected_date
 
     def get_mapbox_style_buttons(self):
         """ Relayout map with different styles """
@@ -124,11 +86,10 @@ class FigureHandler(object):
     def get_mapbox(self, style='open-street-map', relayout=False):
         """ Returns mapbox layout """
         mapbox_dict = dict(
-            # accesstoken=mapbox_access_token,
             bearing=0,
             center=go.layout.mapbox.Center(
-                lat=(self.lat.max()-self.lat.min())/2 + self.lat.min(),
-                lon=(self.lon.max()-self.lon.min())/2 + self.lon.min(),
+                lat=(self.ylat.max()-self.ylat.min())/2 + self.ylat.min(),
+                lon=(self.xlon.max()-self.xlon.min())/2 + self.xlon.min(),
             ),
             pitch=0,
             zoom=3,
@@ -180,37 +141,45 @@ class FigureHandler(object):
     def generate_contour_tstep_trace(self, varname, tstep=0):
         """ Generate trace to be added to data, per variable and timestep """
         geojson = \
-            json.load(open("./data/geojson/{:02d}_2019-07-10_{}.geojson"
-                           .format(tstep, varname)))
+            json.load(open("./data/geojson/{:02d}_{}_{}.geojson"
+                           .format(tstep, self.selected_date, varname)))
+
         name = VARS[varname]['name']
         bounds = self.bounds[varname]
-        colorscale = COLORSCALE  # self.colormaps[varname]
         mul = VARS[varname]['mul']
-        values = []
-        for geo_id, feature in enumerate(geojson['features']):
-            values.append(feature['properties']['value']*mul)
-            feature['id'] = geo_id
+        loc_val = [
+            (
+                feature['id'],
+                feature['properties']['value']*mul,
+            )
+            for feature in geojson['features']
+            # if feature['geometry']['coordinates']
+        ]
+        locations, values = np.array(loc_val).T
+        # print(locations, values, colors)
         return dict(
             type='choroplethmapbox',
-            name=name,  # +'_contours',
+            name=name+'_contours',
             geojson=geojson,
             z=values,
-            locations=["{}".format(i) for i in range(len(values))],
-            zmin=bounds[0], zmax=bounds[-1],
-            colorscale=colorscale,
+            ids=locations,
+            locations=locations,
+            zmin=bounds[0],
+            zmax=bounds[-1],
+            colorscale=self.colormaps[varname],
             showscale=False,
+            showlegend=False,
             hoverinfo='none',
             marker=dict(
                 opacity=0.6,
                 line_width=0,
-            )
+            ),
         )
 
     def generate_var_tstep_trace(self, varname, tstep=0):
         """ Generate trace to be added to data, per variable and timestep """
         xlon, ylat, val = self.set_data(varname, tstep)
         name = VARS[varname]['name']
-        colorscale = COLORSCALE  # self.colormaps[varname]
         return dict(
             type='scattermapbox',
             below='',
@@ -219,30 +188,31 @@ class FigureHandler(object):
             text=val,
             name=name,
             hovertemplate="lon: %{lon:.4f}<br>lat: %{lat:.4f}<br>" +
-                          "value: %{text:.4f}",
+            "value: %{text:.4f}",
+            opacity=0.6,
+            showlegend=False,
             marker=dict(
                 # autocolorscale=True,
                 color=val,
+                opacity=0.6,
                 size=0,
-                colorscale=colorscale,
+                colorscale=self.colormaps[varname],
+                cmin=self.bounds[varname][0],
+                cmax=self.bounds[varname][-1],
+                showscale=True,
                 colorbar={
-                    "tick0": self.bounds[varname][0],
-                    "dtick": 1,
                     "borderwidth": 0,
                     "outlinewidth": 0,
                     "thickness": 15,
                     "tickfont": {"size": 14},
-                    "tickmode": "array",
-                    "tickvals": self.bounds[varname],
+                    "tickvals": self.bounds[varname][:-1],
                 },
-                cmin=self.bounds[varname][0],
-                cmax=self.bounds[varname][-1],
-                showscale=True,
             ),
 
         )
 
     def get_title(self, varname, tstep=0):
+        """ return title according to the date """
         cdatetime = self.retrieve_cdatetime(tstep)
         return VARS[varname]['title'] % {
             'hour':  cdatetime.strftime("%H"),
@@ -285,10 +255,10 @@ class FigureHandler(object):
                             [frame.name],
                             dict(
                                 mode='immediate',
-                                frame=dict(duration=animation_time,
+                                frame=dict(duration=TIMES['animation'],
                                            redraw=True),
                                 transition=dict(
-                                    duration=slider_transition_time,
+                                    duration=TIMES['transition'],
                                     # easing="quadratic-in-out",
                                 )
                             )
@@ -299,7 +269,7 @@ class FigureHandler(object):
                     )
                     for tstep, frame in enumerate(fig.frames)
                 ],
-                transition=dict(duration=slider_transition_time,
+                transition=dict(duration=TIMES['slider_transition'],
                                 easing="cubic-in-out"),
                 x=1.0,
                 y=1.08,

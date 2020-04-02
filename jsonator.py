@@ -64,7 +64,7 @@ def contourf(lon, lat, values, levels=None, cmap=None, cmap_file=None, cmap_rev=
     if cmap is not None and type(cmap) == str:
         cmap = mpl.cm.get_cmap(cmap, n)
     elif cmap is not None:
-        cmap = mpl.colors.ListedColormap(cmap)
+        cmap = cmap  # mpl.colors.ListedColormap(cmap)
     elif cmap_file is None:
         cmap = None
     else:
@@ -111,11 +111,14 @@ def contourf(lon, lat, values, levels=None, cmap=None, cmap_file=None, cmap_rev=
                         # Poligono interior
                         polygons[-1].append(coords)
 
-        # Calculo de propiedades
+        if not polygons:
+            continue
 
-        color = cs.tcolors[i]
-        r, g, b, a = [int(c * 255) for c in color[0]]
-        fill = '#{:02x}{:02x}{:02x}'.format(r, g, b)
+        # Calculo de propiedades
+        if cmap is not None:
+            color = cs.tcolors[i]
+            r, g, b, a = [int(c * 255) for c in color[0]]
+            fill = '#{:02x}{:02x}{:02x}'.format(r, g, b)
 
         lolimit = cs.levels[i]
         hilimit = cs.levels[i+1]
@@ -131,13 +134,13 @@ def contourf(lon, lat, values, levels=None, cmap=None, cmap_file=None, cmap_rev=
 #             'stroke': '#555555',
 #             'stroke-opacity': 1.0,
 #             'stroke-width': 0.0,
-             'fillcolor': fill,
-             'value': (hilimit+lolimit)/2,
+#             'fill': fill,
 #             'fill-opacity': 0.6,
+             'value': (hilimit+lolimit)/2,
 # 
 #             # Opcionales
-             'hilimit': hilimit,
-             'lolimit': lolimit
+#             'hilimit': hilimit,
+#             'lolimit': lolimit
         }
 
         properties.update(custom_properties)
@@ -148,7 +151,8 @@ def contourf(lon, lat, values, levels=None, cmap=None, cmap_file=None, cmap_rev=
                 'coordinates': polygons,
                 'type': 'MultiPolygon',
             },
-            'properties': properties
+            'properties': properties,
+            'id': '{:02d}'.format(i),
         }
 
         features.append(elem)

@@ -21,16 +21,17 @@ np.set_printoptions(precision=2)
 
 CURRENT_PATH = os.path.abspath(os.path.dirname(__file__))
 
-COLORS = ['#a1ede3', '#5ce3ba', '#fcd775', '#da7230',
-          '#9e6226', '#714921', '#392511', '#1d1309']
-
-BOUNDS = [.1, .2, .4, .8, 1.2, 1.6, 3.2, 6.4]
+BOUNDS = [.1, .2, .4, .8, 1.2, 1.6, 3.2, 6.4, 10]
 
 VARIABLES = ['od550_dust']
+
+COLORS = None   # ['#a1ede3', '#5ce3ba', '#fcd775', '#da7230',
+                # '#9e6226', '#714921', '#392511', '#1d1309']
 
 
 def nc2geojson(filelist, outdir='.', outfile_tpl=''):
     """ NetCDF(s) to geojson converter """
+
     print("Converting netCDF(s) ...")
     outfiles = []
 
@@ -49,34 +50,12 @@ def nc2geojson(filelist, outdir='.', outfile_tpl=''):
     # loop over timesteps
     for t, m in enumerate(timevals):
 
-#         start_date = datetime.strptime("{} {}".format(date, hour), self.date_format_orig)
-#         current_date = start_date + relativedelta(months=int(m))
-#         year, month = current_date.strftime("%Y %b").split()
-#         self.log.info("CURRENT DATE %s %s", year, month)
-#         if t == len(timevals)-1:
-#             mdiff = int(m - timevals[t-1])
-#         else:
-#             mdiff = int(timevals[t+1] - m)
-#         sdate = current_date.strftime(self.date_format)
-#         edate = (current_date + relativedelta(months=mdiff) -
-#                  relativedelta(days=1)).strftime(self.date_format)
-# 
-#         files_start.append(datetime.strptime(sdate, self.date_format)
-#                            .strftime(self.date_format_new))
-#         files_end.append(datetime.strptime(edate, self.date_format)
-#                          .strftime(self.date_format_new))
-
         # loop over files
         for filename in filelist:
             print("current file %s", filename)
-            fp   = nc.Dataset(filename)
+            fp = nc.Dataset(filename)
             lats = np.round(fp.variables['lat'][:], decimals=2)
             lons = np.round(fp.variables['lon'][:], decimals=2)
-
-#             properties = {
-#                 'title': title,
-#                 'description': description,
-#             }
 
             for variable in VARIABLES:
 
@@ -86,16 +65,15 @@ def nc2geojson(filelist, outdir='.', outfile_tpl=''):
 
                 values = current_var[t]
 
-                metadata = {
-                    'value': values,
-                    # 'fill' : fill,
-                }
+                # metadata = {
+                #    'value': values,
+                #    # 'fill' : fill,
+                # }
 
                 geojson = jsonator.contourf(lons, lats, values,
-                                              levels=levels,
-                                              # gridded_metadata=metadata,
-                                              # properties={},
-                                              )
+                                            levels=levels,
+                                            cmap=COLORS)
+
                 if geojson:
                     features.append(geojson)
 
