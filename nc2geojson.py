@@ -21,12 +21,9 @@ np.set_printoptions(precision=2)
 
 CURRENT_PATH = os.path.abspath(os.path.dirname(__file__))
 
-BOUNDS = [.1, .2, .4, .8, 1.2, 1.6, 3.2, 6.4, 10]
+VARS = json.load(open('conf/vars.json'))
 
-VARIABLES = ['od550_dust']
-
-COLORS = None   # ['#a1ede3', '#5ce3ba', '#fcd775', '#da7230',
-                # '#9e6226', '#714921', '#392511', '#1d1309']
+COLORS = None
 
 
 def nc2geojson(filelist, outdir='.', outfile_tpl=''):
@@ -35,7 +32,6 @@ def nc2geojson(filelist, outdir='.', outfile_tpl=''):
     print("Converting netCDF(s) ...")
     outfiles = []
 
-    levels = np.array(BOUNDS)  # arange(25, 115, 15)
 
     if isinstance(filelist, str):
         # file is global
@@ -57,13 +53,15 @@ def nc2geojson(filelist, outdir='.', outfile_tpl=''):
             lats = np.round(fp.variables['lat'][:], decimals=2)
             lons = np.round(fp.variables['lon'][:], decimals=2)
 
-            for variable in VARIABLES:
+            for variable in VARS:
+                mul = VARS[variable]['mul']
+                levels = VARS[variable]['bounds']
 
                 features = []
 
                 current_var = fp.variables[variable]
 
-                values = current_var[t]
+                values = current_var[t]*mul
 
                 # metadata = {
                 #    'value': values,

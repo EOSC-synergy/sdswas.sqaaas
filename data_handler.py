@@ -4,7 +4,7 @@
 
 # import plotly
 import plotly.graph_objs as go
-import matplotlib as mpl
+from matplotlib.colors import ListedColormap
 # import matplotlib.pyplot as plt
 import numpy as np
 from netCDF4 import Dataset as nc_file
@@ -12,17 +12,16 @@ from netCDF4 import Dataset as nc_file
 import json
 
 from utils import get_colorscale
-from utils import get_animation_buttons
-from utils import TIMES
 
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
+import sys
 
 
 COLORS = ['#a1ede3', '#5ce3ba', '#fcd775', '#da7230',
           '#9e6226', '#714921', '#392511', '#1d1309']
 
-COLORMAP = mpl.colors.ListedColormap(COLORS)
+COLORMAP = ListedColormap(COLORS)
 
 VARS = json.load(open('conf/vars.json'))
 
@@ -49,9 +48,7 @@ class FigureHandler(object):
         self.tim = time_obj[:]
         self.what, _, rdate = time_obj.units.split()[:3]
         self.rdatetime = datetime.strptime("{}".format(rdate), "%Y-%m-%d")
-        varlist = [var for var in self.input_file.variables if var not in
-                   ('lon', 'lat', 'alt', 'lev', 'longitude',
-                    'latitude', 'altitude', 'levels', 'time')]
+        varlist = [var for var in self.input_file.variables if var in VARS]
         self.xlon, self.ylat = np.meshgrid(lon, lat)
         self.bounds = {
             varname: np.array(VARS[varname]['bounds']).astype('float32')
@@ -62,9 +59,10 @@ class FigureHandler(object):
             varname: get_colorscale(self.bounds[varname], COLORMAP)
             for varname in varlist
         }
+
         try:
-            self.selected_date = datetime.strptime(selected_date,
-                                                   "%Y%m%d").strftime("%Y-%m-%d")
+            self.selected_date = datetime.strptime(
+                selected_date, "%Y%m%d").strftime("%Y-%m-%d")
         except:
             self.selected_date = selected_date
 
@@ -153,10 +151,10 @@ class FigureHandler(object):
                 feature['properties']['value']*mul,
             )
             for feature in geojson['features']
-            # if feature['geometry']['coordinates']
+            if feature['geometry']['coordinates']
         ]
         locations, values = np.array(loc_val).T
-        # print(locations, values, colors)
+        print(varname, self.colormaps[varname])
         return dict(
             type='choroplethmapbox',
             name=name+'_contours',
@@ -213,19 +211,27 @@ class FigureHandler(object):
 
     def get_title(self, varname, tstep=0):
         """ return title according to the date """
+        rdatetime = self.rdatetime
         cdatetime = self.retrieve_cdatetime(tstep)
         return VARS[varname]['title'] % {
-            'hour':  cdatetime.strftime("%H"),
-            'day':   cdatetime.strftime("%d"),
-            'month': cdatetime.strftime("%b"),
-            'year':  cdatetime.strftime("%Y"),
+            'rhour':  rdatetime.strftime("%H"),
+            'rday':   rdatetime.strftime("%d"),
+            'rmonth': rdatetime.strftime("%b"),
+            'ryear':  rdatetime.strftime("%Y"),
+            'shour':  cdatetime.strftime("%H"),
+            'sday':   cdatetime.strftime("%d"),
+            'smonth': cdatetime.strftime("%b"),
+            'syear':  cdatetime.strftime("%Y"),
+            'step':   "{:02d}".format(tstep*3),
         }
 
     def retrieve_var_tstep(self, varname, tstep=0):
         """ run plot """
         fig = go.Figure()
         tstep = int(tstep)
+        print('Adding contours ...')
         fig.add_trace(self.generate_contour_tstep_trace(varname, tstep))
+        print('Adding points ...')
         fig.add_trace(self.generate_var_tstep_trace(varname, tstep))
 
         # axis_style = dict(
@@ -236,68 +242,77 @@ class FigureHandler(object):
         #     showticklabels=False,
         # )
 
-        fig['frames'] = [
-            dict(
-                data=[
-                    self.generate_contour_tstep_trace(varname, tstep=num),
-                    self.generate_var_tstep_trace(varname, tstep=num),
-                ],
-                layout=dict(title_text=self.get_title(varname, tstep=num)),
-                name=varname+str(num))
-            for num in range(self.tim.size)
-        ]
+#         print('Adding frames ...')
+#         fig['frames'] = [
+#             dict(
+#                 data=[
+#                     self.generate_contour_tstep_trace(varname, tstep=num),
+#                     self.generate_var_tstep_trace(varname, tstep=num),
+#                 ],
+#                 layout=dict(title_text=self.get_title(varname, tstep=num)),
+#                 name=varname+str(num))
+#             for num in range(self.tim.size)
+#         ]
+#
+#         sliders = [
+#             dict(
+#                 steps=[
+#                     dict(
+#                         args=[
+#                             [frame.name],
+#                             dict(
+#                                 mode='immediate',
+#                                 frame=dict(duration=TIMES['animation'],
+#                                            redraw=True),
+#                                 transition=dict(
+#                                     duration=TIMES['transition'],
+#                                     # easing="quadratic-in-out",
+#                                 )
+#                             )
+#                         ],
+#                         method='animate',
+#                         label='{:d}'.format(timestep*3),
+#                         value=timestep,
+#                     )
+#                     for timestep, frame in enumerate(fig.frames)
+#                 ],
+#                 transition=dict(duration=TIMES['slider_transition'],
+#                                 easing="cubic-in-out"),
+#                 x=1.0,
+#                 y=1.08,
+#                 len=0.49,
+#                 pad={"r": 0, "t": 0},
+#                 xanchor="right",
+#                 yanchor="top",
+#                 currentvalue=dict(visible=False),
+#                 # currentvalue=dict(font=dict(size=12),
+#                 #     prefix='Timestep: ',
+#                 #     visible=True,
+#                 #     xanchor= 'center'),
+#                 )
+#         ]
 
-        sliders = [
-            dict(
-                steps=[
-                    dict(
-                        args=[
-                            [frame.name],
-                            dict(
-                                mode='immediate',
-                                frame=dict(duration=TIMES['animation'],
-                                           redraw=True),
-                                transition=dict(
-                                    duration=TIMES['transition'],
-                                    # easing="quadratic-in-out",
-                                )
-                            )
-                        ],
-                        method='animate',
-                        label='{:d}'.format(tstep*3),
-                        value=tstep,
-                    )
-                    for tstep, frame in enumerate(fig.frames)
-                ],
-                transition=dict(duration=TIMES['slider_transition'],
-                                easing="cubic-in-out"),
-                x=1.0,
-                y=1.08,
-                len=0.49,
-                pad={"r": 0, "t": 0},
-                xanchor="right",
-                yanchor="top",
-                currentvalue=dict(visible=False),
-                # currentvalue=dict(font=dict(size=12),
-                #     prefix='Timestep: ',
-                #     visible=True,
-                #     xanchor= 'center'),
-                )
-        ]
-
+        print('Update layout ...')
         fig.update_layout(
-            title=dict(text=self.get_title(varname, tstep), y=0.86),
+            title=dict(text=self.get_title(varname, tstep), x=0.005, y=0.97),
             autosize=True,
             hovermode="closest",        # highlight closest point on hover
             mapbox=self.get_mapbox(),
             # width="100%",
             height=800,
             updatemenus=[
-                get_animation_buttons(),
+                # get_animation_buttons(),
                 self.get_mapbox_style_buttons(),
             ],
-            # margin={"r": 0, "t": 0.1, "l": 0.1, "b": 0.1},
-            sliders=sliders
+            margin={"r": 0, "t": 0.2, "l": 0.2, "b": 0.2},
+            xaxis=dict(
+                range=[self.xlon.min(), self.xlon.max()]
+            ),
+            yaxis=dict(
+                range=[self.ylat.min(), self.ylat.max()]
+            ),
+            # sliders=sliders
         )
 
+        print('Returning fig of size {}'.format(sys.getsizeof(fig)))
         return fig

@@ -366,7 +366,12 @@ ol {
   float: right; }
 .u-pull-left {
   float: left; }
-
+.toolbar {
+  display: table-row; }
+.linetool {
+  display: table-cell; }
+#slider-graph.linetool {
+  width: 5%; }
 
 /* Misc
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
@@ -381,7 +386,7 @@ hr {
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
 
 /* Self Clearing Goodness */
-.container:after,
+.columnontainer:after,
 .row:after,
 .u-cf {
   content: "";
