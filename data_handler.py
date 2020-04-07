@@ -144,17 +144,16 @@ class FigureHandler(object):
 
         name = VARS[varname]['name']
         bounds = self.bounds[varname]
-        mul = VARS[varname]['mul']
         loc_val = [
             (
                 feature['id'],
-                feature['properties']['value']*mul,
+                feature['properties']['value'],
             )
             for feature in geojson['features']
             if feature['geometry']['coordinates']
         ]
         locations, values = np.array(loc_val).T
-        print(varname, self.colormaps[varname])
+        print(varname, self.colormaps[varname], values)
         return dict(
             type='choroplethmapbox',
             name=name+'_contours',
@@ -294,7 +293,7 @@ class FigureHandler(object):
 
         print('Update layout ...')
         fig.update_layout(
-            title=dict(text=self.get_title(varname, tstep), x=0.005, y=0.97),
+            title=dict(text=self.get_title(varname, tstep), x=0.02, y=0.93),
             autosize=True,
             hovermode="closest",        # highlight closest point on hover
             mapbox=self.get_mapbox(),
@@ -304,7 +303,7 @@ class FigureHandler(object):
                 # get_animation_buttons(),
                 self.get_mapbox_style_buttons(),
             ],
-            margin={"r": 0, "t": 0.2, "l": 0.2, "b": 0.2},
+            margin={"r": 0, "t": 30, "l": 20, "b": 20},
             xaxis=dict(
                 range=[self.xlon.min(), self.xlon.max()]
             ),

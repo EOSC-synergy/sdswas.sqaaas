@@ -4,6 +4,7 @@
 
 import debug
 import dash
+# import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Output
@@ -13,16 +14,12 @@ from data_handler import FigureHandler
 from data_handler import DEFAULT_VAR
 
 from datetime import datetime as dt
-import os
-
-# external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
-# external_stylesheets = ['{}/css/dZVMbK.css'.format(os.getcwd())]
-external_stylesheets = ['{}/css/bWLwgP.css'.format(os.getcwd())]
-print(external_stylesheets)
+import math
+# import os
 
 colors = {
     'background': '#ffffff',
-#     'text': '#7FDBFF'
+    # 'text': '#7FDBFF'
 }
 
 start_date = "20190701"
@@ -45,7 +42,7 @@ def get_figure(var, selected_date=end_date, tstep=0):
     return fh.retrieve_var_tstep(var, tstep)
 
 
-app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+app = dash.Dash(__name__)
 # server = app.server
 # app.config.suppress_callback_exceptions = True
 
@@ -75,7 +72,12 @@ app.layout = html.Div(
                 value='od550_dust'
             ),
             className="linetool",
-            style={ 'display': 'table-cell', 'width': '15%' }
+            style={
+                'display': 'table-cell',
+                'width': '25%',
+                'padding-left': '1em',
+                'padding-right': '1em',
+            }
         ),
         html.Span(
             dcc.DatePickerSingle(
@@ -87,7 +89,17 @@ app.layout = html.Div(
                 date=end_date,
             ),
             className="linetool",
-            style={ 'display': 'table-cell' }
+            style={
+                'display': 'table-cell'
+            }
+        ),
+        html.Span(
+            html.Button('\u2023', title='Play', id='btn-play', n_clicks=0),
+            className="linetool",
+            style={
+                'display': 'table-cell',
+                'padding-left': '1em',
+            }
         ),
         html.Span(
             dcc.Slider(
@@ -96,33 +108,74 @@ app.layout = html.Div(
                 marks={
                     tstep: '{:02d}'.format(tstep)
                     for tstep in range(0, 75, 3)
-                }
+                },
+                updatemode='drag',
             ),
             className="linetool",
-            style={ 'display': 'table-cell', 'width': '70%', 'textAlign': 'right' }
+            style={
+                'display': 'table-cell',
+                'width': '60%',
+                'vertical-align': 'bottom'
+            }
         )],
         className="toolbar",
-       # style={ 'display': 'table-row', 'width': '100%' }
+        style={
+            'display': 'table-row',
+            'width': '100%'
+        }
         ),
         html.Div(
             dcc.Graph(
                 id='graph-with-slider',
                 figure=get_figure(DEFAULT_VAR, end_date, 0),
-                # animate=True,
             ),
         ),
+        dcc.Interval(id='slider-interval', interval=3000, n_intervals=0, disabled=True),
     ],
 )
 print('SERVER: stop creating app layout')
 
 
+# @app.callback(
+#     Output('slider-interval', 'n_intervals'),
+#     [Input('btn-play', 'n_clicks'),
+#      Input('slider-graph', 'value'),])
+# def reset_intervals(n, value):
+#     if n%2 == 1:
+#         return value/3
+
+@app.callback(
+    Output('slider-interval', 'disabled'),
+    [Input('btn-play', 'n_clicks'),])
+def start_stop_autoslider(n):
+    if n%2 == 0:
+        return True
+    return False
+
+@app.callback(
+    Output('slider-graph', 'value'),
+    [Input('slider-interval', 'n_intervals'),])
+def update_slider(n):
+    if n is None:
+        tstep = 0
+    elif n >= 24:
+        tstep = int(round(24*math.modf(n/24)[0], 0))
+    else:
+        tstep = int(n)
+    return tstep*3
+
 @app.callback(
     Output('graph-with-slider', 'figure'),
-    [Input('model-date-picker', 'date'),
+    [Input('slider-interval', 'n_intervals'),
+     Input('slider-interval', 'disabled'),
+     Input('model-date-picker', 'date'),
      Input('variable-dropdown', 'value'),
      Input('slider-graph', 'value')])
-def update_figure(date, variable, tstep):
+def update_figure(n, disabled, date, variable, tstep):
     print('SERVER: calling figure from picker callback')
+    print('SERVER: interval ' + str(n))
+    print('SERVER: tstep ' + str(tstep))
+
     if date is not None:
         date = date.split(' ')[0]
         try:
@@ -133,15 +186,33 @@ def update_figure(date, variable, tstep):
         print('SERVER: callback date {}'.format(date))
     else:
         date = end_date
+
     if variable is not None:
         variable = variable
     else:
         variable = DEFAULT_VAR
+
     if tstep is not None:
         tstep = int(tstep/3)
     else:
         tstep = 0
+
+    if not disabled:
+        if n is None:
+            tstep = tstep
+        elif n >= 24:
+            tstep = int(round(24*math.modf(n/24)[0], 0))
+        else:
+            tstep = int(n)
+    print('SERVER: tstep calc ' + str(tstep))
     return get_figure(variable, date, tstep)
+
+
+# Dash CSS
+# app.css.append_css({"external_url": '{}/css/bWLwgP.css'.format(os.getcwd())})
+
+# Loading screen CSS
+# app.css.append_css({"external_url": "https://codepen.io/chriddyp/pen/brPBPO.css"})
 
 
 if __name__ == '__main__':

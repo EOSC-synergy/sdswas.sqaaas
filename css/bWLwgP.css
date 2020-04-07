@@ -372,6 +372,9 @@ ol {
   display: table-cell; }
 #slider-graph.linetool {
   width: 5%; }
+html {
+    background-color: #ffffff;
+}
 
 /* Misc
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
