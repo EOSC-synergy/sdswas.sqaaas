@@ -9,6 +9,7 @@ import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Output
 from dash.dependencies import Input
+from dash.dependencies import State
 
 from data_handler import FigureHandler
 from data_handler import DEFAULT_VAR
@@ -94,7 +95,7 @@ app.layout = html.Div(
             }
         ),
         html.Span(
-            html.Button('\u2023', title='Play', id='btn-play', n_clicks=0),
+            html.Button('\u2023', title='Play/Stop', id='btn-play', n_clicks=0),
             className="linetool",
             style={
                 'display': 'table-cell',
@@ -109,7 +110,7 @@ app.layout = html.Div(
                     tstep: '{:02d}'.format(tstep)
                     for tstep in range(0, 75, 3)
                 },
-                updatemode='drag',
+                # updatemode='drag',
             ),
             className="linetool",
             style={
@@ -136,44 +137,42 @@ app.layout = html.Div(
 print('SERVER: stop creating app layout')
 
 
-# @app.callback(
-#     Output('slider-interval', 'n_intervals'),
-#     [Input('btn-play', 'n_clicks'),
-#      Input('slider-graph', 'value'),])
-# def reset_intervals(n, value):
-#     if n%2 == 1:
-#         return value/3
-
-@app.callback(
+@app.callback([
     Output('slider-interval', 'disabled'),
-    [Input('btn-play', 'n_clicks'),])
-def start_stop_autoslider(n):
-    if n%2 == 0:
-        return True
-    return False
+    Output('slider-interval', 'n_intervals')],
+    [Input('btn-play', 'n_clicks')],
+    [State('slider-interval', 'disabled'),
+     State('slider-graph', 'value')])
+def start_stop_autoslider(n, disabled, value):
+    if n:
+        return not disabled, int(value/3)
+    return disabled, int(value/3)
+
 
 @app.callback(
     Output('slider-graph', 'value'),
-    [Input('slider-interval', 'n_intervals'),])
+    [Input('slider-interval', 'n_intervals')])
 def update_slider(n):
-    if n is None:
-        tstep = 0
-    elif n >= 24:
+    print('SERVER: updating slider-graph ' + str(n))
+    if not n:
+        return
+
+    if n >= 24:
         tstep = int(round(24*math.modf(n/24)[0], 0))
     else:
         tstep = int(n)
+    print('SERVER: updating slider-graph ' + str(tstep*3))
     return tstep*3
+
 
 @app.callback(
     Output('graph-with-slider', 'figure'),
-    [Input('slider-interval', 'n_intervals'),
-     Input('slider-interval', 'disabled'),
-     Input('model-date-picker', 'date'),
+    [Input('model-date-picker', 'date'),
      Input('variable-dropdown', 'value'),
      Input('slider-graph', 'value')])
-def update_figure(n, disabled, date, variable, tstep):
+def update_figure(date, variable, tstep):
     print('SERVER: calling figure from picker callback')
-    print('SERVER: interval ' + str(n))
+    # print('SERVER: interval ' + str(n))
     print('SERVER: tstep ' + str(tstep))
 
     if date is not None:
@@ -197,13 +196,6 @@ def update_figure(n, disabled, date, variable, tstep):
     else:
         tstep = 0
 
-    if not disabled:
-        if n is None:
-            tstep = tstep
-        elif n >= 24:
-            tstep = int(round(24*math.modf(n/24)[0], 0))
-        else:
-            tstep = int(n)
     print('SERVER: tstep calc ' + str(tstep))
     return get_figure(variable, date, tstep)
 

@@ -81,7 +81,7 @@ class FigureHandler(object):
             yanchor="top",
         )
 
-    def get_mapbox(self, style='open-street-map', relayout=False):
+    def get_mapbox(self, style='open-street-map', relayout=False, zoom=3):
         """ Returns mapbox layout """
         mapbox_dict = dict(
             bearing=0,
@@ -90,7 +90,7 @@ class FigureHandler(object):
                 lon=(self.xlon.max()-self.xlon.min())/2 + self.xlon.min(),
             ),
             pitch=0,
-            zoom=3,
+            zoom=zoom,
             style=style,
         )
 
@@ -147,7 +147,7 @@ class FigureHandler(object):
         loc_val = [
             (
                 feature['id'],
-                feature['properties']['value'],
+                np.around(feature['properties']['value'], 2),
             )
             for feature in geojson['features']
             if feature['geometry']['coordinates']
@@ -203,6 +203,7 @@ class FigureHandler(object):
                     "thickness": 15,
                     "tickfont": {"size": 14},
                     "tickvals": self.bounds[varname][:-1],
+                    "tickmode": "array",
                 },
             ),
 
@@ -212,7 +213,7 @@ class FigureHandler(object):
         """ return title according to the date """
         rdatetime = self.rdatetime
         cdatetime = self.retrieve_cdatetime(tstep)
-        return VARS[varname]['title'] % {
+        return r'{}'.format(VARS[varname]['title'] % {
             'rhour':  rdatetime.strftime("%H"),
             'rday':   rdatetime.strftime("%d"),
             'rmonth': rdatetime.strftime("%b"),
@@ -222,7 +223,7 @@ class FigureHandler(object):
             'smonth': cdatetime.strftime("%b"),
             'syear':  cdatetime.strftime("%Y"),
             'step':   "{:02d}".format(tstep*3),
-        }
+        })
 
     def retrieve_var_tstep(self, varname, tstep=0):
         """ run plot """
@@ -294,6 +295,7 @@ class FigureHandler(object):
         print('Update layout ...')
         fig.update_layout(
             title=dict(text=self.get_title(varname, tstep), x=0.02, y=0.93),
+            uirevision=True,
             autosize=True,
             hovermode="closest",        # highlight closest point on hover
             mapbox=self.get_mapbox(),
@@ -304,12 +306,12 @@ class FigureHandler(object):
                 self.get_mapbox_style_buttons(),
             ],
             margin={"r": 0, "t": 30, "l": 20, "b": 20},
-            xaxis=dict(
-                range=[self.xlon.min(), self.xlon.max()]
-            ),
-            yaxis=dict(
-                range=[self.ylat.min(), self.ylat.max()]
-            ),
+#             xaxis=dict(
+#                 range=[self.xlon.min(), self.xlon.max()]
+#             ),
+#             yaxis=dict(
+#                 range=[self.ylat.min(), self.ylat.max()]
+#             ),
             # sliders=sliders
         )
 

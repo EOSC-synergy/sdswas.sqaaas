@@ -9,6 +9,6 @@
         "name": "Dust Surface Concentration",
         "bounds": [5, 20, 50, 200, 500, 2000, 5000, 10000],
         "mul": 1e9,
-        "title": "NMMB-MONARCH Dust Surface Conc.<br>Run: %(rhour)s %(rday)s %(rmonth)s %(ryear)s<br>Valid: %(shour)s %(sday)s %(smonth)s %(syear)s (H+%(step)s)"
+        "title": "NMMB-MONARCH Dust Surface Conc. (µg/m³)<br>Run: %(rhour)s %(rday)s %(rmonth)s %(ryear)s<br>Valid: %(shour)s %(sday)s %(smonth)s %(syear)s (H+%(step)s)"
     }
 }
