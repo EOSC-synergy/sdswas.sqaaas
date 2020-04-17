@@ -23,39 +23,34 @@ CURRENT_PATH = os.path.abspath(os.path.dirname(__file__))
 
 VARS = json.load(open('conf/vars.json'))
 
-COLORS = None
 
-
-def nc2geojson(filelist, outdir='.', outfile_tpl=''):
+def nc2geojson(outdir='.', filelist=[], outfile_tpl=''):
     """ NetCDF(s) to geojson converter """
 
     print("Converting netCDF(s) ...")
     outfiles = []
 
-
     if isinstance(filelist, str):
         # file is global
         filelist = [filelist]
 
-    # check time, lat and lon details from the first file
-    with nc.Dataset(filelist[0]) as f0:
-        tim = f0.variables['time']
+    # loop over files
+    for filename in filelist:
+        print("current file %s", filename)
+        fp = nc.Dataset(filename)
+        tim = fp.variables['time']
         timevals = tim[:].copy()
         _, _, date, _ = tim.units.split()[:4]
+        lats = np.round(fp.variables['lat'][:], decimals=2)
+        lons = np.round(fp.variables['lon'][:], decimals=2)
 
-    # loop over timesteps
-    for t, m in enumerate(timevals):
+        for variable in VARS:
 
-        # loop over files
-        for filename in filelist:
-            print("current file %s", filename)
-            fp = nc.Dataset(filename)
-            lats = np.round(fp.variables['lat'][:], decimals=2)
-            lons = np.round(fp.variables['lon'][:], decimals=2)
+            mul = VARS[variable]['mul']
+            levels = VARS[variable]['bounds']
 
-            for variable in VARS:
-                mul = VARS[variable]['mul']
-                levels = VARS[variable]['bounds']
+            # loop over timesteps
+            for t, m in enumerate(timevals):
 
                 features = []
 
@@ -70,7 +65,7 @@ def nc2geojson(filelist, outdir='.', outfile_tpl=''):
 
                 geojson = jsonator.contourf(lons, lats, values,
                                             levels=levels,
-                                            cmap=COLORS)
+                                            cmap=None)
 
                 if geojson:
                     features.append(geojson)
@@ -86,9 +81,12 @@ def nc2geojson(filelist, outdir='.', outfile_tpl=''):
                     with open(os.path.join(outdir, outfile), 'w') as out:
                         out.write(json.dumps(merged, separators=(',', ':')))
 
-            fp.close()
+        fp.close()
 
 
 if __name__ == "__main__":
-    filenames = sys.argv[1]
-    nc2geojson(filenames.split(','))
+    outdir = sys.argv[1]
+    filenames = sys.argv[2:]
+    print('outdir', outdir)
+    print('fnames', filenames)
+    nc2geojson(outdir, filenames)

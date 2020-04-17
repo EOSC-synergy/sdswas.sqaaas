@@ -4,7 +4,7 @@
 
 import debug
 import dash
-# import dash_bootstrap_components as dbc
+import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Output
@@ -12,21 +12,31 @@ from dash.dependencies import Input
 from dash.dependencies import State
 
 from data_handler import FigureHandler
+from data_handler import TimeSeriesHandler
 from data_handler import DEFAULT_VAR
+from data_handler import FREQ
 
 from datetime import datetime as dt
 import math
-# import os
 
-colors = {
-    'background': '#ffffff',
-    # 'text': '#7FDBFF'
-}
 
 start_date = "20190701"
 end_date = "20190710"
 
+# models
+# F_PATH = './data/MODEL/netcdf/{}12_3H_NMMB-BSC_OPER.nc4'
+#
 F_PATH = './data/netcdf/{}12_3H_NMMB-BSC_OPER.nc4'
+TS_PATH = './data/feather/{}.ft'
+
+
+def get_timeseries(var, lat, lon):
+    """ Retrieve timeseries """
+    # print(var, selected_date, tstep)
+    print('SERVER: TS init ... ')
+    th = TimeSeriesHandler(TS_PATH.format(var), var)
+    print('SERVER: TS generation ... ')
+    return th.retrieve_timeseries(lat, lon)
 
 
 def get_figure(var, selected_date=end_date, tstep=0):
@@ -43,87 +53,82 @@ def get_figure(var, selected_date=end_date, tstep=0):
     return fh.retrieve_var_tstep(var, tstep)
 
 
-app = dash.Dash(__name__)
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 # server = app.server
 # app.config.suppress_callback_exceptions = True
 
 print('SERVER: start creating app layout')
 app.layout = html.Div(
-    style={
-        'backgroundColor': colors['background'],
-        # 'textAlign': 'center',
-        # 'margin': 0,
-        # 'padding': '10px',
-    },
     children=[
         html.Div([
-        html.Span(
-            dcc.Dropdown(
-                id='variable-dropdown',
-                options=[
-                    {
-                        'label': 'Dust Optical Depth (550nm)',
-                        'value': 'od550_dust'
+            html.Span(
+                dcc.Dropdown(
+                    id='variable-dropdown',
+                    options=[
+                        {
+                            'label': 'Dust Optical Depth (550nm)',
+                            'value': 'od550_dust'
+                        },
+                        {
+                            'label': 'Dust Surface Concentration',
+                            'value': 'sconc_dust'
+                        },
+                    ],
+                    value='od550_dust'
+                ),
+                className="linetool",
+                style={
+                    'display': 'table-cell',
+                    'width': '25%',
+                    'padding-left': '1em',
+                    'padding-right': '1em',
+                }
+            ),
+            html.Span(
+                dcc.DatePickerSingle(
+                    id='model-date-picker',
+                    min_date_allowed=dt.strptime(start_date, "%Y%m%d"),
+                    max_date_allowed=dt.strptime(end_date, "%Y%m%d"),
+                    initial_visible_month=dt.strptime(end_date, "%Y%m%d"),
+                    display_format='YYYY/MM/DD',
+                    date=end_date,
+                ),
+                className="linetool",
+                style={
+                    'display': 'table-cell'
+                }
+            ),
+            html.Span(
+                html.Button('\u2023', title='Play/Stop',
+                            id='btn-play', n_clicks=0),
+                className="linetool",
+                style={
+                    'display': 'table-cell',
+                    'padding-left': '1em',
+                }
+            ),
+            html.Span(
+                dcc.Slider(
+                    id='slider-graph',
+                    min=0, max=72, step=FREQ, value=0,
+                    marks={
+                        tstep: '{:02d}'.format(tstep)
+                        for tstep in range(0, 75, FREQ)
                     },
-                    {
-                        'label': 'Dust Surface Concentration',
-                        'value': 'sconc_dust'
-                    },
-                ],
-                value='od550_dust'
-            ),
-            className="linetool",
+                    # updatemode='drag',
+                ),
+                className="linetool",
+                style={
+                    'display': 'table-cell',
+                    'width': '60%',
+                    'vertical-align': 'bottom'
+                }
+            )],
+            className="toolbar",
             style={
-                'display': 'table-cell',
-                'width': '25%',
-                'padding-left': '1em',
-                'padding-right': '1em',
+                'display': 'table-row',
+                'width': '100%'
             }
-        ),
-        html.Span(
-            dcc.DatePickerSingle(
-                id='model-date-picker',
-                min_date_allowed=dt.strptime(start_date, "%Y%m%d"),
-                max_date_allowed=dt.strptime(end_date, "%Y%m%d"),
-                initial_visible_month=dt.strptime(end_date, "%Y%m%d"),
-                display_format='YYYY/MM/DD',
-                date=end_date,
-            ),
-            className="linetool",
-            style={
-                'display': 'table-cell'
-            }
-        ),
-        html.Span(
-            html.Button('\u2023', title='Play/Stop', id='btn-play', n_clicks=0),
-            className="linetool",
-            style={
-                'display': 'table-cell',
-                'padding-left': '1em',
-            }
-        ),
-        html.Span(
-            dcc.Slider(
-                id='slider-graph',
-                min=0, max=72, step=3, value=0,
-                marks={
-                    tstep: '{:02d}'.format(tstep)
-                    for tstep in range(0, 75, 3)
-                },
-                # updatemode='drag',
-            ),
-            className="linetool",
-            style={
-                'display': 'table-cell',
-                'width': '60%',
-                'vertical-align': 'bottom'
-            }
-        )],
-        className="toolbar",
-        style={
-            'display': 'table-row',
-            'width': '100%'
-        }
         ),
         html.Div(
             dcc.Graph(
@@ -131,10 +136,49 @@ app.layout = html.Div(
                 figure=get_figure(DEFAULT_VAR, end_date, 0),
             ),
         ),
-        dcc.Interval(id='slider-interval', interval=3000, n_intervals=0, disabled=True),
+        dcc.Interval(id='slider-interval',
+                     interval=3000,
+                     n_intervals=0,
+                     disabled=True),
+        html.Div([
+            # dbc.Button('open', id='open-ts'),
+            dcc.Loading([
+                dbc.Modal([
+                    dbc.ModalBody(
+                        dcc.Graph(
+                            id='timeseries-modal',
+                            figure=None,  # get_timeseries(DEFAULT_VAR, -3., -23.),
+                        ),
+                    )],
+                    id='ts-modal',
+                    size='xl',
+                    centered=True,
+                ),
+            ]),
+        ]),
     ],
 )
 print('SERVER: stop creating app layout')
+
+
+@app.callback(
+    [Output('timeseries-modal', 'figure'),
+     Output("ts-modal", "is_open")],
+    [Input('graph-with-slider', 'clickData')],
+    [State('graph-with-slider', 'hoverData'),
+     State('variable-dropdown', 'value')],
+)
+def show_timeseries(cdata, hdata, variable):
+
+    # print('**************** CLICK', cdata, '++++++++++++++++++++')
+    # print('**************** VARIABLE', variable, '++++++++++++++++++++')
+    if hdata:
+        lat = hdata['points'][0]['lat']
+        lon = hdata['points'][0]['lon']
+        # print('******************** HOVER', hdata, '++++++++++++++++++++++++')
+        return get_timeseries(variable, lat, lon), True
+
+    return None, False
 
 
 @app.callback([
@@ -145,8 +189,8 @@ print('SERVER: stop creating app layout')
      State('slider-graph', 'value')])
 def start_stop_autoslider(n, disabled, value):
     if n:
-        return not disabled, int(value/3)
-    return disabled, int(value/3)
+        return not disabled, int(value/FREQ)
+    return disabled, int(value/FREQ)
 
 
 @app.callback(
@@ -161,8 +205,8 @@ def update_slider(n):
         tstep = int(round(24*math.modf(n/24)[0], 0))
     else:
         tstep = int(n)
-    print('SERVER: updating slider-graph ' + str(tstep*3))
-    return tstep*3
+    print('SERVER: updating slider-graph ' + str(tstep*FREQ))
+    return tstep*FREQ
 
 
 @app.callback(
@@ -192,7 +236,7 @@ def update_figure(date, variable, tstep):
         variable = DEFAULT_VAR
 
     if tstep is not None:
-        tstep = int(tstep/3)
+        tstep = int(tstep/FREQ)
     else:
         tstep = 0
 

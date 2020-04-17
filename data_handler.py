@@ -8,7 +8,7 @@ from matplotlib.colors import ListedColormap
 # import matplotlib.pyplot as plt
 import numpy as np
 from netCDF4 import Dataset as nc_file
-# import xarray as xr
+import feather
 import json
 
 from utils import get_colorscale
@@ -25,6 +25,9 @@ COLORMAP = ListedColormap(COLORS)
 
 VARS = json.load(open('conf/vars.json'))
 
+# Frequency = 3 Hourly
+FREQ = 3
+
 DEFAULT_VAR = 'od550_dust'
 
 STYLES = {
@@ -37,6 +40,132 @@ STYLES = {
 }
 
 
+class Observations1dHandler(object):
+    """ Class which handles 1D obs data """
+
+    def __init__(self, filepath, selected_date):
+        self.input_file = nc_file(filepath)
+        self.lon = self.input_file.variables['lon'][:]
+        self.lat = self.input_file.variables['lat'][:]
+        time_obj = self.input_file.variables['time']
+        self.tim = time_obj[:]
+        self.what, _, rdate, rtime = time_obj.units.split()[:4]
+        self.rdatetime = datetime.strptime("{} {}".format(rdate, rtime),
+                                           "%Y-%m-%d %H:%M:%S")
+        varlist = [var for var in self.input_file.variables if var in VARS]
+
+        self.values = {
+            varname: self.input_file.variables[varname][:]
+            for varname in varlist
+        }
+
+        self.bounds = {
+            varname: np.array(VARS[varname]['bounds']).astype('float32')
+            for varname in varlist
+        }
+
+        self.colormaps = {
+            varname: get_colorscale(self.bounds[varname], COLORMAP)
+            for varname in varlist
+        }
+
+        try:
+            self.selected_date = datetime.strptime(
+                selected_date, "%Y%m%d").strftime("%Y-%m-%d")
+        except:
+            self.selected_date = selected_date
+
+#     def retrieve_time_index(self, tstep=0):
+#         """ Generate index of current date time """
+#         seldate = datetime.strptime(self.selected_date, "%Y-%m-%d")
+#         if self.what == 'days':
+#             cdatetime = self.seldaterdatetime + relativedelta(days=self.tim[tstep])
+#         elif self.what == 'hours':
+#             cdatetime = self.rdatetime + relativedelta(hours=self.tim[tstep])
+#         elif self.what == 'minutes':
+#             cdatetime = self.rdatetime + relativedelta(minutes=self.tim[tstep])
+#         elif self.what == 'seconds':
+#             cdatetime = self.rdatetime + relativedelta(seconds=self.tim[tstep])
+
+    def generate_obs1d_tstep_trace(self, varname, cdatetime):
+        """ Generate trace to be added to data, per variable and timestep """
+        val = self.values[0]  # to find index of selected datetime
+        name = VARS[varname]['name']
+        return dict(
+            type='scattermapbox',
+            below='',
+            lon=self.lon,
+            lat=self.lat,
+            text=val,
+            name=name,
+            hovertemplate="lon: %{lon:.4f}<br>lat: %{lat:.4f}<br>" +
+            "value: %{text:.4f}",
+            opacity=0.6,
+            showlegend=False,
+            marker=dict(
+                # autocolorscale=True,
+                color=val,
+                opacity=0.6,
+                size=10,
+                colorscale=self.colormaps[varname],
+                cmin=self.bounds[varname][0],
+                cmax=self.bounds[varname][-1],
+                showscale=False,
+            ),
+
+        )
+
+class TimeSeriesHandler(object):
+    """ Class to handle time series """
+
+    def __init__(self, filepath, variable):
+        self.variable = variable
+        # self.dataframe = pd.read_parquet(filepath)
+        self.dataframe = feather.read_dataframe(filepath)
+
+    def retrieve_timeseries(self, lat, lon):
+        title = "{} @ lat = {} and lon = {}".format(
+            VARS[self.variable]['name'], round(lat, 4), round(lon, 4)
+        )
+        timeseries = \
+            self.dataframe.loc[(np.isclose(self.dataframe['lat'], lat) &
+                                np.isclose(self.dataframe['lon'], lon)),
+                               ('time', self.variable)].set_index('time')
+        fig = go.Figure()
+        fig.add_trace(dict(
+                type='scatter',
+                x=timeseries.index,
+                y=timeseries[self.variable],
+                mode='lines+markers',
+            )
+        )
+        fig.update_layout(
+            title=dict(text=title, x=0.45, y=1.),
+            uirevision=True,
+            autosize=True,
+            hovermode="closest",        # highlight closest point on hover
+            margin={"r": 0, "t": 30, "l": 20, "b": 10},
+        )
+        fig.update_xaxes(
+            rangeslider_visible=True,
+            rangeselector=dict(
+                buttons=list([
+                    dict(count=1, label="1m",
+                         step="month", stepmode="backward"),
+                    dict(count=6, label="6m",
+                         step="month", stepmode="backward"),
+                    dict(count=1, label="YTD",
+                         step="year", stepmode="todate"),
+                    dict(count=1, label="1y",
+                         step="year", stepmode="backward"),
+                    dict(step="all")
+                ])
+            )
+        )
+
+        return fig
+
+
 class FigureHandler(object):
     """ Class to manage the figure creation """
 
@@ -46,8 +175,9 @@ class FigureHandler(object):
         lat = self.input_file.variables['lat'][:]
         time_obj = self.input_file.variables['time']
         self.tim = time_obj[:]
-        self.what, _, rdate = time_obj.units.split()[:3]
-        self.rdatetime = datetime.strptime("{}".format(rdate), "%Y-%m-%d")
+        self.what, _, rdate, rtime = time_obj.units.split()[:4]
+        self.rdatetime = datetime.strptime("{} {}".format(rdate, rtime),
+                                           "%Y-%m-%d %H:%M:%S")
         varlist = [var for var in self.input_file.variables if var in VARS]
         self.xlon, self.ylat = np.meshgrid(lon, lat)
         self.bounds = {
@@ -222,7 +352,7 @@ class FigureHandler(object):
             'sday':   cdatetime.strftime("%d"),
             'smonth': cdatetime.strftime("%b"),
             'syear':  cdatetime.strftime("%Y"),
-            'step':   "{:02d}".format(tstep*3),
+            'step':   "{:02d}".format(tstep*FREQ),
         })
 
     def retrieve_var_tstep(self, varname, tstep=0):

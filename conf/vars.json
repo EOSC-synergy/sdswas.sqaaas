@@ -6,8 +6,8 @@
         "title": "NMMB-MONARCH Dust Optical Depth (550nm)<br>Run: %(rhour)s %(rday)s %(rmonth)s %(ryear)s<br>Valid: %(shour)s %(sday)s %(smonth)s %(syear)s (H+%(step)s)"
     },
     "sconc_dust": {
-        "name": "Dust Surface Concentration",
-        "bounds": [5, 20, 50, 200, 500, 2000, 5000, 10000],
+        "name": "Dust Surface Concentration (µg/m³)",
+        "bounds": [5, 20, 50, 200, 500, 2000, 5000, 20000, 100000],
         "mul": 1e9,
         "title": "NMMB-MONARCH Dust Surface Conc. (µg/m³)<br>Run: %(rhour)s %(rday)s %(rmonth)s %(ryear)s<br>Valid: %(shour)s %(sday)s %(smonth)s %(syear)s (H+%(step)s)"
     }
