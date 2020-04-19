@@ -7,3 +7,4 @@ test-reports
 .eggs
 .coverage
 __pycache__
+data
