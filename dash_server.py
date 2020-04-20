@@ -14,19 +14,22 @@ from dash.dependencies import State
 from data_handler import FigureHandler
 from data_handler import TimeSeriesHandler
 from data_handler import DEFAULT_VAR
+from data_handler import DEFAULT_MODEL
 from data_handler import FREQ
+from data_handler import VARS
+from data_handler import MODELS
 
 from datetime import datetime as dt
 import math
 
 
-start_date = "20190701"
-end_date = "20190710"
+start_date = "20200301"
+end_date = "20200416"
 
 # models
 # F_PATH = './data/MODEL/netcdf/{}12_3H_NMMB-BSC_OPER.nc4'
 #
-F_PATH = './data/netcdf/{}12_3H_NMMB-BSC_OPER.nc4'
+F_PATH = './data/models/{}/netcdf/{}{}.nc4'
 TS_PATH = './data/feather/{}.ft'
 
 
@@ -39,7 +42,7 @@ def get_timeseries(var, lat, lon):
     return th.retrieve_timeseries(lat, lon)
 
 
-def get_figure(var, selected_date=end_date, tstep=0):
+def get_figure(model, var, selected_date=end_date, tstep=0):
     """ Retrieve figure """
     # print(var, selected_date, tstep)
     try:
@@ -48,7 +51,7 @@ def get_figure(var, selected_date=end_date, tstep=0):
     except:
         pass
     print('SERVER: Figure init ... ')
-    fh = FigureHandler(F_PATH.format(selected_date), selected_date)
+    fh = FigureHandler(model, selected_date)
     print('SERVER: Figure generation ... ')
     return fh.retrieve_var_tstep(var, tstep)
 
@@ -63,18 +66,25 @@ app.layout = html.Div(
         html.Div([
             html.Span(
                 dcc.Dropdown(
+                    id='model-dropdown',
+                    options=[{'label': MODELS[model]['name'],
+                              'value': model} for model in MODELS],
+                    value=DEFAULT_MODEL
+                ),
+                className="linetool",
+                style={
+                    'display': 'table-cell',
+                    'width': '25%',
+                    'padding-left': '1em',
+                    'padding-right': '0.5em',
+                }
+            ),
+            html.Span(
+                dcc.Dropdown(
                     id='variable-dropdown',
-                    options=[
-                        {
-                            'label': 'Dust Optical Depth (550nm)',
-                            'value': 'od550_dust'
-                        },
-                        {
-                            'label': 'Dust Surface Concentration',
-                            'value': 'sconc_dust'
-                        },
-                    ],
-                    value='od550_dust'
+                    options=[{'label': VARS[variable]['name'],
+                              'value': variable} for variable in VARS],
+                    value=DEFAULT_VAR
                 ),
                 className="linetool",
                 style={
@@ -133,7 +143,7 @@ app.layout = html.Div(
         html.Div(
             dcc.Graph(
                 id='graph-with-slider',
-                figure=get_figure(DEFAULT_VAR, end_date, 0),
+                figure=get_figure(DEFAULT_MODEL, DEFAULT_VAR, end_date, 0),
             ),
         ),
         dcc.Interval(id='slider-interval',
@@ -212,9 +222,10 @@ def update_slider(n):
 @app.callback(
     Output('graph-with-slider', 'figure'),
     [Input('model-date-picker', 'date'),
+     Input('model-dropdown', 'value'),
      Input('variable-dropdown', 'value'),
      Input('slider-graph', 'value')])
-def update_figure(date, variable, tstep):
+def update_figure(date, model, variable, tstep):
     print('SERVER: calling figure from picker callback')
     # print('SERVER: interval ' + str(n))
     print('SERVER: tstep ' + str(tstep))
@@ -230,9 +241,10 @@ def update_figure(date, variable, tstep):
     else:
         date = end_date
 
-    if variable is not None:
-        variable = variable
-    else:
+    if model is None:
+        model = DEFAULT_MODEL
+
+    if variable is None:
         variable = DEFAULT_VAR
 
     if tstep is not None:
@@ -241,7 +253,7 @@ def update_figure(date, variable, tstep):
         tstep = 0
 
     print('SERVER: tstep calc ' + str(tstep))
-    return get_figure(variable, date, tstep)
+    return get_figure(model, variable, date, tstep)
 
 
 # Dash CSS

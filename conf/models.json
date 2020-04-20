@@ -1,22 +1,27 @@
 {
     "cams": {
         "name": "CAMS-ECMWF",
-        "path": "/home/bscuser/Programs/interactive-forecast-viewer/data/models/CAMS",
+        "template": "00_3H_MACC-ECMWF",
+        "path": "/home/bscuser/Programs/interactive-forecast-viewer/data/models/CAMS"
     },
     "dream8-macc": {
         "name": "DREAM8-MACC",
-        "path": "/home/bscuser/Programs/interactive-forecast-viewer/data/models/DREAM8-MACC",
-    }
+        "template": "00_3H_DREAM8-MACC",
+        "path": "/home/bscuser/Programs/interactive-forecast-viewer/data/models/DREAM8-MACC"
+    },
     "monarch": {
         "name": "MONARCH",
-        "path": "/home/bscuser/Programs/interactive-forecast-viewer/data/models/MONARCH",
-    }
+        "template": "12_3H_NMMB-BSC",
+        "path": "/home/bscuser/Programs/interactive-forecast-viewer/data/models/MONARCH"
+    },
     "nasa-geos": {
         "name": "NASA-GEOS",
-        "path": "/home/bscuser/Programs/interactive-forecast-viewer/data/models/GEOS",
-    }
+        "template": "_NASA-GEOS",
+        "path": "/home/bscuser/Programs/interactive-forecast-viewer/data/models/NASA-GEOS"
+    },
     "median": {
         "name": "MEDIAN",
-        "path": "/home/bscuser/Programs/interactive-forecast-viewer/data/models/median",
+        "template": "_3H_MEDIAN",
+        "path": "/home/bscuser/Programs/interactive-forecast-viewer/data/models/median"
     }
 }

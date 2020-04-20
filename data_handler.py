@@ -24,11 +24,13 @@ COLORS = ['#a1ede3', '#5ce3ba', '#fcd775', '#da7230',
 COLORMAP = ListedColormap(COLORS)
 
 VARS = json.load(open('conf/vars.json'))
+MODELS = json.load(open('conf/models.json'))
 
 # Frequency = 3 Hourly
 FREQ = 3
 
 DEFAULT_VAR = 'od550_dust'
+DEFAULT_MODEL = 'median'
 
 STYLES = {
     "open-street-map": "Open street map",
@@ -169,13 +171,20 @@ class TimeSeriesHandler(object):
 class FigureHandler(object):
     """ Class to manage the figure creation """
 
-    def __init__(self, filepath, selected_date):
+    def __init__(self, model, selected_date):
+        self.model = model
+        filepath = "{}/netcdf/{}{}.nc4".format(
+            MODELS[self.model]['path'],
+            selected_date,
+            MODELS[self.model]['template']
+        )
         self.input_file = nc_file(filepath)
         lon = self.input_file.variables['lon'][:]
         lat = self.input_file.variables['lat'][:]
         time_obj = self.input_file.variables['time']
         self.tim = time_obj[:]
         self.what, _, rdate, rtime = time_obj.units.split()[:4]
+        rtime = rtime[:8]
         self.rdatetime = datetime.strptime("{} {}".format(rdate, rtime),
                                            "%Y-%m-%d %H:%M:%S")
         varlist = [var for var in self.input_file.variables if var in VARS]
@@ -254,23 +263,24 @@ class FigureHandler(object):
         return xlon, ylat, var
 
     def retrieve_cdatetime(self, tstep=0):
+        tim = int(self.tim[tstep])
         """ Retrieve data from NetCDF file """
         if self.what == 'days':
-            cdatetime = self.rdatetime + relativedelta(days=self.tim[tstep])
+            cdatetime = self.rdatetime + relativedelta(days=tim)
         elif self.what == 'hours':
-            cdatetime = self.rdatetime + relativedelta(hours=self.tim[tstep])
+            cdatetime = self.rdatetime + relativedelta(hours=tim)
         elif self.what == 'minutes':
-            cdatetime = self.rdatetime + relativedelta(minutes=self.tim[tstep])
+            cdatetime = self.rdatetime + relativedelta(minutes=tim)
         elif self.what == 'seconds':
-            cdatetime = self.rdatetime + relativedelta(seconds=self.tim[tstep])
+            cdatetime = self.rdatetime + relativedelta(seconds=tim)
 
         return cdatetime
 
     def generate_contour_tstep_trace(self, varname, tstep=0):
         """ Generate trace to be added to data, per variable and timestep """
         geojson = \
-            json.load(open("./data/geojson/{:02d}_{}_{}.geojson"
-                           .format(tstep, self.selected_date, varname)))
+            json.load(open("{}/geojson/{:02d}_{}_{}.geojson"
+                           .format(MODELS[self.model]['path'], tstep, self.selected_date, varname)))
 
         name = VARS[varname]['name']
         bounds = self.bounds[varname]
@@ -343,7 +353,7 @@ class FigureHandler(object):
         """ return title according to the date """
         rdatetime = self.rdatetime
         cdatetime = self.retrieve_cdatetime(tstep)
-        return r'{}'.format(VARS[varname]['title'] % {
+        return r'{} {}'.format(MODELS[self.model]['name'], VARS[varname]['title'] % {
             'rhour':  rdatetime.strftime("%H"),
             'rday':   rdatetime.strftime("%d"),
             'rmonth': rdatetime.strftime("%b"),

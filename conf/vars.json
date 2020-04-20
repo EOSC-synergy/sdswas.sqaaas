@@ -3,12 +3,12 @@
         "name": "Dust Optical Depth",
         "bounds": [0.1, 0.2, 0.4, 0.8, 1.2, 1.6, 3.2, 6.4, 10],
         "mul": 1,
-        "title": "NMMB-MONARCH Dust Optical Depth (550nm)<br>Run: %(rhour)s %(rday)s %(rmonth)s %(ryear)s<br>Valid: %(shour)s %(sday)s %(smonth)s %(syear)s (H+%(step)s)"
+        "title": "Dust Optical Depth (550nm)<br>Run: %(rhour)s %(rday)s %(rmonth)s %(ryear)s<br>Valid: %(shour)s %(sday)s %(smonth)s %(syear)s (H+%(step)s)"
     },
     "sconc_dust": {
         "name": "Dust Surface Concentration (µg/m³)",
         "bounds": [5, 20, 50, 200, 500, 2000, 5000, 20000, 100000],
         "mul": 1e9,
-        "title": "NMMB-MONARCH Dust Surface Conc. (µg/m³)<br>Run: %(rhour)s %(rday)s %(rmonth)s %(ryear)s<br>Valid: %(shour)s %(sday)s %(smonth)s %(syear)s (H+%(step)s)"
+        "title": "Dust Surface Conc. (µg/m³)<br>Run: %(rhour)s %(rday)s %(rmonth)s %(ryear)s<br>Valid: %(shour)s %(sday)s %(smonth)s %(syear)s (H+%(step)s)"
     }
 }
