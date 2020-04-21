@@ -33,11 +33,11 @@ F_PATH = './data/models/{}/netcdf/{}{}.nc4'
 TS_PATH = './data/feather/{}.ft'
 
 
-def get_timeseries(var, lat, lon):
+def get_timeseries(model, var, lat, lon):
     """ Retrieve timeseries """
     # print(var, selected_date, tstep)
     print('SERVER: TS init ... ')
-    th = TimeSeriesHandler(TS_PATH.format(var), var)
+    th = TimeSeriesHandler(model, var)
     print('SERVER: TS generation ... ')
     return th.retrieve_timeseries(lat, lon)
 
@@ -74,7 +74,7 @@ app.layout = html.Div(
                 className="linetool",
                 style={
                     'display': 'table-cell',
-                    'width': '25%',
+                    'width': '15%',
                     'padding-left': '1em',
                     'padding-right': '0.5em',
                 }
@@ -89,7 +89,22 @@ app.layout = html.Div(
                 className="linetool",
                 style={
                     'display': 'table-cell',
-                    'width': '25%',
+                    'width': '20%',
+                    'padding-left': '1em',
+                    'padding-right': '1em',
+                }
+            ),
+            html.Span(
+                dcc.Dropdown(
+                    id='obs-dropdown',
+                    options=[{'label': 'Aeronet v3 lev15',
+                              'value': 'aeronet'}],
+                    placeholder='Select observation network',
+                ),
+                className="linetool",
+                style={
+                    'display': 'table-cell',
+                    'width': '20%',
                     'padding-left': '1em',
                     'padding-right': '1em',
                 }
@@ -176,9 +191,10 @@ print('SERVER: stop creating app layout')
      Output("ts-modal", "is_open")],
     [Input('graph-with-slider', 'clickData')],
     [State('graph-with-slider', 'hoverData'),
+     State('model-dropdown', 'value'),
      State('variable-dropdown', 'value')],
 )
-def show_timeseries(cdata, hdata, variable):
+def show_timeseries(cdata, hdata, model, variable):
 
     # print('**************** CLICK', cdata, '++++++++++++++++++++')
     # print('**************** VARIABLE', variable, '++++++++++++++++++++')
@@ -186,7 +202,7 @@ def show_timeseries(cdata, hdata, variable):
         lat = hdata['points'][0]['lat']
         lon = hdata['points'][0]['lon']
         # print('******************** HOVER', hdata, '++++++++++++++++++++++++')
-        return get_timeseries(variable, lat, lon), True
+        return get_timeseries(model, variable, lat, lon), True
 
     return None, False
 

@@ -10,6 +10,7 @@ import numpy as np
 from netCDF4 import Dataset as nc_file
 import feather
 import json
+import os
 
 from utils import get_colorscale
 
@@ -117,11 +118,14 @@ class Observations1dHandler(object):
 
         )
 
+
 class TimeSeriesHandler(object):
     """ Class to handle time series """
 
-    def __init__(self, filepath, variable):
+    def __init__(self, model, variable):
         self.variable = variable
+        filepath = os.path.join(MODELS[model]['path'], 'feather',
+                                '{}.ft'.format(variable))
         # self.dataframe = pd.read_parquet(filepath)
         self.dataframe = feather.read_dataframe(filepath)
 
@@ -146,7 +150,7 @@ class TimeSeriesHandler(object):
             uirevision=True,
             autosize=True,
             hovermode="closest",        # highlight closest point on hover
-            margin={"r": 0, "t": 30, "l": 20, "b": 10},
+            margin={"r": 20, "t": 30, "l": 20, "b": 10},
         )
         fig.update_xaxes(
             rangeslider_visible=True,
@@ -184,9 +188,10 @@ class FigureHandler(object):
         time_obj = self.input_file.variables['time']
         self.tim = time_obj[:]
         self.what, _, rdate, rtime = time_obj.units.split()[:4]
-        rtime = rtime[:8]
+        if len(rtime) > 5:
+            rtime = rtime[:5]
         self.rdatetime = datetime.strptime("{} {}".format(rdate, rtime),
-                                           "%Y-%m-%d %H:%M:%S")
+                                           "%Y-%m-%d %H:%M")
         varlist = [var for var in self.input_file.variables if var in VARS]
         self.xlon, self.ylat = np.meshgrid(lon, lat)
         self.bounds = {
@@ -445,7 +450,7 @@ class FigureHandler(object):
                 # get_animation_buttons(),
                 self.get_mapbox_style_buttons(),
             ],
-            margin={"r": 0, "t": 30, "l": 20, "b": 20},
+            margin={"r": 120, "t": 30, "l": 20, "b": 20},
 #             xaxis=dict(
 #                 range=[self.xlon.min(), self.xlon.max()]
 #             ),
