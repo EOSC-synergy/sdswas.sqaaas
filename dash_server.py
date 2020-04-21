@@ -18,6 +18,7 @@ from data_handler import DEFAULT_MODEL
 from data_handler import FREQ
 from data_handler import VARS
 from data_handler import MODELS
+from data_handler import Observations1dHandler
 
 from datetime import datetime as dt
 import math
@@ -240,8 +241,9 @@ def update_slider(n):
     [Input('model-date-picker', 'date'),
      Input('model-dropdown', 'value'),
      Input('variable-dropdown', 'value'),
+     Input('obs-dropdown', 'value'),
      Input('slider-graph', 'value')])
-def update_figure(date, model, variable, tstep):
+def update_figure(date, model, variable, obs, tstep):
     print('SERVER: calling figure from picker callback')
     # print('SERVER: interval ' + str(n))
     print('SERVER: tstep ' + str(tstep))
@@ -269,7 +271,17 @@ def update_figure(date, model, variable, tstep):
         tstep = 0
 
     print('SERVER: tstep calc ' + str(tstep))
-    return get_figure(model, variable, date, tstep)
+
+    fig = get_figure(model, variable, date, tstep)
+
+    if obs:
+        obs_handler = Observations1dHandler('./data/obs/aeronet/netcdf/od550aero_202004.nc', date)
+        obs_trace = obs_handler.generate_obs1d_tstep_trace(variable)
+        fig.add_trace(obs_trace)
+
+        return fig
+
+    return fig
 
 
 # Dash CSS

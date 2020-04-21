@@ -48,14 +48,18 @@ class Observations1dHandler(object):
 
     def __init__(self, filepath, selected_date):
         self.input_file = nc_file(filepath)
-        self.lon = self.input_file.variables['lon'][:]
-        self.lat = self.input_file.variables['lat'][:]
+        self.lon = self.input_file.variables['longitude'][:]
+        self.lat = self.input_file.variables['latitude'][:]
         time_obj = self.input_file.variables['time']
         self.tim = time_obj[:]
         self.what, _, rdate, rtime = time_obj.units.split()[:4]
         self.rdatetime = datetime.strptime("{} {}".format(rdate, rtime),
                                            "%Y-%m-%d %H:%M:%S")
-        varlist = [var for var in self.input_file.variables if var in VARS]
+        # varlist = [var for var in self.input_file.variables if var in VARS]
+        varlist = ['od550aero']
+
+        self.station_names = [st_name[~st_name.mask].tostring().decode('utf-8')
+                              for st_name in self.input_file.variables['station_name'][:]]
 
         self.values = {
             varname: self.input_file.variables[varname][:]
@@ -63,7 +67,7 @@ class Observations1dHandler(object):
         }
 
         self.bounds = {
-            varname: np.array(VARS[varname]['bounds']).astype('float32')
+            varname: np.array(VARS['od550_dust']['bounds']).astype('float32')
             for varname in varlist
         }
 
@@ -90,24 +94,27 @@ class Observations1dHandler(object):
 #         elif self.what == 'seconds':
 #             cdatetime = self.rdatetime + relativedelta(seconds=self.tim[tstep])
 
-    def generate_obs1d_tstep_trace(self, varname, cdatetime):
+    def generate_obs1d_tstep_trace(self, varname):
         """ Generate trace to be added to data, per variable and timestep """
-        val = self.values[0]  # to find index of selected datetime
-        name = VARS[varname]['name']
+        varname = 'od550aero'
+        val = self.values[varname][0]  # to find index of selected datetime
+        name = 'Aeronet Station'
         return dict(
             type='scattermapbox',
             below='',
             lon=self.lon,
             lat=self.lat,
+            mode='markers',
             text=val,
             name=name,
-            hovertemplate="lon: %{lon:.4f}<br>lat: %{lat:.4f}<br>" +
-            "value: %{text:.4f}",
+            customdata=self.station_names,
+            hovertemplate="name:%{customdata}<br>lon: %{lon:.4f}<br>" +
+                          "lat: %{lat:.4f}<br>value: %{text:.4f}",
             opacity=0.6,
             showlegend=False,
             marker=dict(
                 # autocolorscale=True,
-                color=val,
+                color='red',
                 opacity=0.6,
                 size=10,
                 colorscale=self.colormaps[varname],
