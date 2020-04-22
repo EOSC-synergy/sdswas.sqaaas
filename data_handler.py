@@ -53,8 +53,8 @@ class Observations1dHandler(object):
         time_obj = self.input_file.variables['time']
         self.tim = time_obj[:]
         self.what, _, rdate, rtime = time_obj.units.split()[:4]
-        self.rdatetime = datetime.strptime("{} {}".format(rdate, rtime),
-                                           "%Y-%m-%d %H:%M:%S")
+        self.rdatetime = datetime.strptime("{} {}".format(rdate, rtime[:5]),
+                                           "%Y-%m-%d %H:%M")
         # varlist = [var for var in self.input_file.variables if var in VARS]
         varlist = ['od550aero']
 
@@ -97,7 +97,8 @@ class Observations1dHandler(object):
     def generate_obs1d_tstep_trace(self, varname):
         """ Generate trace to be added to data, per variable and timestep """
         varname = 'od550aero'
-        val = self.values[varname][0]  # to find index of selected datetime
+        # val = np.where(self.values[varname][0] is np.ma.masked, 'NaN', self.values[varname][0].data)
+        val = self.values[varname][0]
         name = 'Aeronet Station'
         return dict(
             type='scattermapbox',
@@ -114,9 +115,10 @@ class Observations1dHandler(object):
             showlegend=False,
             marker=dict(
                 # autocolorscale=True,
-                color='red',
+                # symbol='square',
+                color='royalblue',
                 opacity=0.6,
-                size=10,
+                size=15,
                 colorscale=self.colormaps[varname],
                 cmin=self.bounds[varname][0],
                 cmax=self.bounds[varname][-1],
@@ -235,17 +237,24 @@ class FigureHandler(object):
     def get_mapbox(self, style='open-street-map', relayout=False, zoom=3):
         """ Returns mapbox layout """
         mapbox_dict = dict(
-            bearing=0,
-            center=go.layout.mapbox.Center(
-                lat=(self.ylat.max()-self.ylat.min())/2 + self.ylat.min(),
-                lon=(self.xlon.max()-self.xlon.min())/2 + self.xlon.min(),
-            ),
-            pitch=0,
-            zoom=zoom,
+            uirevision=True,
             style=style,
         )
 
-        if relayout is False:
+        if not relayout:
+            mapbox_dict.update(
+                dict(
+                    bearing=0,
+                    center=go.layout.mapbox.Center(
+                        lat=(self.ylat.max()-self.ylat.min())/2 +
+                        self.ylat.min(),
+                        lon=(self.xlon.max()-self.xlon.min())/2 +
+                        self.xlon.min(),
+                    ),
+                    pitch=0,
+                    zoom=zoom
+                )
+            )
             return mapbox_dict
 
         return dict(

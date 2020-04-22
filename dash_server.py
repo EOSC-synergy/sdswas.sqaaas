@@ -242,8 +242,9 @@ def update_slider(n):
      Input('model-dropdown', 'value'),
      Input('variable-dropdown', 'value'),
      Input('obs-dropdown', 'value'),
-     Input('slider-graph', 'value')])
-def update_figure(date, model, variable, obs, tstep):
+     Input('slider-graph', 'value')],
+    [State('graph-with-slider', 'relayoutData')])
+def update_figure(date, model, variable, obs, tstep, relayoutdata):
     print('SERVER: calling figure from picker callback')
     # print('SERVER: interval ' + str(n))
     print('SERVER: tstep ' + str(tstep))
@@ -279,7 +280,12 @@ def update_figure(date, model, variable, obs, tstep):
         obs_trace = obs_handler.generate_obs1d_tstep_trace(variable)
         fig.add_trace(obs_trace)
 
-        return fig
+    print('0', str(fig.layout))
+    if relayoutdata:
+        print('1', relayoutdata)
+        relayoutdata = {k:relayoutdata[k] for k in relayoutdata if k not in ('mapbox._derived',)}
+        print('2', relayoutdata)
+        fig.layout.update(relayoutdata)
 
     return fig
 
