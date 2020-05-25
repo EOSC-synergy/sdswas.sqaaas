@@ -219,6 +219,8 @@ class FigureHandler(object):
         except:
             self.selected_date = selected_date
 
+        self.fig = None
+
     def get_mapbox_style_buttons(self):
         """ Relayout map with different styles """
         return dict(
@@ -239,22 +241,18 @@ class FigureHandler(object):
         mapbox_dict = dict(
             uirevision=True,
             style=style,
+            bearing=0,
+            center=go.layout.mapbox.Center(
+                lat=(self.ylat.max()-self.ylat.min())/2 +
+                self.ylat.min(),
+                lon=(self.xlon.max()-self.xlon.min())/2 +
+                self.xlon.min(),
+            ),
+            pitch=0,
+            zoom=zoom
         )
 
         if not relayout:
-            mapbox_dict.update(
-                dict(
-                    bearing=0,
-                    center=go.layout.mapbox.Center(
-                        lat=(self.ylat.max()-self.ylat.min())/2 +
-                        self.ylat.min(),
-                        lon=(self.xlon.max()-self.xlon.min())/2 +
-                        self.xlon.min(),
-                    ),
-                    pitch=0,
-                    zoom=zoom
-                )
-            )
             return mapbox_dict
 
         return dict(
@@ -388,12 +386,12 @@ class FigureHandler(object):
 
     def retrieve_var_tstep(self, varname, tstep=0):
         """ run plot """
-        fig = go.Figure()
+        self.fig = go.Figure()
         tstep = int(tstep)
         print('Adding contours ...')
-        fig.add_trace(self.generate_contour_tstep_trace(varname, tstep))
+        self.fig.add_trace(self.generate_contour_tstep_trace(varname, tstep))
         print('Adding points ...')
-        fig.add_trace(self.generate_var_tstep_trace(varname, tstep))
+        self.fig.add_trace(self.generate_var_tstep_trace(varname, tstep))
 
         # axis_style = dict(
         #     zeroline=False,
@@ -454,7 +452,7 @@ class FigureHandler(object):
 #         ]
 
         print('Update layout ...')
-        fig.update_layout(
+        self.fig.update_layout(
             title=dict(text=self.get_title(varname, tstep), x=0.02, y=0.93),
             uirevision=True,
             autosize=True,
@@ -465,6 +463,7 @@ class FigureHandler(object):
             updatemenus=[
                 # get_animation_buttons(),
                 self.get_mapbox_style_buttons(),
+                # self.get_variable_dropdown_buttons(),
             ],
             margin={"r": 120, "t": 30, "l": 20, "b": 20},
 #             xaxis=dict(
@@ -476,5 +475,5 @@ class FigureHandler(object):
             # sliders=sliders
         )
 
-        print('Returning fig of size {}'.format(sys.getsizeof(fig)))
-        return fig
+        print('Returning fig of size {}'.format(sys.getsizeof(self.fig)))
+        return self.fig
