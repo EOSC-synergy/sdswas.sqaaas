@@ -1,7 +1,46 @@
 .horizontal-menu {
     background-color: #2B383E !important;
     font-family: Roboto Medium;
+    border-top: none !important;
+    border-bottom: 3px solid white !important;
     color: white !important;
-    margin-bottom: 1em;
+    padding-bottom: 1em !important;
+    margin-bottom: 1em !important;
+}
+
+:hover .horizontal-menu, .horizontal-menu .tab--selected {
+    color: #F1B545 !important;
+    border-bottom: 3px solid #F1B545 !important;
+    padding-bottom: 1em !important;
+    margin-bottom: 1em !important;
+}
+
+#model-date-picker #date {
+    background-color: #2B383E !important;
+    border: none !important;
+    font-family: Roboto Medium !important;
+    font-size: 16px !important;
+    color: #F1B545 !important;
+}
+
+#slider-graph {
+    width: 30em;
+}
+
+#btn-play {
+    margin-bottom: 0.5em;
+}
+
+.linetool {
+    display: table-cell;
+    vertical-align: bottom;
+}
+
+.timeslider {
+    position: relative;
+    display: table-row;
+    left: 1.5em;
+    bottom: 6.5em;
+    background-color: #2B383E !important;
 }
 

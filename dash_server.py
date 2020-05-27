@@ -23,9 +23,8 @@ from data_handler import Observations1dHandler
 from datetime import datetime as dt
 import math
 
-
-start_date = "20200301"
-end_date = "20200416"
+import tabs
+from tabs import end_date
 
 # models
 # F_PATH = './data/MODEL/netcdf/{}12_3H_NMMB-BSC_OPER.nc4'
@@ -65,129 +64,34 @@ print('SERVER: start creating app layout')
 app.layout = html.Div(
     children=[
         dcc.Tabs(children=[
-            dcc.Tab(label='Forecast', className='horizontal-menu', children=[
-                html.Div([
-                    html.Span(
-                        dcc.Dropdown(
-                            id='model-dropdown',
-                            options=[{'label': MODELS[model]['name'],
-                                    'value': model} for model in MODELS],
-                            value=DEFAULT_MODEL
+            dcc.Tab(label='Forecast',
+                    className='horizontal-menu',
+                    children=[
+                        tabs.line_tool,
+                        html.Div(
+                            dcc.Graph(
+                                id='graph-with-slider',
+                                figure=get_figure(DEFAULT_MODEL,
+                                                  DEFAULT_VAR, end_date, 0),
+                            ),
                         ),
-                        className="linetool",
-                        style={
-                            'display': 'table-cell',
-                            'width': '15%',
-                            'padding-left': '1em',
-                            'padding-right': '0.5em',
-                        }
-                    ),
-                    html.Span(
-                        dcc.Dropdown(
-                            id='variable-dropdown',
-                            options=[{'label': VARS[variable]['name'],
-                                    'value': variable} for variable in VARS],
-                            value=DEFAULT_VAR
-                        ),
-                        className="linetool",
-                        style={
-                            'display': 'table-cell',
-                            'width': '20%',
-                            'padding-left': '1em',
-                            'padding-right': '1em',
-                        }
-                    ),
-                    html.Span(
-                        dcc.Dropdown(
-                            id='obs-dropdown',
-                            options=[{'label': 'Aeronet v3 lev15',
-                                    'value': 'aeronet'}],
-                            placeholder='Select observation network',
-                        ),
-                        className="linetool",
-                        style={
-                            'display': 'table-cell',
-                            'width': '20%',
-                            'padding-left': '1em',
-                            'padding-right': '1em',
-                        }
-                    ),
-                    html.Span(
-                        dcc.DatePickerSingle(
-                            id='model-date-picker',
-                            min_date_allowed=dt.strptime(start_date, "%Y%m%d"),
-                            max_date_allowed=dt.strptime(end_date, "%Y%m%d"),
-                            initial_visible_month=dt.strptime(end_date, "%Y%m%d"),
-                            display_format='YYYY/MM/DD',
-                            date=end_date,
-                        ),
-                        className="linetool",
-                        style={
-                            'display': 'table-cell'
-                        }
-                    ),
-                    html.Span(
-                        html.Button('\u2023', title='Play/Stop',
-                                    id='btn-play', n_clicks=0),
-                        className="linetool",
-                        style={
-                            'display': 'table-cell',
-                            'padding-left': '1em',
-                        }
-                    ),
-                    html.Span(
-                        dcc.Slider(
-                            id='slider-graph',
-                            min=0, max=72, step=FREQ, value=0,
-                            marks={
-                                tstep: '{:02d}'.format(tstep)
-                                for tstep in range(0, 75, FREQ)
-                            },
-                            # updatemode='drag',
-                        ),
-                        className="linetool",
-                        style={
-                            'display': 'table-cell',
-                            'width': '60%',
-                            'vertical-align': 'bottom'
-                        }
-                    )],
-                    className="toolbar",
-                    style={
-                        'display': 'table-row',
-                        'width': '100%'
-                    }
-                ),
-                html.Div(
-                    dcc.Graph(
-                        id='graph-with-slider',
-                        figure=get_figure(DEFAULT_MODEL, DEFAULT_VAR, end_date, 0),
-                    ),
-                ),
-                dcc.Interval(id='slider-interval',
-                            interval=3000,
-                            n_intervals=0,
-                            disabled=True),
-                html.Div([
-                    # dbc.Button('open', id='open-ts'),
-                    dcc.Loading([
-                        dbc.Modal([
-                            dbc.ModalBody(
-                                dcc.Graph(
-                                    id='timeseries-modal',
-                                    figure=None,  # get_timeseries(DEFAULT_VAR, -3., -23.),
-                                ),
-                            )],
-                            id='ts-modal',
-                            size='xl',
-                            centered=True,
-                        ),
+                        dcc.Interval(id='slider-interval',
+                                     interval=3000,
+                                     n_intervals=0,
+                                     disabled=True),
+                        tabs.time_slider,
+                        tabs.time_series,
                     ]),
-                ]),
             ]),
-        ]),
-    ],
+            dcc.Tab(label='Evaluation',
+                    className='horizontal-menu',
+                    children=[]),
+            dcc.Tab(label='Observations',
+                    className='horizontal-menu',
+                    children=[]),
+        ],
 )
+
 print('SERVER: stop creating app layout')
 
 
@@ -216,6 +120,7 @@ def show_timeseries(cdata, hdata, model, variable):
     [State('slider-interval', 'disabled'),
      State('slider-graph', 'value')])
 def start_stop_autoslider(n, disabled, value):
+    print("VALUE", value)
     if n:
         return not disabled, int(value/FREQ)
     return disabled, int(value/FREQ)
