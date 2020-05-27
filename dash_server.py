@@ -16,8 +16,6 @@ from data_handler import TimeSeriesHandler
 from data_handler import DEFAULT_VAR
 from data_handler import DEFAULT_MODEL
 from data_handler import FREQ
-from data_handler import VARS
-from data_handler import MODELS
 from data_handler import Observations1dHandler
 
 from datetime import datetime as dt
@@ -63,11 +61,11 @@ app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 print('SERVER: start creating app layout')
 app.layout = html.Div(
     children=[
+        tabs.sidebar,
         dcc.Tabs(children=[
             dcc.Tab(label='Forecast',
                     className='horizontal-menu',
                     children=[
-                        tabs.line_tool,
                         html.Div(
                             dcc.Graph(
                                 id='graph-with-slider',
@@ -90,11 +88,13 @@ app.layout = html.Div(
                     className='horizontal-menu',
                     children=[]),
         ],
+    className="content",
 )
 
 print('SERVER: stop creating app layout')
 
 
+# retrieve timeseries according to coordinates selected
 @app.callback(
     [Output('timeseries-modal', 'figure'),
      Output("ts-modal", "is_open")],
@@ -113,6 +113,7 @@ def show_timeseries(cdata, hdata, model, variable):
     return None, False
 
 
+# start/stop animation
 @app.callback([
     Output('slider-interval', 'disabled'),
     Output('slider-interval', 'n_intervals')],
@@ -126,6 +127,7 @@ def start_stop_autoslider(n, disabled, value):
     return disabled, int(value/FREQ)
 
 
+# update slider value according to the number of intervals
 @app.callback(
     Output('slider-graph', 'value'),
     [Input('slider-interval', 'n_intervals')])
@@ -142,6 +144,7 @@ def update_slider(n):
     return tstep*FREQ
 
 
+# update main figure according to all parameters
 @app.callback(
     Output('graph-with-slider', 'figure'),
     [Input('model-date-picker', 'date'),

@@ -13,85 +13,69 @@ start_date = "20200301"
 end_date = "20200416"
 
 
-line_tool = html.Div([
-                html.Span(
-                    dcc.Dropdown(
-                        id='model-dropdown',
-                        options=[{'label': MODELS[model]['name'],
-                                'value': model} for model in MODELS],
-                        value=DEFAULT_MODEL
-                    ),
-                    className="linetool",
-                    style={
-                        'width': '15%',
-                        'padding-right': '0.5em',
-                    }
-                ),
-                html.Span(
-                    dcc.Dropdown(
-                        id='variable-dropdown',
-                        options=[{'label': VARS[variable]['name'],
-                                'value': variable} for variable in VARS],
-                        value=DEFAULT_VAR
-                    ),
-                    className="linetool",
-                    style={
-                        'width': '20%',
-                        'padding-right': '1em',
-                    }
-                ),
-                html.Span(
-                    dcc.Dropdown(
-                        id='obs-dropdown',
-                        options=[{'label': 'Aeronet v3 lev15',
-                                'value': 'aeronet'}],
-                        placeholder='Select observation network',
-                    ),
-                    className="linetool",
-                    style={
-                        'width': '20%',
-                        'padding-right': '1em',
-                    }
-                ),
-                ],
-                className="toolbar",
-                style={
-                    'display': 'table-row',
-                    'width': '100%'
-                }
-            )
+sidebar = html.Div([
+    html.Span(
+        dcc.Dropdown(
+            id='variable-dropdown',
+            options=[{'label': VARS[variable]['name'],
+                      'value': variable} for variable in VARS],
+            value=DEFAULT_VAR
+        ),
+        className="sidebar-item",
+    ),
+    html.Span(
+        dcc.Dropdown(
+            id='model-dropdown',
+            options=[{'label': MODELS[model]['name'],
+                      'value': model} for model in MODELS],
+            value=DEFAULT_MODEL
+        ),
+        className="sidebar-item",
+    ),
+    html.Span(
+        dcc.Dropdown(
+            id='obs-dropdown',
+            options=[{'label': 'Aeronet v3 lev15',
+                      'value': 'aeronet'}],
+            placeholder='Select observation network',
+        ),
+        className="sidebar-item",
+    ),
+    ],
+    className="sidebar",
+)
 
 time_slider = html.Div([
                     html.Span(
-                    dcc.DatePickerSingle(
-                        id='model-date-picker',
-                        min_date_allowed=dt.strptime(start_date, "%Y%m%d"),
-                        max_date_allowed=dt.strptime(end_date, "%Y%m%d"),
-                        initial_visible_month=dt.strptime(end_date, "%Y%m%d"),
-                        display_format='DD MMM YYYY',
-                        date=end_date,
+                        dcc.DatePickerSingle(
+                            id='model-date-picker',
+                            min_date_allowed=dt.strptime(start_date, "%Y%m%d"),
+                            max_date_allowed=dt.strptime(end_date, "%Y%m%d"),
+                            initial_visible_month=dt.strptime(end_date, "%Y%m%d"),
+                            display_format='DD MMM YYYY',
+                            date=end_date,
+                        ),
+                        className="linetool",
                     ),
-                    className="linetool",
-                ),
-                html.Span(
-                    html.Button('\u2023', title='Play/Stop',
-                                id='btn-play', n_clicks=0),
-                    className="linetool",
-                ),
-                html.Span(
-                    dcc.Slider(
-                        id='slider-graph',
-                        min=0, max=72, step=FREQ, value=0,
-                        marks={
-                            tstep: '{:d}'.format(tstep)
-                            # if tstep%2 == 0 else ''
-                            for tstep in range(0, 75, FREQ)
-                        },
-                        # updatemode='drag',
+                    html.Span(
+                        html.Button('\u2023', title='Play/Stop',
+                                    id='btn-play', n_clicks=0),
+                        className="linetool",
                     ),
-                    className="linetool",
-                )],
-                className="timeslider"
+                    html.Span(
+                        dcc.Slider(
+                            id='slider-graph',
+                            min=0, max=72, step=FREQ, value=0,
+                            marks={
+                                tstep: '{:d}'.format(tstep)
+                                # if tstep%2 == 0 else ''
+                                for tstep in range(0, 75, FREQ)
+                            },
+                            # updatemode='drag',
+                        ),
+                        className="linetool",
+                    )],
+                    className="timeslider"
             )
 
 time_series = html.Div([
@@ -101,7 +85,7 @@ time_series = html.Div([
                             dbc.ModalBody(
                                 dcc.Graph(
                                     id='timeseries-modal',
-                                    figure=None,  # get_timeseries(DEFAULT_VAR, -3., -23.),
+                                    figure=None,
                                 ),
                             )],
                             id='ts-modal',

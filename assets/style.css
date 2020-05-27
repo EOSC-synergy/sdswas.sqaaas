@@ -24,11 +24,17 @@
 }
 
 #slider-graph {
-    width: 30em;
+    width: 40em;
 }
 
 #btn-play {
     margin-bottom: 0.5em;
+    border: none;
+    padding: 3px 10px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
 }
 
 .linetool {
