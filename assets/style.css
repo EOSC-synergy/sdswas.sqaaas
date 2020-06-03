@@ -21,6 +21,12 @@
     font-family: Roboto Medium !important;
     font-size: 16px !important;
     color: #F1B545 !important;
+    padding-left: 18px !important;
+    text-transform: uppercase;
+}
+
+div.SingleDatePickerInput {
+    border: none;
 }
 
 #slider-graph {
@@ -35,6 +41,11 @@
     text-decoration: none;
     display: inline-block;
     font-size: 16px;
+    border-radius: 50%;
+}
+
+#btn-play:hover {
+    background-color: #F1B545 !important;
 }
 
 .linetool {
@@ -45,8 +56,12 @@
 .timeslider {
     position: relative;
     display: table-row;
-    left: 1.5em;
-    bottom: 6.5em;
+    left: 1em;
+    bottom: 6em;
     background-color: #2B383E !important;
+}
+
+*, ::after, ::before {
+    box-sizing: content-box;
 }
 

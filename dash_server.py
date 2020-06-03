@@ -24,12 +24,6 @@ import math
 import tabs
 from tabs import end_date
 
-# models
-# F_PATH = './data/MODEL/netcdf/{}12_3H_NMMB-BSC_OPER.nc4'
-#
-F_PATH = './data/models/{}/netcdf/{}{}.nc4'
-TS_PATH = './data/feather/{}.ft'
-
 
 def get_timeseries(model, var, lat, lon):
     """ Retrieve timeseries """
@@ -40,7 +34,7 @@ def get_timeseries(model, var, lat, lon):
     return th.retrieve_timeseries(lat, lon)
 
 
-def get_figure(model, var, selected_date=end_date, tstep=0):
+def get_figure(model, var, selected_date=end_date, tstep=0, static=True):
     """ Retrieve figure """
     # print(var, selected_date, tstep)
     try:
@@ -51,7 +45,7 @@ def get_figure(model, var, selected_date=end_date, tstep=0):
     print('SERVER: Figure init ... ')
     fh = FigureHandler(model, selected_date)
     print('SERVER: Figure generation ... ')
-    return fh.retrieve_var_tstep(var, tstep)
+    return fh.retrieve_var_tstep(var, tstep, static)
 
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
@@ -74,7 +68,7 @@ app.layout = html.Div(
                             ),
                         ),
                         dcc.Interval(id='slider-interval',
-                                     interval=3000,
+                                     interval=2000,
                                      n_intervals=0,
                                      disabled=True),
                         tabs.time_slider,
@@ -104,7 +98,6 @@ print('SERVER: stop creating app layout')
      State('variable-dropdown', 'value')],
 )
 def show_timeseries(cdata, hdata, model, variable):
-
     if hdata:
         lat = hdata['points'][0]['lat']
         lon = hdata['points'][0]['lon']
@@ -122,6 +115,8 @@ def show_timeseries(cdata, hdata, model, variable):
      State('slider-graph', 'value')])
 def start_stop_autoslider(n, disabled, value):
     print("VALUE", value)
+    if not value:
+        value = 0
     if n:
         return not disabled, int(value/FREQ)
     return disabled, int(value/FREQ)
@@ -152,8 +147,9 @@ def update_slider(n):
      Input('variable-dropdown', 'value'),
      Input('obs-dropdown', 'value'),
      Input('slider-graph', 'value')],
-    [State('graph-with-slider', 'relayoutData')])
-def update_figure(date, model, variable, obs, tstep, relayoutdata):
+    [State('graph-with-slider', 'relayoutData'),
+     State('slider-interval', 'disabled')])
+def update_figure(date, model, variable, obs, tstep, relayoutdata, static):
     print('SERVER: calling figure from picker callback')
     # print('SERVER: interval ' + str(n))
     print('SERVER: tstep ' + str(tstep))
@@ -182,7 +178,7 @@ def update_figure(date, model, variable, obs, tstep, relayoutdata):
 
     print('SERVER: tstep calc ' + str(tstep))
 
-    fig = get_figure(model, variable, date, tstep)
+    fig = get_figure(model, variable, date, tstep, static)
 
     if obs:
         obs_handler = Observations1dHandler('./data/obs/aeronet/netcdf/od550aero_202004.nc', date)

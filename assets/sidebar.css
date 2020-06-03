@@ -3,10 +3,13 @@
   margin: 0 !important;
   padding: 0 !important;
   width: 200px !important;
-  background-color: #F1B545 !important;
+  font-family: Roboto Medium;
+/*  background-color: #F1B545 !important; */
+  color: #2B383E !important;
   position: fixed !important;
   height: 100% !important;
   overflow: auto !important;
+  display: inline-block !important;
 }
 
 /* Sidebar links */
@@ -27,6 +30,34 @@
 .sidebar a:hover:not(.active) {
   background-color: #555;
   color: white;
+}
+
+.Select--single>.Select-control .Select-value, .Select-placeholder 
+{
+    line-height: 40px !important;
+    display: inline-block !important;
+}
+
+span.sidebar-first-item {
+    background-color: #F1B545 !important;
+}
+
+.sidebar-first-item .Select-control {
+    line-height: 40px !important;
+    border-radius: 0px;
+    border: none;
+}
+
+.sidebar-item .Select-control, .sidebar-item .Select-multi-value-wrapper .Select-input {
+    line-height: 60px !important;
+    border-radius: 0px;
+    border: none;
+}
+
+
+
+#variable-dropdown .sidebar-item {
+  background-color: #F1B545 !important;
 }
 
 /* Page content. The value of the margin-left property should match the value of the sidebar's width property */

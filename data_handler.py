@@ -16,7 +16,6 @@ from utils import get_colorscale
 
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
-import sys
 
 
 COLORS = ['#a1ede3', '#5ce3ba', '#fcd775', '#da7230',
@@ -42,6 +41,9 @@ STYLES = {
     "stamen-watercolor": "Watercolor"
 }
 
+GEOJSON_TEMPLATE = "{}/geojson/{:02d}_{}_{}.geojson"
+NETCDF_TEMPLATE = "{}/netcdf/{}{}.nc4"
+
 
 class Observations1dHandler(object):
     """ Class which handles 1D obs data """
@@ -59,7 +61,8 @@ class Observations1dHandler(object):
         varlist = ['od550aero']
 
         self.station_names = [st_name[~st_name.mask].tostring().decode('utf-8')
-                              for st_name in self.input_file.variables['station_name'][:]]
+                              for st_name in
+                              self.input_file.variables['station_name'][:]]
 
         self.values = {
             varname: self.input_file.variables[varname][:]
@@ -97,7 +100,6 @@ class Observations1dHandler(object):
     def generate_obs1d_tstep_trace(self, varname):
         """ Generate trace to be added to data, per variable and timestep """
         varname = 'od550aero'
-        # val = np.where(self.values[varname][0] is np.ma.masked, 'NaN', self.values[varname][0].data)
         val = self.values[varname][0]
         name = 'Aeronet Station'
         return dict(
@@ -132,6 +134,9 @@ class TimeSeriesHandler(object):
     """ Class to handle time series """
 
     def __init__(self, model, variable):
+        if isinstance(model, list):
+            model = model[0]
+        self.model = model
         self.variable = variable
         filepath = os.path.join(MODELS[model]['path'], 'feather',
                                 '{}.ft'.format(variable))
@@ -185,8 +190,11 @@ class FigureHandler(object):
     """ Class to manage the figure creation """
 
     def __init__(self, model, selected_date):
+        if isinstance(model, list):
+            model = model[0]
         self.model = model
-        filepath = "{}/netcdf/{}{}.nc4".format(
+        print("MODEL", model)
+        filepath = NETCDF_TEMPLATE.format(
             MODELS[self.model]['path'],
             selected_date,
             MODELS[self.model]['template']
@@ -298,8 +306,11 @@ class FigureHandler(object):
     def generate_contour_tstep_trace(self, varname, tstep=0):
         """ Generate trace to be added to data, per variable and timestep """
         geojson = \
-            json.load(open("{}/geojson/{:02d}_{}_{}.geojson"
-                           .format(MODELS[self.model]['path'], tstep, self.selected_date, varname)))
+            json.load(open(GEOJSON_TEMPLATE
+                           .format(MODELS[self.model]['path'],
+                                   tstep,
+                                   self.selected_date,
+                                   varname)))
 
         name = VARS[varname]['name']
         bounds = self.bounds[varname]
@@ -312,7 +323,7 @@ class FigureHandler(object):
             if feature['geometry']['coordinates']
         ]
         locations, values = np.array(loc_val).T
-        print(varname, self.colormaps[varname], values)
+        # print(varname, self.colormaps[varname], values)
         return dict(
             type='choroplethmapbox',
             name=name+'_contours',
@@ -323,13 +334,21 @@ class FigureHandler(object):
             zmin=bounds[0],
             zmax=bounds[-1],
             colorscale=self.colormaps[varname],
-            showscale=False,
+            showscale=True,
             showlegend=False,
             hoverinfo='none',
             marker=dict(
                 opacity=0.6,
                 line_width=0,
             ),
+            colorbar={
+                    "borderwidth": 0,
+                    "outlinewidth": 0,
+                    "thickness": 15,
+                    "tickfont": {"size": 14},
+                    "tickvals": self.bounds[varname][:-1],
+                    "tickmode": "array",
+                },
         )
 
     def generate_var_tstep_trace(self, varname, tstep=0):
@@ -349,21 +368,14 @@ class FigureHandler(object):
             showlegend=False,
             marker=dict(
                 # autocolorscale=True,
+                showscale=False,
                 color=val,
-                opacity=0.6,
+                # opacity=0.6,
                 size=0,
                 colorscale=self.colormaps[varname],
                 cmin=self.bounds[varname][0],
                 cmax=self.bounds[varname][-1],
-                showscale=True,
-                colorbar={
-                    "borderwidth": 0,
-                    "outlinewidth": 0,
-                    "thickness": 15,
-                    "tickfont": {"size": 14},
-                    "tickvals": self.bounds[varname][:-1],
-                    "tickmode": "array",
-                },
+                colorbar=None,
             ),
 
         )
@@ -372,7 +384,8 @@ class FigureHandler(object):
         """ return title according to the date """
         rdatetime = self.rdatetime
         cdatetime = self.retrieve_cdatetime(tstep)
-        return r'{} {}'.format(MODELS[self.model]['name'], VARS[varname]['title'] % {
+        return r'{} {}'.format(MODELS[self.model]['name'],
+                               VARS[varname]['title'] % {
             'rhour':  rdatetime.strftime("%H"),
             'rday':   rdatetime.strftime("%d"),
             'rmonth': rdatetime.strftime("%b"),
@@ -384,14 +397,15 @@ class FigureHandler(object):
             'step':   "{:02d}".format(tstep*FREQ),
         })
 
-    def retrieve_var_tstep(self, varname, tstep=0):
+    def retrieve_var_tstep(self, varname, tstep=0, static=True):
         """ run plot """
         self.fig = go.Figure()
         tstep = int(tstep)
         print('Adding contours ...')
         self.fig.add_trace(self.generate_contour_tstep_trace(varname, tstep))
-        print('Adding points ...')
-        self.fig.add_trace(self.generate_var_tstep_trace(varname, tstep))
+        if static:
+            print('Adding points ...')
+            self.fig.add_trace(self.generate_var_tstep_trace(varname, tstep))
 
         # axis_style = dict(
         #     zeroline=False,
@@ -453,7 +467,8 @@ class FigureHandler(object):
 
         print('Update layout ...')
         self.fig.update_layout(
-            title=dict(text=self.get_title(varname, tstep), x=0.02, y=0.93),
+            title=dict(text=self.get_title(varname, tstep),
+                       x=0.01, y=0.96),
             uirevision=True,
             autosize=True,
             hovermode="closest",        # highlight closest point on hover
@@ -465,7 +480,7 @@ class FigureHandler(object):
                 self.get_mapbox_style_buttons(),
                 # self.get_variable_dropdown_buttons(),
             ],
-            margin={"r": 120, "t": 30, "l": 20, "b": 20},
+            margin={"r": 0, "t": 0, "l": 0, "b": 0},
 #             xaxis=dict(
 #                 range=[self.xlon.min(), self.xlon.max()]
 #             ),
@@ -475,5 +490,5 @@ class FigureHandler(object):
             # sliders=sliders
         )
 
-        print('Returning fig of size {}'.format(sys.getsizeof(self.fig)))
+        # print('Returning fig of size {}'.format(sys.getsizeof(self.fig)))
         return self.fig

@@ -14,22 +14,26 @@ end_date = "20200416"
 
 
 sidebar = html.Div([
-    html.Span(
+    html.Span([
+        html.Label("Variable"),
         dcc.Dropdown(
             id='variable-dropdown',
             options=[{'label': VARS[variable]['name'],
                       'value': variable} for variable in VARS],
-            value=DEFAULT_VAR
-        ),
-        className="sidebar-item",
+            value=DEFAULT_VAR,
+            clearable=False,
+            searchable=False
+        )],
+        className="sidebar-first-item",
     ),
-    html.Span(
-        dcc.Dropdown(
+    html.Details([
+        html.Summary("Models"),
+        dcc.Checklist(
             id='model-dropdown',
             options=[{'label': MODELS[model]['name'],
                       'value': model} for model in MODELS],
-            value=DEFAULT_MODEL
-        ),
+            value=[DEFAULT_MODEL,],
+        )],
         className="sidebar-item",
     ),
     html.Span(
@@ -38,6 +42,8 @@ sidebar = html.Div([
             options=[{'label': 'Aeronet v3 lev15',
                       'value': 'aeronet'}],
             placeholder='Select observation network',
+            clearable=False,
+            searchable=False
         ),
         className="sidebar-item",
     ),
