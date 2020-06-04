@@ -1,16 +1,18 @@
+:hover.tab.horizontal-menu, .horizontal-menu.tab--selected {
+    color: #F1B545 !important;
+    border-bottom: 3px solid #F1B545 !important;
+    padding-bottom: 1em !important;
+    margin-bottom: 1em !important;
+}
+
 .horizontal-menu {
     background-color: #2B383E !important;
     font-family: Roboto Medium;
     border-top: none !important;
     border-bottom: 3px solid white !important;
+    border-left: none !important;
+    border-right: none !important;
     color: white !important;
-    padding-bottom: 1em !important;
-    margin-bottom: 1em !important;
-}
-
-:hover .horizontal-menu, .horizontal-menu .tab--selected {
-    color: #F1B545 !important;
-    border-bottom: 3px solid #F1B545 !important;
     padding-bottom: 1em !important;
     margin-bottom: 1em !important;
 }
@@ -57,7 +59,7 @@ div.SingleDatePickerInput {
     position: relative;
     display: table-row;
     left: 1em;
-    bottom: 6em;
+    bottom: 3em;
     background-color: #2B383E !important;
 }
 

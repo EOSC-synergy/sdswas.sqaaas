@@ -13,7 +13,7 @@ start_date = "20200301"
 end_date = "20200416"
 
 
-sidebar = html.Div([
+sidebar_forecast = html.Div([
     html.Span([
         html.Label("Variable"),
         dcc.Dropdown(
@@ -34,17 +34,6 @@ sidebar = html.Div([
                       'value': model} for model in MODELS],
             value=[DEFAULT_MODEL,],
         )],
-        className="sidebar-item",
-    ),
-    html.Span(
-        dcc.Dropdown(
-            id='obs-dropdown',
-            options=[{'label': 'Aeronet v3 lev15',
-                      'value': 'aeronet'}],
-            placeholder='Select observation network',
-            clearable=False,
-            searchable=False
-        ),
         className="sidebar-item",
     ),
     ],

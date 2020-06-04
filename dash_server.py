@@ -22,6 +22,7 @@ from datetime import datetime as dt
 import math
 
 import tabs
+from tabs import start_date
 from tabs import end_date
 
 
@@ -34,7 +35,7 @@ def get_timeseries(model, var, lat, lon):
     return th.retrieve_timeseries(lat, lon)
 
 
-def get_figure(model, var, selected_date=end_date, tstep=0, static=True):
+def get_figure(model=None, var=None, selected_date=end_date, tstep=0, static=True):
     """ Retrieve figure """
     # print(var, selected_date, tstep)
     try:
@@ -42,10 +43,13 @@ def get_figure(model, var, selected_date=end_date, tstep=0, static=True):
             selected_date, "%Y-%m-%d %H:%M:%S").strftime("%Y%m%d")
     except:
         pass
-    print('SERVER: Figure init ... ')
-    fh = FigureHandler(model, selected_date)
-    print('SERVER: Figure generation ... ')
-    return fh.retrieve_var_tstep(var, tstep, static)
+    if model:
+        print('SERVER: Figure init ... ')
+        fh = FigureHandler(model, selected_date)
+        print('SERVER: Figure generation ... ')
+        return fh.retrieve_var_tstep(var, tstep, static)
+    print('SERVER: No Figure')
+    return FigureHandler().retrieve_var_tstep()
 
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
@@ -55,7 +59,7 @@ app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 print('SERVER: start creating app layout')
 app.layout = html.Div(
     children=[
-        tabs.sidebar,
+        tabs.sidebar_forecast,
         dcc.Tabs(children=[
             dcc.Tab(label='Forecast',
                     className='horizontal-menu',
@@ -74,14 +78,43 @@ app.layout = html.Div(
                         tabs.time_slider,
                         tabs.time_series,
                     ]),
-            ]),
             dcc.Tab(label='Evaluation',
                     className='horizontal-menu',
-                    children=[]),
+                    children=[
+                        html.Span(
+                            dcc.DatePickerSingle(
+                                id='eval-date-picker',
+                                min_date_allowed=dt.strptime(start_date, "%Y%m%d"),
+                                max_date_allowed=dt.strptime(end_date, "%Y%m%d"),
+                                initial_visible_month=dt.strptime(end_date, "%Y%m%d"),
+                                display_format='DD MMM YYYY',
+                                date=end_date,
+                            ),
+                            className="linetool",
+                        ),
+                        html.Span(
+                            dcc.Dropdown(
+                                id='obs-dropdown',
+                                options=[{'label': 'Aeronet v3 lev15',
+                                        'value': 'aeronet'}],
+                                placeholder='Select observation network',
+                                # clearable=False,
+                                searchable=False
+                            ),
+                            className="linetool",
+                        ),
+                        html.Div(
+                            dcc.Graph(
+                                id='graph-eval',
+                                figure=get_figure(),
+                            ),
+                        ),
+                    ]),
             dcc.Tab(label='Observations',
                     className='horizontal-menu',
                     children=[]),
-        ],
+        ]),
+    ],
     className="content",
 )
 
@@ -139,17 +172,16 @@ def update_slider(n):
     return tstep*FREQ
 
 
-# update main figure according to all parameters
+# update forecast figure according to all parameters
 @app.callback(
     Output('graph-with-slider', 'figure'),
     [Input('model-date-picker', 'date'),
      Input('model-dropdown', 'value'),
      Input('variable-dropdown', 'value'),
-     Input('obs-dropdown', 'value'),
      Input('slider-graph', 'value')],
     [State('graph-with-slider', 'relayoutData'),
      State('slider-interval', 'disabled')])
-def update_figure(date, model, variable, obs, tstep, relayoutdata, static):
+def update_figure(date, model, variable, tstep, relayoutdata, static):
     print('SERVER: calling figure from picker callback')
     # print('SERVER: interval ' + str(n))
     print('SERVER: tstep ' + str(tstep))
@@ -180,14 +212,49 @@ def update_figure(date, model, variable, obs, tstep, relayoutdata, static):
 
     fig = get_figure(model, variable, date, tstep, static)
 
-    if obs:
-        obs_handler = Observations1dHandler('./data/obs/aeronet/netcdf/od550aero_202004.nc', date)
-        obs_trace = obs_handler.generate_obs1d_tstep_trace(variable)
-        fig.add_trace(obs_trace)
-
-    if relayoutdata:
-        relayoutdata = {k:relayoutdata[k] for k in relayoutdata if k not in ('mapbox._derived',)}
+    if fig and relayoutdata:
+        relayoutdata = {k: relayoutdata[k]
+                        for k in relayoutdata
+                        if k not in ('mapbox._derived',)}
         fig.layout.update(relayoutdata)
+
+    return fig
+
+
+# update evaluation figure according to all parameters
+@app.callback(
+    Output('graph-eval', 'figure'),
+    [Input('eval-date-picker', 'date'),
+     Input('obs-dropdown', 'value')],
+    [State('graph-eval', 'relayoutData')])
+def update_eval(date, obs, relayoutdata):
+    print('SERVER: calling figure from EVAL picker callback')
+    # print('SERVER: interval ' + str(n))
+
+    if date is not None:
+        date = date.split(' ')[0]
+        try:
+            date = dt.strptime(
+                date, "%Y-%m-%d").strftime("%Y%m%d")
+        except:
+            pass
+        print('SERVER: callback date {}'.format(date))
+    else:
+        date = end_date
+
+    fig = get_figure(model=None, var=DEFAULT_VAR, selected_date=date)
+
+    if fig:
+        if obs:
+            obs_handler = Observations1dHandler('./data/obs/aeronet/netcdf/od550aero_202004.nc', date)
+            obs_trace = obs_handler.generate_obs1d_tstep_trace(DEFAULT_VAR)
+            fig.add_trace(obs_trace)
+
+        if relayoutdata:
+            relayoutdata = {k: relayoutdata[k]
+                            for k in relayoutdata
+                            if k not in ('mapbox._derived',)}
+            fig.layout.update(relayoutdata)
 
     return fig
 

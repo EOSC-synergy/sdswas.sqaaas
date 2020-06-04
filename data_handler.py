@@ -189,73 +189,79 @@ class TimeSeriesHandler(object):
 class FigureHandler(object):
     """ Class to manage the figure creation """
 
-    def __init__(self, model, selected_date):
+    def __init__(self, model=None, selected_date=None):
         if isinstance(model, list):
             model = model[0]
-        self.model = model
-        print("MODEL", model)
-        filepath = NETCDF_TEMPLATE.format(
-            MODELS[self.model]['path'],
-            selected_date,
-            MODELS[self.model]['template']
-        )
-        self.input_file = nc_file(filepath)
-        lon = self.input_file.variables['lon'][:]
-        lat = self.input_file.variables['lat'][:]
-        time_obj = self.input_file.variables['time']
-        self.tim = time_obj[:]
-        self.what, _, rdate, rtime = time_obj.units.split()[:4]
-        if len(rtime) > 5:
-            rtime = rtime[:5]
-        self.rdatetime = datetime.strptime("{} {}".format(rdate, rtime),
-                                           "%Y-%m-%d %H:%M")
-        varlist = [var for var in self.input_file.variables if var in VARS]
-        self.xlon, self.ylat = np.meshgrid(lon, lat)
-        self.bounds = {
-            varname: np.array(VARS[varname]['bounds']).astype('float32')
-            for varname in varlist
-        }
 
-        self.colormaps = {
-            varname: get_colorscale(self.bounds[varname], COLORMAP)
-            for varname in varlist
-        }
+        if model:
+            self.model = model
+            print("MODEL", model)
+            filepath = NETCDF_TEMPLATE.format(
+                MODELS[self.model]['path'],
+                selected_date,
+                MODELS[self.model]['template']
+            )
+            self.input_file = nc_file(filepath)
+            lon = self.input_file.variables['lon'][:]
+            lat = self.input_file.variables['lat'][:]
+            time_obj = self.input_file.variables['time']
+            self.tim = time_obj[:]
+            self.what, _, rdate, rtime = time_obj.units.split()[:4]
+            if len(rtime) > 5:
+                rtime = rtime[:5]
+            self.rdatetime = datetime.strptime("{} {}".format(rdate, rtime),
+                                               "%Y-%m-%d %H:%M")
+            varlist = [var for var in self.input_file.variables if var in VARS]
+            self.xlon, self.ylat = np.meshgrid(lon, lat)
+            self.bounds = {
+                varname: np.array(VARS[varname]['bounds']).astype('float32')
+                for varname in varlist
+            }
 
-        try:
-            self.selected_date = datetime.strptime(
-                selected_date, "%Y%m%d").strftime("%Y-%m-%d")
-        except:
-            self.selected_date = selected_date
+            self.colormaps = {
+                varname: get_colorscale(self.bounds[varname], COLORMAP)
+                for varname in varlist
+            }
+
+        if selected_date:
+            try:
+                self.selected_date = datetime.strptime(
+                    selected_date, "%Y%m%d").strftime("%Y-%m-%d")
+            except:
+                self.selected_date = selected_date
 
         self.fig = None
 
     def get_mapbox_style_buttons(self):
         """ Relayout map with different styles """
         return dict(
-            type="buttons",
-            direction="left",
+            direction="up",
             buttons=list([self.get_mapbox(style, relayout=True) for style in
                           STYLES.keys()]),
             pad={"r": 0, "t": 0},
             showactive=True,
-            x=1.0,
-            y=-0.01,
+            x=0.9,
+            y=0.05,
             xanchor="right",
             yanchor="top",
         )
 
     def get_mapbox(self, style='open-street-map', relayout=False, zoom=3):
         """ Returns mapbox layout """
-        mapbox_dict = dict(
-            uirevision=True,
-            style=style,
-            bearing=0,
-            center=go.layout.mapbox.Center(
+        if hasattr(self, 'ylat'):
+            center = go.layout.mapbox.Center(
                 lat=(self.ylat.max()-self.ylat.min())/2 +
                 self.ylat.min(),
                 lon=(self.xlon.max()-self.xlon.min())/2 +
                 self.xlon.min(),
-            ),
+            )
+        else:
+            center = go.layout.mapbox.Center({'lat': 30, 'lon': 15})
+        mapbox_dict = dict(
+            uirevision=True,
+            style=style,
+            bearing=0,
+            center=center,
             pitch=0,
             zoom=zoom
         )
@@ -348,11 +354,28 @@ class FigureHandler(object):
                     "tickfont": {"size": 14},
                     "tickvals": self.bounds[varname][:-1],
                     "tickmode": "array",
+                    "x": 0.95,
+                    "y": 0.5,
                 },
         )
 
-    def generate_var_tstep_trace(self, varname, tstep=0):
+    def generate_var_tstep_trace(self, varname=None, tstep=0):
         """ Generate trace to be added to data, per variable and timestep """
+        if not varname:
+            return dict(
+                type='scattermapbox',
+                below='',
+                lon=[15],
+                lat=[30],
+                hoverinfo='none',
+                opacity=0,
+                showlegend=False,
+                marker=dict(
+                    showscale=False,
+                    size=0,
+                    colorbar=None,
+                ),
+            )
         xlon, ylat, val = self.set_data(varname, tstep)
         name = VARS[varname]['name']
         return dict(
@@ -377,7 +400,6 @@ class FigureHandler(object):
                 cmax=self.bounds[varname][-1],
                 colorbar=None,
             ),
-
         )
 
     def get_title(self, varname, tstep=0):
@@ -397,13 +419,17 @@ class FigureHandler(object):
             'step':   "{:02d}".format(tstep*FREQ),
         })
 
-    def retrieve_var_tstep(self, varname, tstep=0, static=True):
+    def retrieve_var_tstep(self, varname=None, tstep=0, static=True):
         """ run plot """
         self.fig = go.Figure()
         tstep = int(tstep)
-        print('Adding contours ...')
-        self.fig.add_trace(self.generate_contour_tstep_trace(varname, tstep))
-        if static:
+        if varname:
+            print('Adding contours ...')
+            self.fig.add_trace(self.generate_contour_tstep_trace(varname, tstep))
+        else:
+            print('Adding one point ...')
+            self.fig.add_trace(self.generate_var_tstep_trace())
+        if varname and static:
             print('Adding points ...')
             self.fig.add_trace(self.generate_var_tstep_trace(varname, tstep))
 
@@ -466,9 +492,13 @@ class FigureHandler(object):
 #         ]
 
         print('Update layout ...')
+        if varname:
+            fig_title=dict(text=self.get_title(varname, tstep),
+                    x=0.01, y=0.96)
+        else:
+            fig_title={}
         self.fig.update_layout(
-            title=dict(text=self.get_title(varname, tstep),
-                       x=0.01, y=0.96),
+            title=fig_title,
             uirevision=True,
             autosize=True,
             hovermode="closest",        # highlight closest point on hover
