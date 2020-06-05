@@ -34,30 +34,49 @@
 
 .Select--single>.Select-control .Select-value, .Select-placeholder 
 {
-    line-height: 40px !important;
-    display: inline-block !important;
 }
 
-span.sidebar-first-item {
+.sidebar-first-item {
     background-color: #F1B545 !important;
 }
 
-.sidebar-first-item .Select-control {
-    line-height: 40px !important;
+.sidebar-first-item>label {
+    padding-top: 0.3em;
+    padding-left: 0.5em;
+    margin-bottom: 0;
+}
+
+.sidebar-first-item .Select-control, .sidebar-first-item .Select-control .Select-multi-value-wrapper .Select-input {
+    background-color: #F1B545 !important;
+    color: grey;
+    font-weight: bold;
+    height: 35px !important;
+    margin-top: 0;
+    padding-top: 0;
     border-radius: 0px;
     border: none;
 }
 
-.sidebar-item .Select-control, .sidebar-item .Select-multi-value-wrapper .Select-input {
-    line-height: 60px !important;
-    border-radius: 0px;
-    border: none;
+.sidebar-item>summary {
+    height: 40px;
+    padding-top: 10px;
 }
-
-
 
 #variable-dropdown .sidebar-item {
   background-color: #F1B545 !important;
+}
+
+#model-dropdown>label>input[type=checkbox] {
+    float: right;
+    margin-right: 1em !important;
+    margin-top: 0.6em;
+}
+
+#model-dropdown>label {
+    padding-left: 1.5em;
+    display: block;
+    overflow: hidden;
+    line-height: 35px;
 }
 
 /* Page content. The value of the margin-left property should match the value of the sidebar's width property */

@@ -1,20 +1,21 @@
-:hover.tab.horizontal-menu, .horizontal-menu.tab--selected {
+.tab-container {
+    background-color: #2B383E !important;
+}
+
+:hover.tab.horizontal-menu>span, .tab.horizontal-menu.tab--selected>span {
     color: #F1B545 !important;
-    border-bottom: 3px solid #F1B545 !important;
+    border-bottom: 4px solid #F1B545 !important;
     padding-bottom: 1em !important;
-    margin-bottom: 1em !important;
 }
 
 .horizontal-menu {
     background-color: #2B383E !important;
     font-family: Roboto Medium;
-    border-top: none !important;
-    border-bottom: 3px solid white !important;
-    border-left: none !important;
-    border-right: none !important;
+    font-weight: bold;
+    border: 2px solid #2B383E !important;
     color: white !important;
     padding-bottom: 1em !important;
-    margin-bottom: 1em !important;
+    width: calc(100%/8) !important;
 }
 
 #model-date-picker #date {
@@ -53,6 +54,13 @@ div.SingleDatePickerInput {
 .linetool {
     display: table-cell;
     vertical-align: bottom;
+    padding-bottom: 1em;
+    width: calc(50%/2);
+}
+
+.timesliderline {
+    display: table-cell;
+    vertical-align: bottom;
 }
 
 .timeslider {
@@ -67,3 +75,8 @@ div.SingleDatePickerInput {
     box-sizing: content-box;
 }
 
+#ts-modal {
+    height: 0px !important;
+}
+div.tab-content {
+}

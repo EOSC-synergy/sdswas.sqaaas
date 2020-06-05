@@ -14,7 +14,7 @@ end_date = "20200416"
 
 
 sidebar_forecast = html.Div([
-    html.Span([
+    html.Div([
         html.Label("Variable"),
         dcc.Dropdown(
             id='variable-dropdown',
@@ -50,12 +50,12 @@ time_slider = html.Div([
                             display_format='DD MMM YYYY',
                             date=end_date,
                         ),
-                        className="linetool",
+                        className="timesliderline",
                     ),
                     html.Span(
                         html.Button('\u2023', title='Play/Stop',
                                     id='btn-play', n_clicks=0),
-                        className="linetool",
+                        className="timesliderline",
                     ),
                     html.Span(
                         dcc.Slider(
@@ -68,7 +68,7 @@ time_slider = html.Div([
                             },
                             # updatemode='drag',
                         ),
-                        className="linetool",
+                        className="timesliderline",
                     )],
                     className="timeslider"
             )
@@ -80,7 +80,7 @@ time_series = html.Div([
                             dbc.ModalBody(
                                 dcc.Graph(
                                     id='timeseries-modal',
-                                    figure=None,
+                                    figure={},
                                 ),
                             )],
                             id='ts-modal',
