@@ -63,7 +63,7 @@
 }
 
 #variable-dropdown .sidebar-item {
-  background-color: #F1B545 !important;
+    background-color: #F1B545 !important;
 }
 
 #model-dropdown>label>input[type=checkbox] {

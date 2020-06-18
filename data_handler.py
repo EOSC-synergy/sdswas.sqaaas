@@ -340,23 +340,24 @@ class FigureHandler(object):
             zmin=bounds[0],
             zmax=bounds[-1],
             colorscale=self.colormaps[varname],
-            showscale=True,
+            showscale=False,
             showlegend=False,
             hoverinfo='none',
             marker=dict(
                 opacity=0.6,
                 line_width=0,
             ),
-            colorbar={
-                    "borderwidth": 0,
-                    "outlinewidth": 0,
-                    "thickness": 15,
-                    "tickfont": {"size": 14},
-                    "tickvals": self.bounds[varname][:-1],
-                    "tickmode": "array",
-                    "x": 0.95,
-                    "y": 0.5,
-                },
+            colorbar=None,
+#                 {
+#                     "borderwidth": 0,
+#                     "outlinewidth": 0,
+#                     "thickness": 15,
+#                     "tickfont": {"size": 14},
+#                     "tickvals": self.bounds[varname][:-1],
+#                     "tickmode": "array",
+#                     "x": 0.95,
+#                     "y": 0.5,
+#                 },
         )
 
     def generate_var_tstep_trace(self, varname=None, tstep=0):
@@ -494,7 +495,7 @@ class FigureHandler(object):
         print('Update layout ...')
         if varname:
             fig_title=dict(text=self.get_title(varname, tstep),
-                    x=0.01, y=0.96)
+                    x=0.01, y=0.97)
         else:
             fig_title={}
         self.fig.update_layout(

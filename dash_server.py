@@ -26,6 +26,12 @@ from tabs import start_date
 from tabs import end_date
 
 
+def calc_matrix(n):
+    sqrt_n = math.sqrt(n)
+    ncols = sqrt_n == int(sqrt_n) and int(sqrt_n) or int(sqrt_n) + 1
+    nrows = n%ncols > 0 and int(n/ncols)+1 or int(n/ncols)
+    return ncols, nrows
+
 def get_timeseries(model, var, lat, lon):
     """ Retrieve timeseries """
     # print(var, selected_date, tstep)
@@ -52,7 +58,7 @@ def get_figure(model=None, var=None, selected_date=end_date, tstep=0, static=Tru
     return FigureHandler().retrieve_var_tstep()
 
 
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.themes.GRID])
 # server = app.server
 # app.config.suppress_callback_exceptions = True
 
@@ -64,20 +70,45 @@ app.layout = html.Div(
             dcc.Tab(label='Forecast',
                     className='horizontal-menu',
                     children=[
-                        html.Div(
-                            dcc.Graph(
-                                id='graph-with-slider',
-                                figure=get_figure(DEFAULT_MODEL,
-                                                  DEFAULT_VAR, end_date, 0),
-                            ),
+                        dbc.Container(
+                            id='graph-collection',
+                            children=[
+                            dbc.Row([
+                                dbc.Col([
+                                        dcc.Loading([
+                                            html.Div(
+                                                id='graph-container-0',
+                                                children=[
+                                                    dcc.Graph(
+                                                        id='graph-with-slider-0',
+                                                        figure=get_figure(DEFAULT_MODEL,
+                                                                        DEFAULT_VAR, end_date, 0),
+                                                    )],
+                                                # className="graph-model",
+        #                                         style={'display': 'table-cell',
+        #                                             'float': 'left',
+        #                                             'width': '100%',
+        #                                             'height': '100%',
+        #                                             },
+                                            )],
+                                            type="circle",)
+                                            ]
+                                        ),
+                                    ],
+                                    no_gutters=True,
+                                ),
+                            ],
+                            fluid=True,
+                            style={"height": "100vh"},
                         ),
                         dcc.Interval(id='slider-interval',
-                                     interval=2000,
-                                     n_intervals=0,
-                                     disabled=True),
+                                        interval=2000,
+                                        n_intervals=0,
+                                        disabled=True),
                         tabs.time_slider,
                         tabs.time_series,
-                    ]),
+                        ]
+                    ),
             dcc.Tab(label='Evaluation',
                     className='horizontal-menu',
                     children=[
@@ -125,8 +156,8 @@ print('SERVER: stop creating app layout')
 @app.callback(
     [Output('timeseries-modal', 'figure'),
      Output("ts-modal", "is_open")],
-    [Input('graph-with-slider', 'clickData')],
-    [State('graph-with-slider', 'hoverData'),
+    [Input('graph-with-slider-0', 'clickData')],
+    [State('graph-with-slider-0', 'hoverData'),
      State('model-dropdown', 'value'),
      State('variable-dropdown', 'value')],
 )
@@ -174,12 +205,12 @@ def update_slider(n):
 
 # update forecast figure according to all parameters
 @app.callback(
-    Output('graph-with-slider', 'figure'),
+    Output('graph-collection', 'children'),
     [Input('model-date-picker', 'date'),
      Input('model-dropdown', 'value'),
      Input('variable-dropdown', 'value'),
      Input('slider-graph', 'value')],
-    [State('graph-with-slider', 'relayoutData'),
+    [State('graph-with-slider-0', 'relayoutData'),
      State('slider-interval', 'disabled')])
 def update_figure(date, model, variable, tstep, relayoutdata, static):
     print('SERVER: calling figure from picker callback')
@@ -210,15 +241,80 @@ def update_figure(date, model, variable, tstep, relayoutdata, static):
 
     print('SERVER: tstep calc ' + str(tstep))
 
-    fig = get_figure(model, variable, date, tstep, static)
+    figures = []
+    if not model:
+        fig = get_figure(model, variable, date, tstep, static)
+        figures.append(
+            dbc.Row([
+                dbc.Col([
+                    dcc.Loading([
+                        html.Div(
+                            id='graph-container-0',
+                            children=[
+                                dcc.Graph(
+                                    id='graph-with-slider-0',
+                                    figure=fig,
+                                    # className="graph-model",
+                    #                 style={'display': 'table-cell',
+                    #                        'width': '100%',
+                    #                        'height': '100%',
+                    #                        },
+                                )
+                            ]
+                        )
+                    ],
+                        type="circle",
+                    )
+                ])
+            ])
+        )
+        return figures
 
-    if fig and relayoutdata:
-        relayoutdata = {k: relayoutdata[k]
-                        for k in relayoutdata
-                        if k not in ('mapbox._derived',)}
-        fig.layout.update(relayoutdata)
+    idx = 0
+    ncols, nrows = calc_matrix(len(model))
+    for mod in model:
+        fig = get_figure(mod, variable, date, tstep, static)
 
-    return fig
+        if fig and relayoutdata:
+            relayoutdata = {k: relayoutdata[k]
+                            for k in relayoutdata
+                            if k not in ('mapbox._derived',)}
+            fig.layout.update(relayoutdata)
+
+        figures.append(
+            dcc.Loading([
+                html.Div(
+                    id='graph-container-{}'.format(idx),
+                    children=[
+                        dcc.Graph(
+                            id='graph-with-slider-{}'.format(idx),
+                            figure=fig,
+                        )],
+                    # className="graph-model",
+#                     style={ #'display': 'table-cell',
+#                          'width': 'calc(100%/{}) !important'.format(ncols),
+#                          'height': 'calc(100%/{}) !important'.format(nrows),
+#                          },
+            )],
+            type="circle",
+            )
+        )
+        idx += 1
+
+    res = [
+        dbc.Row(
+            [
+                dbc.Col(figures[row+col+(row*(ncols-1))], width=int(12/ncols))
+                for col in range(ncols)
+                if len(figures) > row+col+(row*(ncols-1))
+            ],
+            # align="center",
+            no_gutters=True,
+            className="h-{}".format(int(100/nrows)),
+        ) for row in range(nrows)
+    ]
+    print(ncols, nrows, len(res), [(type(i), len(i.children)) for i in res])
+    return res
 
 
 # update evaluation figure according to all parameters
