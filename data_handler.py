@@ -5,18 +5,19 @@
 # import plotly
 import plotly.graph_objs as go
 from matplotlib.colors import ListedColormap
-# import matplotlib.pyplot as plt
 import numpy as np
 from netCDF4 import Dataset as nc_file
 import feather
+import math
 import json
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 import os
 
 from utils import get_colorscale
 
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
 
+DEBUG = True
 
 COLORS = ['#a1ede3', '#5ce3ba', '#fcd775', '#da7230',
           '#9e6226', '#714921', '#392511', '#1d1309']
@@ -33,16 +34,25 @@ DEFAULT_VAR = 'od550_dust'
 DEFAULT_MODEL = 'median'
 
 STYLES = {
-    "open-street-map": "Open street map",
     "carto-positron": "Light",
-    "carto-darkmatter": "Dark",
+    "open-street-map": "Open street map",
+#    "carto-darkmatter": "Dark",
     "stamen-terrain": "Terrain",
-    "stamen-toner": "White/Black",
-    "stamen-watercolor": "Watercolor"
+#    "stamen-toner": "White/Black",
+#    "stamen-watercolor": "Watercolor"
 }
 
 GEOJSON_TEMPLATE = "{}/geojson/{:02d}_{}_{}.geojson"
 NETCDF_TEMPLATE = "{}/netcdf/{}{}.nc4"
+
+
+def find_nearest(array, value):
+    idx = np.searchsorted(array, value, side="left")
+    if idx > 0 and (idx == len(array) or math.fabs(value - array[idx-1]) <
+                    math.fabs(value - array[idx])):
+        return array[idx-1]
+    else:
+        return array[idx]
 
 
 class Observations1dHandler(object):
@@ -134,35 +144,48 @@ class TimeSeriesHandler(object):
     """ Class to handle time series """
 
     def __init__(self, model, variable):
-        if isinstance(model, list):
-            model = model[0]
+        if isinstance(model, str):
+            model = [model]
         self.model = model
         self.variable = variable
-        filepath = os.path.join(MODELS[model]['path'], 'feather',
-                                '{}.ft'.format(variable))
-        # self.dataframe = pd.read_parquet(filepath)
-        self.dataframe = feather.read_dataframe(filepath)
+        self.dataframe = []
+        for mod in model:
+            fpath = os.path.join(MODELS[mod]['path'],
+                                    'feather',
+                                    '{}.ft'.format(variable))
+            self.dataframe.append(feather.read_dataframe(fpath))
 
-    def retrieve_timeseries(self, lat, lon):
+    def retrieve_timeseries(self, lat, lon, model=None):
+
+        if not model:
+            model = self.model
+
         title = "{} @ lat = {} and lon = {}".format(
             VARS[self.variable]['name'], round(lat, 4), round(lon, 4)
         )
-        timeseries = \
-            self.dataframe.loc[(np.isclose(self.dataframe['lat'], lat) &
-                                np.isclose(self.dataframe['lon'], lon)),
-                               ('time', self.variable)].set_index('time')
         fig = go.Figure()
-        fig.add_trace(dict(
-                type='scatter',
-                x=timeseries.index,
-                y=timeseries[self.variable],
-                mode='lines+markers',
+        for mod, df in zip(model, self.dataframe):
+            df_lats = find_nearest(df['lat'].values, lat)
+            df_lons = find_nearest(df['lon'].values, lon)
+            timeseries = \
+                df.loc[(df['lat'] == df_lats) &
+                       (df['lon'] == df_lons),
+                       ('time', self.variable)].set_index('time')
+            if DEBUG: print(mod, df_lats, df_lons)
+            fig.add_trace(dict(
+                    type='scatter',
+                    name="{} ({}, {})".format(
+                        mod.upper(), round(df_lats, 4), round(df_lons, 4)),
+                    x=timeseries.index,
+                    y=timeseries[self.variable],
+                    mode='lines+markers',
+                )
             )
-        )
         fig.update_layout(
             title=dict(text=title, x=0.45, y=1.),
             uirevision=True,
             autosize=True,
+            showlegend=True,
             hovermode="closest",        # highlight closest point on hover
             margin={"r": 20, "t": 30, "l": 20, "b": 10},
         )
@@ -170,18 +193,24 @@ class TimeSeriesHandler(object):
             rangeslider_visible=True,
             rangeselector=dict(
                 buttons=list([
+#                     dict(count=6, label="6m",
+#                          step="month", stepmode="backward"),
+#                     dict(count=1, label="YTD",
+#                          step="year", stepmode="todate"),
+#                     dict(count=1, label="1y",
+#                          step="year", stepmode="backward"),
+                    dict(step="all", label="all"),
                     dict(count=1, label="1m",
                          step="month", stepmode="backward"),
-                    dict(count=6, label="6m",
-                         step="month", stepmode="backward"),
-                    dict(count=1, label="YTD",
-                         step="year", stepmode="todate"),
-                    dict(count=1, label="1y",
-                         step="year", stepmode="backward"),
-                    dict(step="all")
+                    dict(count=14, label="2w",
+                         step="day", stepmode="backward"),
+                    dict(count=7, # label="1w",
+                         step="day", stepmode="backward"),
                 ])
             )
         )
+
+        fig['layout']['xaxis'].update(range=['2020-04-01', '2020-04-17 09:00'])
 
         return fig
 
@@ -195,7 +224,7 @@ class FigureHandler(object):
 
         if model:
             self.model = model
-            print("MODEL", model)
+            if DEBUG: print("MODEL", model)
             filepath = NETCDF_TEMPLATE.format(
                 MODELS[self.model]['path'],
                 selected_date,
@@ -238,15 +267,15 @@ class FigureHandler(object):
             direction="up",
             buttons=list([self.get_mapbox(style, relayout=True) for style in
                           STYLES.keys()]),
-            pad={"r": 0, "t": 0},
+            # pad={"r": 0, "t": 0},
             showactive=True,
             x=0.9,
-            y=0.05,
+            y=0.09,
             xanchor="right",
             yanchor="top",
         )
 
-    def get_mapbox(self, style='open-street-map', relayout=False, zoom=3):
+    def get_mapbox(self, style='carto-positron', relayout=False, zoom=3):
         """ Returns mapbox layout """
         if hasattr(self, 'ylat'):
             center = go.layout.mapbox.Center(
@@ -329,7 +358,7 @@ class FigureHandler(object):
             if feature['geometry']['coordinates']
         ]
         locations, values = np.array(loc_val).T
-        # print(varname, self.colormaps[varname], values)
+        # if DEBUG: print(varname, self.colormaps[varname], values)
         return dict(
             type='choroplethmapbox',
             name=name+'_contours',
@@ -420,18 +449,18 @@ class FigureHandler(object):
             'step':   "{:02d}".format(tstep*FREQ),
         })
 
-    def retrieve_var_tstep(self, varname=None, tstep=0, static=True):
+    def retrieve_var_tstep(self, varname=None, tstep=0, static=True, aspect=(1,1)):
         """ run plot """
         self.fig = go.Figure()
         tstep = int(tstep)
         if varname:
-            print('Adding contours ...')
+            if DEBUG: print('Adding contours ...')
             self.fig.add_trace(self.generate_contour_tstep_trace(varname, tstep))
         else:
-            print('Adding one point ...')
+            if DEBUG: print('Adding one point ...')
             self.fig.add_trace(self.generate_var_tstep_trace())
         if varname and static:
-            print('Adding points ...')
+            if DEBUG: print('Adding points ...')
             self.fig.add_trace(self.generate_var_tstep_trace(varname, tstep))
 
         # axis_style = dict(
@@ -442,7 +471,7 @@ class FigureHandler(object):
         #     showticklabels=False,
         # )
 
-#         print('Adding frames ...')
+#         if DEBUG: print('Adding frames ...')
 #         fig['frames'] = [
 #             dict(
 #                 data=[
@@ -492,10 +521,12 @@ class FigureHandler(object):
 #                 )
 #         ]
 
-        print('Update layout ...')
+        if DEBUG: print('Update layout ...')
         if varname:
-            fig_title=dict(text=self.get_title(varname, tstep),
-                    x=0.01, y=0.97)
+            fig_title=dict(text='<b>{}</b>'.format(self.get_title(varname, tstep)),
+                           xanchor='left',
+                           yanchor='top',
+                           x=0.01, y=0.95)
         else:
             fig_title={}
         self.fig.update_layout(
@@ -503,12 +534,11 @@ class FigureHandler(object):
             uirevision=True,
             autosize=True,
             hovermode="closest",        # highlight closest point on hover
-            mapbox=self.get_mapbox(),
+            mapbox=self.get_mapbox(zoom=3-(0.5*aspect[0])),
             # width="100%",
-            height=800,
             updatemenus=[
                 # get_animation_buttons(),
-                self.get_mapbox_style_buttons(),
+                # self.get_mapbox_style_buttons(),
                 # self.get_variable_dropdown_buttons(),
             ],
             margin={"r": 0, "t": 0, "l": 0, "b": 0},
@@ -521,5 +551,5 @@ class FigureHandler(object):
             # sliders=sliders
         )
 
-        # print('Returning fig of size {}'.format(sys.getsizeof(self.fig)))
+        # if DEBUG: print('Returning fig of size {}'.format(sys.getsizeof(self.fig)))
         return self.fig

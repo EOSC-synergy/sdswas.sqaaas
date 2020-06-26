@@ -6,6 +6,7 @@ from data_handler import DEFAULT_MODEL
 from data_handler import FREQ
 from data_handler import VARS
 from data_handler import MODELS
+from data_handler import STYLES
 
 from datetime import datetime as dt
 
@@ -13,18 +14,20 @@ start_date = "20200301"
 end_date = "20200416"
 
 
-sidebar_forecast = html.Div([
+sidebar_forecast = [
     html.Div([
         html.Label("Variable"),
         dcc.Dropdown(
-            id='variable-dropdown',
+            id='variable-dropdown-forecast',
             options=[{'label': VARS[variable]['name'],
                       'value': variable} for variable in VARS],
             value=DEFAULT_VAR,
             clearable=False,
-            searchable=False
+            searchable=False,
+            optionHeight=70,
         )],
         className="sidebar-first-item",
+        style={ 'background-color': '#F1B545' },
     ),
     html.Details([
         html.Summary("Models"),
@@ -36,9 +39,35 @@ sidebar_forecast = html.Div([
         )],
         className="sidebar-item",
     ),
-    ],
-    className="sidebar",
-)
+]
+
+sidebar_evaluation = [
+    html.Div([
+        html.Label("Variable"),
+        dcc.Dropdown(
+            id='variable-dropdown-evaluation',
+            options=[{'label': VARS[variable]['name'],
+                      'value': variable} for variable in VARS],
+            value=DEFAULT_VAR,
+            clearable=False,
+            searchable=False,
+            optionHeight=70,
+            disabled=True,
+        )],
+        className="sidebar-first-item",
+        style={ 'background-color': '#F1B545' },
+    ),
+    html.Div([
+        html.Label("Near-real-time comparison"),
+        ],
+        className="sidebar-item",
+    ),
+    html.Div([
+        html.Label("Evaluation skill scores"),
+        ],
+        className="sidebar-item",
+    ),
+]
 
 time_slider = html.Div([
                     html.Span(
@@ -49,6 +78,7 @@ time_slider = html.Div([
                             initial_visible_month=dt.strptime(end_date, "%Y%m%d"),
                             display_format='DD MMM YYYY',
                             date=end_date,
+                            with_portal=True,
                         ),
                         className="timesliderline",
                     ),
@@ -69,23 +99,39 @@ time_slider = html.Div([
                             # updatemode='drag',
                         ),
                         className="timesliderline",
-                    )],
-                    className="timeslider"
+                    ),
+                    html.Span(
+                        dbc.DropdownMenu(
+                            id='layout-dropdown',
+                            label='Layout',
+                            children=[
+                                dbc.DropdownMenuItem(STYLES[style], id=style)
+                                for style in STYLES],
+                            direction="up",
+                            #value="open-street-map",
+                        ),
+                        className="timesliderline",
+                    )
+                ],
+                className="timeslider"
             )
 
-time_series = html.Div([
-                    # dbc.Button('open', id='open-ts'),
-                    dcc.Loading([
-                        dbc.Modal([
-                            dbc.ModalBody(
-                                dcc.Graph(
-                                    id='timeseries-modal',
-                                    figure={},
-                                ),
-                            )],
-                            id='ts-modal',
-                            size='xl',
-                            centered=True,
-                        ),
-                    ]),
-                ])
+time_series = html.Div(
+    id='open-timeseries',
+    children=[
+        dbc.Spinner([
+            dbc.Modal([
+                dbc.ModalBody(
+                    dcc.Graph(
+                        id='timeseries-modal',
+                        figure={},
+                    ),
+                )],
+                id='ts-modal',
+                size='xl',
+                centered=True,
+            ),
+        ]),
+    ],
+    style={'display': 'none'},
+)

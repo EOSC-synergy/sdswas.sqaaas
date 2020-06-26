@@ -19,11 +19,13 @@
 }
 
 #graph-collection {
-    padding-left: 0px;
+    padding: 0px;
+    height: 85vh !important;
 }
 
-.col {
-    margin: 5px !important;
+#graph-eval {
+    padding: 0px;
+    height: 80vh !important;
 }
 /*
 #graph-collection {
@@ -43,13 +45,14 @@
 */
 
 #model-date-picker #date {
+    color: #F1B545 !important;
     background-color: #2B383E !important;
     border: none !important;
     font-family: Roboto Medium !important;
     font-size: 16px !important;
-    color: #F1B545 !important;
     padding-left: 18px !important;
     text-transform: uppercase;
+    padding-bottom: 0.9rem;
 }
 
 div.SingleDatePickerInput {
@@ -57,11 +60,11 @@ div.SingleDatePickerInput {
 }
 
 #slider-graph {
-    width: 40em;
+    width: 40rem;
 }
 
 #btn-play {
-    margin-bottom: 0.5em;
+    margin-bottom: 0.7rem;
     border: none;
     padding: 3px 10px;
     text-align: center;
@@ -85,23 +88,32 @@ div.SingleDatePickerInput {
 .timesliderline {
     display: table-cell;
     vertical-align: bottom;
+    margin: 0 15px;
+}
+
+#layout-dropdown {
+    background-color: #2B383E !important;
+}
+
+#layout-dropdown>button {
+    width: 10rem;
+    margin: 0.5rem 1rem;
+    color: #F1B545 !important;
+}
+
+#layout-dropdown .dropdown-menu>button {
+    width: 9rem;
 }
 
 .timeslider {
     position: relative;
     display: table-row;
-    left: 1em;
-    bottom: 3em;
+    left: 0;
+    bottom: -5px;
+    color: #F1B545 !important;
     background-color: #2B383E !important;
 }
 
 *, ::after, ::before {
     box-sizing: content-box;
-}
-
-#ts-modal {
-    height: 0px !important;
-}
-
-div.tab-content {
 }

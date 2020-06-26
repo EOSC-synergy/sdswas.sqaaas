@@ -2,7 +2,7 @@
 .sidebar {
   margin: 0 !important;
   padding: 0 !important;
-  width: 200px !important;
+  width: 240px !important;
   font-family: Roboto Medium;
 /*  background-color: #F1B545 !important; */
   color: #2B383E !important;
@@ -57,12 +57,21 @@
     border: none;
 }
 
+.sidebar-item {
+    height: 40px;
+    margin: 1rem 1rem;
+}
+
+.sidebar-item>label {
+    height: 40px;
+}
+
 .sidebar-item>summary {
     height: 40px;
     padding-top: 10px;
 }
 
-#variable-dropdown .sidebar-item {
+.sidebar-first-item .Select-menu-outer {
     background-color: #F1B545 !important;
 }
 
@@ -81,7 +90,7 @@
 
 /* Page content. The value of the margin-left property should match the value of the sidebar's width property */
 div.tab-parent {
-  margin-left: 200px !important;
+  margin-left: 240px !important;
   height: 100% !important;
 }
 

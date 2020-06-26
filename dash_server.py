@@ -10,12 +10,17 @@ import dash_html_components as html
 from dash.dependencies import Output
 from dash.dependencies import Input
 from dash.dependencies import State
+from dash.dependencies import ALL
+from dash.dependencies import MATCH
+import flask
 
 from data_handler import FigureHandler
 from data_handler import TimeSeriesHandler
 from data_handler import DEFAULT_VAR
 from data_handler import DEFAULT_MODEL
+from data_handler import STYLES
 from data_handler import FREQ
+from data_handler import DEBUG
 from data_handler import Observations1dHandler
 
 from datetime import datetime as dt
@@ -32,74 +37,58 @@ def calc_matrix(n):
     nrows = n%ncols > 0 and int(n/ncols)+1 or int(n/ncols)
     return ncols, nrows
 
+
 def get_timeseries(model, var, lat, lon):
     """ Retrieve timeseries """
-    # print(var, selected_date, tstep)
-    print('SERVER: TS init ... ')
+    # if DEBUG: print(var, selected_date, tstep)
+    if DEBUG: print('SERVER: TS init for models {} ... '.format(str(model)))
     th = TimeSeriesHandler(model, var)
-    print('SERVER: TS generation ... ')
+    if DEBUG: print('SERVER: TS generation ... ')
     return th.retrieve_timeseries(lat, lon)
 
 
-def get_figure(model=None, var=None, selected_date=end_date, tstep=0, static=True):
+def get_figure(model=None, var=None, selected_date=end_date, tstep=0,
+               static=True, aspect=(1, 1)):
     """ Retrieve figure """
-    # print(var, selected_date, tstep)
+    # if DEBUG: print(var, selected_date, tstep)
     try:
         selected_date = dt.strptime(
             selected_date, "%Y-%m-%d %H:%M:%S").strftime("%Y%m%d")
     except:
         pass
     if model:
-        print('SERVER: Figure init ... ')
+        if DEBUG: print('SERVER: Figure init ... ')
         fh = FigureHandler(model, selected_date)
-        print('SERVER: Figure generation ... ')
-        return fh.retrieve_var_tstep(var, tstep, static)
-    print('SERVER: No Figure')
+        if DEBUG: print('SERVER: Figure generation ... ')
+        return fh.retrieve_var_tstep(var, tstep, static, aspect)
+    if DEBUG: print('SERVER: No Figure')
     return FigureHandler().retrieve_var_tstep()
 
 
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.themes.GRID])
-# server = app.server
-# app.config.suppress_callback_exceptions = True
+srv = flask.Flask(__name__)
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP,
+                                                dbc.themes.GRID],
+                server=srv)
+server = app.server
+app.config.suppress_callback_exceptions = True
 
-print('SERVER: start creating app layout')
+if DEBUG: print('SERVER: start creating app layout')
 app.layout = html.Div(
     children=[
-        tabs.sidebar_forecast,
-        dcc.Tabs(children=[
+        html.Div(
+            id='app-sidebar',
+            children=[],
+            className='sidebar'
+        ),
+        dcc.Tabs(id='app-tabs', value='forecast-tab', children=[
             dcc.Tab(label='Forecast',
+                    value='forecast-tab',
                     className='horizontal-menu',
                     children=[
                         dbc.Container(
                             id='graph-collection',
-                            children=[
-                            dbc.Row([
-                                dbc.Col([
-                                        dcc.Loading([
-                                            html.Div(
-                                                id='graph-container-0',
-                                                children=[
-                                                    dcc.Graph(
-                                                        id='graph-with-slider-0',
-                                                        figure=get_figure(DEFAULT_MODEL,
-                                                                        DEFAULT_VAR, end_date, 0),
-                                                    )],
-                                                # className="graph-model",
-        #                                         style={'display': 'table-cell',
-        #                                             'float': 'left',
-        #                                             'width': '100%',
-        #                                             'height': '100%',
-        #                                             },
-                                            )],
-                                            type="circle",)
-                                            ]
-                                        ),
-                                    ],
-                                    no_gutters=True,
-                                ),
-                            ],
+                            children=[],
                             fluid=True,
-                            style={"height": "100vh"},
                         ),
                         dcc.Interval(id='slider-interval',
                                         interval=2000,
@@ -110,6 +99,7 @@ app.layout = html.Div(
                         ]
                     ),
             dcc.Tab(label='Evaluation',
+                    value='evaluation-tab',
                     className='horizontal-menu',
                     children=[
                         html.Span(
@@ -149,36 +139,80 @@ app.layout = html.Div(
     className="content",
 )
 
-print('SERVER: stop creating app layout')
+if DEBUG: print('SERVER: stop creating app layout')
+
+
+@app.callback(
+    Output('app-sidebar', 'children'),
+    [Input('app-tabs', 'value')],
+)
+def render_sidebar(tab):
+    if tab == 'evaluation-tab':
+        return tabs.sidebar_evaluation
+
+    return tabs.sidebar_forecast
+
+
+@app.callback(
+    Output({'type': 'graph-with-slider', 'index': MATCH}, 'figure'),
+    [Input(style, 'n_clicks') for style in STYLES],
+    [State({'type': 'graph-with-slider', 'index': MATCH}, 'figure')]
+)
+def update_layout(*args):
+    ctx = dash.callback_context
+    figures = args[-1]
+
+    if ctx.triggered:
+        button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+        figures['layout']['mapbox']['style'] = button_id
+    else:
+        figures['layout']['mapbox']['style'] = 'carto-positron'
+    return figures
 
 
 # retrieve timeseries according to coordinates selected
 @app.callback(
-    [Output('timeseries-modal', 'figure'),
-     Output("ts-modal", "is_open")],
-    [Input('graph-with-slider-0', 'clickData')],
-    [State('graph-with-slider-0', 'hoverData'),
-     State('model-dropdown', 'value'),
-     State('variable-dropdown', 'value')],
+    [Output('ts-modal', 'children'),
+     Output('ts-modal', 'is_open')],
+    [Input({'type': 'graph-with-slider', 'index': ALL}, 'clickData'),
+     Input({'type': 'graph-with-slider', 'index': ALL}, 'id')],
+    [State('model-dropdown', 'value'),
+     State('variable-dropdown-forecast', 'value')],
 )
-def show_timeseries(cdata, hdata, model, variable):
-    if hdata:
-        lat = hdata['points'][0]['lat']
-        lon = hdata['points'][0]['lon']
-        return get_timeseries(model, variable, lat, lon), True
+def show_timeseries(cdata, element, model, variable):
+    lat = lon = None
+    for click, elem in zip(cdata, element):
+        if elem['index'] in model and click:
+            lat = click['points'][0]['lat']
+            lon = click['points'][0]['lon']
+            break
 
-    return None, False
+    if DEBUG: print('"""""', model)
+    if lat and lon:
+        return dbc.ModalBody(
+            dcc.Graph(
+                id='timeseries-modal',
+                figure=get_timeseries(model, variable, lat, lon),
+            )
+        ), True
+
+    return dbc.ModalBody(
+        dcc.Graph(
+            id='timeseries-modal',
+            figure={},
+        )
+    ), False
 
 
 # start/stop animation
-@app.callback([
-    Output('slider-interval', 'disabled'),
-    Output('slider-interval', 'n_intervals')],
+@app.callback(
+    [Output('slider-interval', 'disabled'),
+     Output('slider-interval', 'n_intervals')],
     [Input('btn-play', 'n_clicks')],
     [State('slider-interval', 'disabled'),
      State('slider-graph', 'value')])
 def start_stop_autoslider(n, disabled, value):
-    print("VALUE", value)
+    if DEBUG: print("VALUE", value)
     if not value:
         value = 0
     if n:
@@ -191,7 +225,7 @@ def start_stop_autoslider(n, disabled, value):
     Output('slider-graph', 'value'),
     [Input('slider-interval', 'n_intervals')])
 def update_slider(n):
-    print('SERVER: updating slider-graph ' + str(n))
+    if DEBUG: print('SERVER: updating slider-graph ' + str(n))
     if not n:
         return
 
@@ -199,7 +233,7 @@ def update_slider(n):
         tstep = int(round(24*math.modf(n/24)[0], 0))
     else:
         tstep = int(n)
-    print('SERVER: updating slider-graph ' + str(tstep*FREQ))
+    if DEBUG: print('SERVER: updating slider-graph ' + str(tstep*FREQ))
     return tstep*FREQ
 
 
@@ -208,14 +242,13 @@ def update_slider(n):
     Output('graph-collection', 'children'),
     [Input('model-date-picker', 'date'),
      Input('model-dropdown', 'value'),
-     Input('variable-dropdown', 'value'),
+     Input('variable-dropdown-forecast', 'value'),
      Input('slider-graph', 'value')],
-    [State('graph-with-slider-0', 'relayoutData'),
-     State('slider-interval', 'disabled')])
-def update_figure(date, model, variable, tstep, relayoutdata, static):
-    print('SERVER: calling figure from picker callback')
-    # print('SERVER: interval ' + str(n))
-    print('SERVER: tstep ' + str(tstep))
+    [State('slider-interval', 'disabled')])
+def update_figure(date, model, variable, tstep, static):
+    if DEBUG: print('SERVER: calling figure from picker callback')
+    # if DEBUG: print('SERVER: interval ' + str(n))
+    if DEBUG: print('SERVER: tstep ' + str(tstep))
 
     if date is not None:
         date = date.split(' ')[0]
@@ -224,7 +257,7 @@ def update_figure(date, model, variable, tstep, relayoutdata, static):
                 date, "%Y-%m-%d").strftime("%Y%m%d")
         except:
             pass
-        print('SERVER: callback date {}'.format(date))
+        if DEBUG: print('SERVER: callback date {}'.format(date))
     else:
         date = end_date
 
@@ -239,7 +272,7 @@ def update_figure(date, model, variable, tstep, relayoutdata, static):
     else:
         tstep = 0
 
-    print('SERVER: tstep calc ' + str(tstep))
+    if DEBUG: print('SERVER: tstep calc ' + str(tstep))
 
     figures = []
     if not model:
@@ -247,23 +280,12 @@ def update_figure(date, model, variable, tstep, relayoutdata, static):
         figures.append(
             dbc.Row([
                 dbc.Col([
-                    dcc.Loading([
-                        html.Div(
-                            id='graph-container-0',
-                            children=[
-                                dcc.Graph(
-                                    id='graph-with-slider-0',
-                                    figure=fig,
-                                    # className="graph-model",
-                    #                 style={'display': 'table-cell',
-                    #                        'width': '100%',
-                    #                        'height': '100%',
-                    #                        },
-                                )
-                            ]
-                        )
-                    ],
-                        type="circle",
+                    dcc.Graph(
+                        id={
+                            'type': 'graph-with-slider',
+                            'index': 'none',
+                        },
+                        figure=fig,
                     )
                 ])
             ])
@@ -273,30 +295,15 @@ def update_figure(date, model, variable, tstep, relayoutdata, static):
     idx = 0
     ncols, nrows = calc_matrix(len(model))
     for mod in model:
-        fig = get_figure(mod, variable, date, tstep, static)
-
-        if fig and relayoutdata:
-            relayoutdata = {k: relayoutdata[k]
-                            for k in relayoutdata
-                            if k not in ('mapbox._derived',)}
-            fig.layout.update(relayoutdata)
-
         figures.append(
-            dcc.Loading([
-                html.Div(
-                    id='graph-container-{}'.format(idx),
-                    children=[
-                        dcc.Graph(
-                            id='graph-with-slider-{}'.format(idx),
-                            figure=fig,
-                        )],
-                    # className="graph-model",
-#                     style={ #'display': 'table-cell',
-#                          'width': 'calc(100%/{}) !important'.format(ncols),
-#                          'height': 'calc(100%/{}) !important'.format(nrows),
-#                          },
-            )],
-            type="circle",
+            dcc.Graph(
+                id={
+                    'type': 'graph-with-slider',
+                    'index': mod,
+                },
+                figure=get_figure(mod, variable, date, tstep,
+                                  static, (nrows, ncols)),
+                style={'height': '{}vh'.format(int(85/nrows))},
             )
         )
         idx += 1
@@ -304,16 +311,17 @@ def update_figure(date, model, variable, tstep, relayoutdata, static):
     res = [
         dbc.Row(
             [
-                dbc.Col(figures[row+col+(row*(ncols-1))], width=int(12/ncols))
+                dbc.Col(figures[row+col+(row*(ncols-1))],
+                        width=int(12/ncols),
+                        )
                 for col in range(ncols)
                 if len(figures) > row+col+(row*(ncols-1))
             ],
-            # align="center",
+            align="start",
             no_gutters=True,
-            className="h-{}".format(int(100/nrows)),
         ) for row in range(nrows)
     ]
-    print(ncols, nrows, len(res), [(type(i), len(i.children)) for i in res])
+    if DEBUG: print(ncols, nrows, len(res), [(type(i), len(i.children)) for i in res])
     return res
 
 
@@ -324,8 +332,8 @@ def update_figure(date, model, variable, tstep, relayoutdata, static):
      Input('obs-dropdown', 'value')],
     [State('graph-eval', 'relayoutData')])
 def update_eval(date, obs, relayoutdata):
-    print('SERVER: calling figure from EVAL picker callback')
-    # print('SERVER: interval ' + str(n))
+    if DEBUG: print('SERVER: calling figure from EVAL picker callback')
+    # if DEBUG: print('SERVER: interval ' + str(n))
 
     if date is not None:
         date = date.split(' ')[0]
@@ -334,7 +342,7 @@ def update_eval(date, obs, relayoutdata):
                 date, "%Y-%m-%d").strftime("%Y%m%d")
         except:
             pass
-        print('SERVER: callback date {}'.format(date))
+        if DEBUG: print('SERVER: callback date {}'.format(date))
     else:
         date = end_date
 
@@ -359,8 +367,10 @@ def update_eval(date, obs, relayoutdata):
 # app.css.append_css({"external_url": '{}/css/bWLwgP.css'.format(os.getcwd())})
 
 # Loading screen CSS
-# app.css.append_css({"external_url": "https://codepen.io/chriddyp/pen/brPBPO.css"})
+# app.css.append_css({"external_url":
+# "https://codepen.io/chriddyp/pen/brPBPO.css"})
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True, processes=8, threaded=False, host='localhost', port=9999)
+    app.run_server(debug=True, processes=4, threaded=False,
+                   host='localhost', port=9999)
