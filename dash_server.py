@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """ Dash Server """
 
-import debug
+# import debug
 import dash
 import dash_bootstrap_components as dbc
 import dash_core_components as dcc
@@ -372,5 +372,5 @@ def update_eval(date, obs, relayoutdata):
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True, processes=4, threaded=False,
+    app.run_server(debug=False, processes=4, # threaded=False,
                    host='localhost', port=9999)

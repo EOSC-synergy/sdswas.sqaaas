@@ -17,7 +17,7 @@ import os
 from utils import get_colorscale
 
 
-DEBUG = True
+DEBUG = False  # True
 
 COLORS = ['#a1ede3', '#5ce3ba', '#fcd775', '#da7230',
           '#9e6226', '#714921', '#392511', '#1d1309']
