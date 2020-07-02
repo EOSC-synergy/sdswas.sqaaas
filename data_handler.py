@@ -36,8 +36,8 @@ DEFAULT_MODEL = 'median'
 STYLES = {
     "carto-positron": "Light",
     "open-street-map": "Open street map",
-#    "carto-darkmatter": "Dark",
     "stamen-terrain": "Terrain",
+#    "carto-darkmatter": "Dark",
 #    "stamen-toner": "White/Black",
 #    "stamen-watercolor": "Watercolor"
 }

@@ -91,10 +91,11 @@ app.layout = html.Div(
                             fluid=True,
                         ),
                         dcc.Interval(id='slider-interval',
-                                        interval=2000,
+                                        interval=1000,
                                         n_intervals=0,
                                         disabled=True),
                         tabs.time_slider,
+                        # tabs.progress_bar,
                         tabs.time_series,
                         ]
                     ),
@@ -103,13 +104,13 @@ app.layout = html.Div(
                     className='horizontal-menu',
                     children=[
                         html.Span(
-                            dcc.DatePickerSingle(
+                            dcc.DatePickerRange(
                                 id='eval-date-picker',
                                 min_date_allowed=dt.strptime(start_date, "%Y%m%d"),
                                 max_date_allowed=dt.strptime(end_date, "%Y%m%d"),
                                 initial_visible_month=dt.strptime(end_date, "%Y%m%d"),
                                 display_format='DD MMM YYYY',
-                                date=end_date,
+                                end_date=end_date,
                             ),
                             className="linetool",
                         ),
@@ -142,6 +143,31 @@ app.layout = html.Div(
 if DEBUG: print('SERVER: stop creating app layout')
 
 
+# @app.callback(
+#     [Output("progress", "value"),
+#      Output("progress", "children"),
+#      Output("progress-interval", "disabled"),
+#      Output("progress-modal", "is_open")],
+#     [Input("progress-interval", "n_intervals"),
+#      Input({'type': 'graph-with-slider', 'index': ALL}, 'clickData')],
+#     [State('progress-interval', 'disabled')],
+# )
+# def update_progress(n, cdata, disabled):
+#
+#     if cdata and disabled:
+#         # check progress of some background process, in this
+#         # example we'll just
+#         # use n_intervals constrained to be in 0-100
+#         progress = min(n % 110, 100)
+#         # only add text after 5% progress to ensure text isn't
+#         # squashed too much
+#         return progress, \
+#             "{progress} %" if progress >= 5 else "", \
+#             False, True
+#
+#     return "", "", True, False
+
+
 @app.callback(
     Output('app-sidebar', 'children'),
     [Input('app-tabs', 'value')],
@@ -172,7 +198,8 @@ def update_layout(*args):
 
 # retrieve timeseries according to coordinates selected
 @app.callback(
-    [Output('ts-modal', 'children'),
+    [ # Output('progress-modal', 'is_open'),
+     Output('ts-modal', 'children'),
      Output('ts-modal', 'is_open')],
     [Input({'type': 'graph-with-slider', 'index': ALL}, 'clickData'),
      Input({'type': 'graph-with-slider', 'index': ALL}, 'id')],
@@ -190,9 +217,11 @@ def show_timeseries(cdata, element, model, variable):
     if DEBUG: print('"""""', model)
     if lat and lon:
         return dbc.ModalBody(
-            dcc.Graph(
-                id='timeseries-modal',
-                figure=get_timeseries(model, variable, lat, lon),
+            dcc.Loading(
+                dcc.Graph(
+                    id='timeseries-modal',
+                    figure=get_timeseries(model, variable, lat, lon),
+                )
             )
         ), True
 
@@ -286,7 +315,7 @@ def update_figure(date, model, variable, tstep, static):
                             'index': 'none',
                         },
                         figure=fig,
-                    )
+                    ),
                 ])
             ])
         )
@@ -372,5 +401,5 @@ def update_eval(date, obs, relayoutdata):
 
 
 if __name__ == '__main__':
-    app.run_server(debug=False, processes=4, # threaded=False,
+    app.run_server(debug=False, processes=4, threaded=False,
                    host='localhost', port=9999)

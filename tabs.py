@@ -69,6 +69,25 @@ sidebar_evaluation = [
     ),
 ]
 
+progress_bar = html.Div(
+    id='open-progress',
+    children=[
+        dbc.Modal(
+            dbc.ModalBody([
+                dcc.Interval(id="progress-interval",
+                             n_intervals=0,
+                             interval=500,
+                             disabled=True),
+                dbc.Progress(id="progress"),
+            ]),
+            id='progress-modal',
+            size='xl',
+            centered=True,
+        ),
+    ],
+    style={'display': 'none'},
+)
+
 time_slider = html.Div([
                     html.Span(
                         dcc.DatePickerSingle(
@@ -119,19 +138,17 @@ time_slider = html.Div([
 time_series = html.Div(
     id='open-timeseries',
     children=[
-        dbc.Spinner([
-            dbc.Modal([
-                dbc.ModalBody(
-                    dcc.Graph(
-                        id='timeseries-modal',
-                        figure={},
-                    ),
-                )],
-                id='ts-modal',
-                size='xl',
-                centered=True,
-            ),
-        ]),
+        dbc.Modal([
+            dbc.ModalBody(
+                dcc.Graph(
+                    id='timeseries-modal',
+                    figure={},
+                ),
+            )],
+            id='ts-modal',
+            size='xl',
+            centered=True,
+        ),
     ],
     style={'display': 'none'},
 )
