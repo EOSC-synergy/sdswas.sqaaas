@@ -1,27 +1,57 @@
 {
+    "monarch": {
+        "name": "MONARCH",
+        "template": "12_3H_NMMB-BSC",
+        "path": "/data/interactive_test/models/NMMB-BSC"
+    },
     "cams": {
         "name": "CAMS-ECMWF",
         "template": "00_3H_MACC-ECMWF",
-        "path": "/home/bscuser/Programs/interactive-forecast-viewer/data/models/CAMS"
+        "path": "/data/interactive_test/models/ECMWF"
     },
     "dream8-macc": {
         "name": "DREAM8-MACC",
         "template": "00_3H_DREAM8-MACC",
-        "path": "/home/bscuser/Programs/interactive-forecast-viewer/data/models/DREAM8-MACC"
-    },
-    "monarch": {
-        "name": "MONARCH",
-        "template": "12_3H_NMMB-BSC",
-        "path": "/home/bscuser/Programs/interactive-forecast-viewer/data/models/MONARCH"
+        "path": "/data/interactive_test/models/DREAM8-MACC"
     },
     "nasa-geos": {
         "name": "NASA-GEOS",
         "template": "_NASA-GEOS",
-        "path": "/home/bscuser/Programs/interactive-forecast-viewer/data/models/NASA-GEOS"
+        "path": "/data/interactive_test/models/NASA-GEOS"
+    },
+    "metoffice": {
+        "name": "UK-MO",
+        "template": "00_3H_UKMET.nc",
+        "path": "/data/interactive_test/models/msg-metoffice"
+    },
+    "ncep-gefs": {
+        "name": "NCEP-GEFS",
+        "template": "_NCEP-NGAC.nc",
+        "path": "/data/interactive_test/models/NCEP-NGAC"
+    },
+    "ema-regcm4": {
+        "name": "EMA-RegCM4",
+        "template": "_EMA-RegCM4.nc",
+        "path": "/data/interactive_test/models/EMA-RegCM4"
+    },
+    "silam": {
+        "name": "SILAM",
+        "template": "00_SILAM.nc",
+        "path": "/data/interactive_test/models/SILAM"
+    },
+    "lotos-euros": {
+        "name": "LOTOS-EUROS",
+        "template": "00_3H_LOTOSEUROS.nc",
+        "path": "/data/interactive_test/models/LOTOS-EUROS"
+    },
+    "icon-art": {
+        "name": "ICON-ART",
+        "template": "00_ICON-ART.nc",
+        "path": "/data/interactive_test/models/ICON-ART"
     },
     "median": {
         "name": "MEDIAN",
         "template": "_3H_MEDIAN",
-        "path": "/home/bscuser/Programs/interactive-forecast-viewer/data/models/median"
+        "path": "/data/interactive_test/models/median"
     }
 }

@@ -36,10 +36,7 @@ DEFAULT_MODEL = 'median'
 STYLES = {
     "carto-positron": "Light",
     "open-street-map": "Open street map",
-#    "carto-darkmatter": "Dark",
     "stamen-terrain": "Terrain",
-#    "stamen-toner": "White/Black",
-#    "stamen-watercolor": "Watercolor"
 }
 
 GEOJSON_TEMPLATE = "{}/geojson/{:02d}_{}_{}.geojson"
@@ -67,8 +64,7 @@ class Observations1dHandler(object):
         self.what, _, rdate, rtime = time_obj.units.split()[:4]
         self.rdatetime = datetime.strptime("{} {}".format(rdate, rtime[:5]),
                                            "%Y-%m-%d %H:%M")
-        # varlist = [var for var in self.input_file.variables if var in VARS]
-        varlist = ['od550aero']
+        varlist = [var for var in self.input_file.variables if var in VARS]
 
         self.station_names = [st_name[~st_name.mask].tostring().decode('utf-8')
                               for st_name in

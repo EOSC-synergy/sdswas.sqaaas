@@ -8,13 +8,12 @@ https://github.com/mapbox/simplestyle-spec/tree/master/1.1.0
 
 """
 
-import json
-
 import matplotlib as mpl
 mpl.use('agg')
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import numpy as np
+import json
 
 
 def ncl_colors(path, rev=False, n=None):

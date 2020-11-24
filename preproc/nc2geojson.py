@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # Copyright 2016 Earth Sciences Department, BSC-CNS
 #
@@ -21,7 +20,7 @@ np.set_printoptions(precision=2)
 
 CURRENT_PATH = os.path.abspath(os.path.dirname(__file__))
 
-VARS = json.load(open('conf/vars.json'))
+VARS = json.load(open('../conf/vars.json'))
 
 
 def nc2geojson(outdir='.', filelist=[], outfile_tpl=''):

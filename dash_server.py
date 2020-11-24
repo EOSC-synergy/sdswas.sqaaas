@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """ Dash Server """
 
@@ -372,5 +372,7 @@ def update_eval(date, obs, relayoutdata):
 
 
 if __name__ == '__main__':
-    app.run_server(debug=False, processes=4, # threaded=False,
-                   host='localhost', port=9999)
+    import socket
+    hostname = socket.gethostbyaddr(socket.gethostname())[0]
+    app.run_server(debug=False, processes=4, threaded=False,
+                   host=hostname, port=9999)
