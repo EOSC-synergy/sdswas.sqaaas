@@ -21,32 +21,32 @@
     },
     "metoffice": {
         "name": "UK-MO",
-        "template": "00_3H_UKMET.nc",
+        "template": "00_3H_UKMET",
         "path": "/data/interactive_test/models/msg-metoffice"
     },
     "ncep-gefs": {
         "name": "NCEP-GEFS",
-        "template": "_NCEP-NGAC.nc",
+        "template": "_NCEP-NGAC",
         "path": "/data/interactive_test/models/NCEP-NGAC"
     },
     "ema-regcm4": {
         "name": "EMA-RegCM4",
-        "template": "_EMA-RegCM4.nc",
+        "template": "_EMA-RegCM4",
         "path": "/data/interactive_test/models/EMA-RegCM4"
     },
     "silam": {
         "name": "SILAM",
-        "template": "00_SILAM.nc",
+        "template": "00_SILAM",
         "path": "/data/interactive_test/models/SILAM"
     },
     "lotos-euros": {
         "name": "LOTOS-EUROS",
-        "template": "00_3H_LOTOSEUROS.nc",
+        "template": "00_3H_LOTOSEUROS",
         "path": "/data/interactive_test/models/LOTOS-EUROS"
     },
     "icon-art": {
         "name": "ICON-ART",
-        "template": "00_ICON-ART.nc",
+        "template": "00_ICON-ART",
         "path": "/data/interactive_test/models/ICON-ART"
     },
     "median": {

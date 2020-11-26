@@ -10,8 +10,8 @@ from data_handler import STYLES
 
 from datetime import datetime as dt
 
-start_date = "20200301"
-end_date = "20200416"
+start_date = "20200501"
+end_date = "20200713"
 
 
 sidebar_forecast = [

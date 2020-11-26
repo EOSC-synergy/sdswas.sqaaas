@@ -30,7 +30,7 @@ MODELS = json.load(open('conf/models.json'))
 # Frequency = 3 Hourly
 FREQ = 3
 
-DEFAULT_VAR = 'od550_dust'
+DEFAULT_VAR = 'OD550_DUST'
 DEFAULT_MODEL = 'median'
 
 STYLES = {
@@ -40,7 +40,7 @@ STYLES = {
 }
 
 GEOJSON_TEMPLATE = "{}/geojson/{:02d}_{}_{}.geojson"
-NETCDF_TEMPLATE = "{}/netcdf/{}{}.nc4"
+NETCDF_TEMPLATE = "{}/netcdf/{}{}.nc"
 
 
 def find_nearest(array, value):
@@ -139,16 +139,17 @@ class Observations1dHandler(object):
 class TimeSeriesHandler(object):
     """ Class to handle time series """
 
-    def __init__(self, model, variable):
+    def __init__(self, model, date, variable):
         if isinstance(model, str):
             model = [model]
         self.model = model
         self.variable = variable
         self.dataframe = []
+        month = datetime.strptime(date, "%Y%m%d").strftime("%Y%m")
         for mod in model:
             fpath = os.path.join(MODELS[mod]['path'],
                                     'feather',
-                                    '{}.ft'.format(variable))
+                                    '{}-{}-{}.ft'.format(month, mod, variable))
             self.dataframe.append(feather.read_dataframe(fpath))
 
     def retrieve_timeseries(self, lat, lon, model=None):
@@ -161,11 +162,18 @@ class TimeSeriesHandler(object):
         )
         fig = go.Figure()
         for mod, df in zip(model, self.dataframe):
-            df_lats = find_nearest(df['lat'].values, lat)
-            df_lons = find_nearest(df['lon'].values, lon)
+            if 'lat' in df.columns:
+                lat_col = 'lat'
+                lon_col = 'lon'
+            else:
+                lat_col = 'latitude'
+                lon_col = 'longitude'
+
+            df_lats = find_nearest(df[lat_col].values, lat)
+            df_lons = find_nearest(df[lon_col].values, lon)
             timeseries = \
-                df.loc[(df['lat'] == df_lats) &
-                       (df['lon'] == df_lons),
+                df.loc[(df[lat_col] == df_lats) &
+                       (df[lon_col] == df_lons),
                        ('time', self.variable)].set_index('time')
             if DEBUG: print(mod, df_lats, df_lons)
             fig.add_trace(dict(
@@ -206,7 +214,7 @@ class TimeSeriesHandler(object):
             )
         )
 
-        fig['layout']['xaxis'].update(range=['2020-04-01', '2020-04-17 09:00'])
+#        fig['layout']['xaxis'].update(range=['2020-04-01', '2020-04-17 09:00'])
 
         return fig
 
@@ -227,8 +235,12 @@ class FigureHandler(object):
                 MODELS[self.model]['template']
             )
             self.input_file = nc_file(filepath)
-            lon = self.input_file.variables['lon'][:]
-            lat = self.input_file.variables['lat'][:]
+            if 'lon' in self.input_file.variables:
+                lon = self.input_file.variables['lon'][:]
+                lat = self.input_file.variables['lat'][:]
+            else:
+                lon = self.input_file.variables['longitude'][:]
+                lat = self.input_file.variables['latitude'][:]
             time_obj = self.input_file.variables['time']
             self.tim = time_obj[:]
             self.what, _, rdate, rtime = time_obj.units.split()[:4]
@@ -336,12 +348,17 @@ class FigureHandler(object):
 
     def generate_contour_tstep_trace(self, varname, tstep=0):
         """ Generate trace to be added to data, per variable and timestep """
-        geojson = \
-            json.load(open(GEOJSON_TEMPLATE
-                           .format(MODELS[self.model]['path'],
-                                   tstep,
-                                   self.selected_date,
-                                   varname)))
+        geojson_file = GEOJSON_TEMPLATE.format(MODELS[self.model]['path'],
+                tstep, self.selected_date, varname)
+
+        if os.path.exists(geojson_file):
+            geojson = json.load(open(geojson_file))
+        else:
+            print('ERROR', geojson_file, 'not available')
+            geojson = {
+                    "type": "FeatureCollection",
+                    "features": []
+                    }
 
         name = VARS[varname]['name']
         bounds = self.bounds[varname]
@@ -353,7 +370,7 @@ class FigureHandler(object):
             for feature in geojson['features']
             if feature['geometry']['coordinates']
         ]
-        locations, values = np.array(loc_val).T
+        locations, values = np.array(loc_val).T if loc_val else ([], [])
         # if DEBUG: print(varname, self.colormaps[varname], values)
         return dict(
             type='choroplethmapbox',

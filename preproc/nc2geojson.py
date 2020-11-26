@@ -40,8 +40,12 @@ def nc2geojson(outdir='.', filelist=[], outfile_tpl=''):
         tim = fp.variables['time']
         timevals = tim[:].copy()
         _, _, date, _ = tim.units.split()[:4]
-        lats = np.round(fp.variables['lat'][:], decimals=2)
-        lons = np.round(fp.variables['lon'][:], decimals=2)
+        if 'lat' in fp.variables:
+            lats = np.round(fp.variables['lat'][:], decimals=2)
+            lons = np.round(fp.variables['lon'][:], decimals=2)
+        else:
+            lats = np.round(fp.variables['latitude'][:], decimals=2)
+            lons = np.round(fp.variables['longitude'][:], decimals=2)
 
         for variable in VARS:
 
