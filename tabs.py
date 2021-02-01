@@ -10,8 +10,8 @@ from data_handler import STYLES
 
 from datetime import datetime as dt
 
-start_date = "20200501"
-end_date = "20200713"
+start_date = "20201001"
+end_date = "20201231"
 
 
 sidebar_forecast = [
@@ -128,6 +128,26 @@ time_series = html.Div(
                     ),
                 )],
                 id='ts-modal',
+                size='xl',
+                centered=True,
+            ),
+        ]),
+    ],
+    style={'display': 'none'},
+)
+
+eval_time_series = html.Div(
+    id='open-eval-timeseries',
+    children=[
+        dbc.Spinner([
+            dbc.Modal([
+                dbc.ModalBody(
+                    dcc.Graph(
+                        id='timeseries-eval-modal',
+                        figure={},
+                    ),
+                )],
+                id='ts-eval-modal',
                 size='xl',
                 centered=True,
             ),

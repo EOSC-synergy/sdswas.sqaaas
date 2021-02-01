@@ -15,6 +15,7 @@ import jsonator
 import os
 import os.path
 import sys
+from datetime import datetime
 
 np.set_printoptions(precision=2)
 
@@ -40,6 +41,7 @@ def nc2geojson(outdir='.', filelist=[], outfile_tpl=''):
         tim = fp.variables['time']
         timevals = tim[:].copy()
         _, _, date, _ = tim.units.split()[:4]
+        newdate = datetime.strptime(date, "%Y-%m-%d").strftime("%Y%m%d")
         if 'lat' in fp.variables:
             lats = np.round(fp.variables['lat'][:], decimals=2)
             lons = np.round(fp.variables['lon'][:], decimals=2)
@@ -78,10 +80,15 @@ def nc2geojson(outdir='.', filelist=[], outfile_tpl=''):
                     for feat in features[1:]:
                         merged['features'] += json.loads(feat)['features']
 
-                    outfile = '{:02d}_{}_{}.geojson'.format(t, date.lower(),
+                    outfile = '{:02d}_{}_{}.geojson'.format(t, newdate.lower(),
                                                             variable)
                     outfiles.append(outfile)
-                    with open(os.path.join(outdir, outfile), 'w') as out:
+                    newdir = os.path.join(outdir, newdate)
+                    try:
+                        os.makedirs(newdir)
+                    except:
+                        pass
+                    with open(os.path.join(newdir, outfile), 'w') as out:
                         out.write(json.dumps(merged, separators=(',', ':')))
 
         fp.close()

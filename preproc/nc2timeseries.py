@@ -15,6 +15,7 @@ from glob import glob
 
 VARS = json.load(open('../conf/vars.json'))
 MODELS = json.load(open('../conf/models.json'))
+OBS = json.load(open('../conf/obs.json'))
 
 
 def preprocess(ds, n=8):
@@ -66,9 +67,10 @@ def convert2timeseries(model, fmt='feather', months=None):
                         '{}/{}.parquet.gzip'.format(dest, fname),
                         compression='gzip')
                 elif fmt == 'feather':
+                    print('reset index ...')
+                    var_df = variable_df.astype('float32').reset_index()
                     print('saving to feather ...')
-                    variable_df.reset_index(inplace=True)
-                    variable_df.to_feather(
+                    var_df.to_feather(
                         '{}/{}.ft'.format(dest, fname),
                         )
 
@@ -76,15 +78,22 @@ def convert2timeseries(model, fmt='feather', months=None):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) > 3:
-        print("Error. Usage: {} [MODEL] [FORMAT]".format(sys.argv[0]))
+    if len(sys.argv) > 4:
+        print("Error. Usage: {} [MONTHS] [MODEL] [FORMAT]".format(sys.argv[0]))
         sys.exit(1)
     if len(sys.argv) == 1:
         for model in MODELS:
             convert2timeseries(model)
     elif len(sys.argv) == 2:
-        model = sys.argv[1]
-        convert2timeseries(model)
+        months = sys.argv[1].split(",")
+        for model in MODELS:
+            convert2timeseries(model, months=months)
+    elif len(sys.argv) == 3:
+        months = sys.argv[1].split(",")
+        model = sys.argv[2]
+        convert2timeseries(model, months=months)
     else:
-        fmt = sys.argv[2]
-        convert2timeseries(model, fmt)
+        months = sys.argv[1].split(",")
+        model = sys.argv[2]
+        fmt = sys.argv[3]
+        convert2timeseries(model, fmt, months)

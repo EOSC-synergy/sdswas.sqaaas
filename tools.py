@@ -4,6 +4,7 @@
 
 from data_handler import FigureHandler
 from data_handler import TimeSeriesHandler
+from data_handler import ObsTimeSeriesHandler
 from data_handler import Observations1dHandler
 from data_handler import DEBUG
 from tabs import end_date
@@ -17,9 +18,16 @@ def calc_matrix(n):
     return ncols, nrows
 
 
+def get_eval_timeseries(obs, start_date, end_date, var, idx, name):
+    """ Retrieve timeseries """
+    if DEBUG: print('SERVER: OBS TS init for obs {} ... '.format(str(obs)))
+    th = ObsTimeSeriesHandler(obs, start_date, end_date, var)
+    if DEBUG: print('SERVER: OBS TS generation ... ')
+    return th.retrieve_timeseries(idx, name)
+
+
 def get_timeseries(model, date, var, lat, lon):
     """ Retrieve timeseries """
-    # if DEBUG: print(var, selected_date, tstep)
     if DEBUG: print('SERVER: TS init for models {} ... '.format(str(model)))
     th = TimeSeriesHandler(model, date, var)
     if DEBUG: print('SERVER: TS generation ... ')
@@ -44,8 +52,8 @@ def get_figure(model=None, var=None, selected_date=end_date, tstep=0,
     return FigureHandler().retrieve_var_tstep()
 
 
-def get_obs1d(date, var):
+def get_obs1d(sdate, edate, obs, var):
     """ Retrieve 1D observation """
-    obs_handler = Observations1dHandler('./data/obs/aeronet/netcdf/od550aero_202004.nc', date)
+    obs_handler = Observations1dHandler(sdate, edate, obs)
     return obs_handler.generate_obs1d_tstep_trace(var)
 

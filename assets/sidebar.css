@@ -2,7 +2,7 @@
 .sidebar {
   margin: 0 !important;
   padding: 0 !important;
-  width: 240px !important;
+  width: 15% !important;
   font-family: Roboto Medium;
 /*  background-color: #F1B545 !important; */
   color: #2B383E !important;
@@ -50,7 +50,7 @@
     background-color: #F1B545 !important;
     color: grey;
     font-weight: bold;
-    height: 35px !important;
+    height: 2rem !important;
     margin-top: 0;
     padding-top: 0;
     border-radius: 0px;
@@ -58,17 +58,17 @@
 }
 
 .sidebar-item {
-    height: 40px;
+    height: 2rem;
     margin: 1rem 1rem;
 }
 
 .sidebar-item>label {
-    height: 40px;
+    height: 1.5rem;
 }
 
 .sidebar-item>summary {
-    height: 40px;
-    padding-top: 10px;
+    height: 2rem;
+    padding-top: 0;
 }
 
 .sidebar-first-item .Select-menu-outer {
@@ -77,20 +77,25 @@
 
 #model-dropdown>label>input[type=checkbox] {
     float: right;
-    margin-right: 1em !important;
-    margin-top: 0.6em;
+    vertical-align: bottom;
+    /*
+    margin-right: 1rem !important;
+    margin-top: 0.6rem;
+    */
 }
 
 #model-dropdown>label {
-    padding-left: 1.5em;
+    padding-left: 1.5rem;
+    margin-top: 0.5rem;
     display: block;
     overflow: hidden;
-    line-height: 35px;
+    line-height: 1.2rem;
+    font-size: small;
 }
 
 /* Page content. The value of the margin-left property should match the value of the sidebar's width property */
 div.tab-parent {
-  margin-left: 240px !important;
+  margin-left: 15% !important;
   height: 100% !important;
 }
 

@@ -1,11 +1,12 @@
 .tab-container {
     background-color: #2B383E !important;
+    height: 3.8rem;
 }
 
 :hover.tab.horizontal-menu>span, .tab.horizontal-menu.tab--selected>span {
     color: #F1B545 !important;
     border-bottom: 4px solid #F1B545 !important;
-    padding-bottom: 1em !important;
+    padding-bottom: 0.8rem !important;
 }
 
 .horizontal-menu {
@@ -14,7 +15,7 @@
     font-weight: bold;
     border: 2px solid #2B383E !important;
     color: white !important;
-    padding-bottom: 1em !important;
+    padding-bottom: 0.8rem !important;
     width: calc(100%/8) !important;
 }
 
@@ -49,10 +50,21 @@
     background-color: #2B383E !important;
     border: none !important;
     font-family: Roboto Medium !important;
-    font-size: 16px !important;
-    padding-left: 18px !important;
+    font-size: small !important;
     text-transform: uppercase;
-    padding-bottom: 0.9rem;
+    padding: 0.9rem;
+    margin-right: 0;
+}
+
+.DateInput_input {
+    padding: 0;
+    margin: 0;
+    line-height: initial;
+}
+
+input.DateInput_input {
+    margin-right: 0;
+    padding-right: 0;
 }
 
 div.SingleDatePickerInput {
@@ -60,17 +72,16 @@ div.SingleDatePickerInput {
 }
 
 #slider-graph {
-    width: 40rem;
+    width: 30rem;
 }
 
 #btn-play {
-    margin-bottom: 0.7rem;
+    margin: 0.4rem 0;
     border: none;
-    padding: 3px 10px;
+    padding: 0.2rem 0.6rem;
     text-align: center;
     text-decoration: none;
     display: inline-block;
-    font-size: 16px;
     border-radius: 50%;
 }
 
@@ -81,14 +92,14 @@ div.SingleDatePickerInput {
 .linetool {
     display: table-cell;
     vertical-align: bottom;
-    padding-bottom: 1em;
+    padding-bottom: 1rem;
     width: calc(50%/2);
 }
 
 .timesliderline {
     display: table-cell;
     vertical-align: bottom;
-    margin: 0 15px;
+    margin: 0;
 }
 
 #layout-dropdown {
@@ -96,20 +107,22 @@ div.SingleDatePickerInput {
 }
 
 #layout-dropdown>button {
-    width: 10rem;
-    margin: 0.5rem 1rem;
+    width: 8rem;
+    height: 1rem;
+    vertical-align: super;
+    margin: 0.2rem 0.4rem;
     color: #F1B545 !important;
 }
 
 #layout-dropdown .dropdown-menu>button {
-    width: 9rem;
+    width: 7rem;
 }
 
 .timeslider {
     position: relative;
     display: table-row;
-    left: 0;
-    bottom: -5px;
+    left: 0.4rem;
+    bottom: 3.5rem;
     color: #F1B545 !important;
     background-color: #2B383E !important;
 }

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """ Data Handler """
 
@@ -7,25 +6,30 @@ import plotly.graph_objs as go
 from matplotlib.colors import ListedColormap
 import numpy as np
 from netCDF4 import Dataset as nc_file
+import pandas as pd
 import feather
 import math
 import json
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
+import calendar
 import os
 
 from utils import get_colorscale
 
 
-DEBUG = False  # True
+DIR_PATH = os.path.dirname(os.path.realpath(__file__))
+
+DEBUG =  True
 
 COLORS = ['#a1ede3', '#5ce3ba', '#fcd775', '#da7230',
           '#9e6226', '#714921', '#392511', '#1d1309']
 
 COLORMAP = ListedColormap(COLORS)
 
-VARS = json.load(open('conf/vars.json'))
-MODELS = json.load(open('conf/models.json'))
+VARS = json.load(open(os.path.join(DIR_PATH, 'conf/vars.json')))
+MODELS = json.load(open(os.path.join(DIR_PATH, 'conf/models.json')))
+OBS = json.load(open(os.path.join(DIR_PATH, 'conf/obs.json')))
 
 # Frequency = 3 Hourly
 FREQ = 3
@@ -39,7 +43,7 @@ STYLES = {
     "stamen-terrain": "Terrain",
 }
 
-GEOJSON_TEMPLATE = "{}/geojson/{:02d}_{}_{}.geojson"
+GEOJSON_TEMPLATE = "{}/geojson/{}/{:02d}_{}_{}.geojson"
 NETCDF_TEMPLATE = "{}/netcdf/{}{}.nc"
 
 
@@ -55,7 +59,12 @@ def find_nearest(array, value):
 class Observations1dHandler(object):
     """ Class which handles 1D obs data """
 
-    def __init__(self, filepath, selected_date):
+    def __init__(self, sdate, edate, obs):
+        fday = sdate[:-2] + '01'
+        lday = edate[:-2] + str(calendar.monthrange(int(edate[:4]), int(edate[4:6]))[1])
+        date_range = pd.date_range(fday, lday, freq='M')
+        months = [d.strftime("%Y%m") for d in date_range.to_pydatetime()]
+        filepath = "{}.nc".format(os.path.join(OBS[obs]['path'], 'netcdf', OBS[obs]['template'].format(months[0])))
         self.input_file = nc_file(filepath)
         self.lon = self.input_file.variables['longitude'][:]
         self.lat = self.input_file.variables['latitude'][:]
@@ -64,7 +73,8 @@ class Observations1dHandler(object):
         self.what, _, rdate, rtime = time_obj.units.split()[:4]
         self.rdatetime = datetime.strptime("{} {}".format(rdate, rtime[:5]),
                                            "%Y-%m-%d %H:%M")
-        varlist = [var for var in self.input_file.variables if var in VARS]
+        self.varlist = [var for var in self.input_file.variables if var == OBS[obs]['obs_var']]
+        print('VARLIST', self.varlist)
 
         self.station_names = [st_name[~st_name.mask].tostring().decode('utf-8')
                               for st_name in
@@ -72,24 +82,23 @@ class Observations1dHandler(object):
 
         self.values = {
             varname: self.input_file.variables[varname][:]
-            for varname in varlist
+            for varname in self.varlist
         }
 
         self.bounds = {
-            varname: np.array(VARS['od550_dust']['bounds']).astype('float32')
-            for varname in varlist
+            varname: np.array(VARS['OD550_DUST']['bounds']).astype('float32')
+            for varname in self.varlist
         }
 
         self.colormaps = {
             varname: get_colorscale(self.bounds[varname], COLORMAP)
-            for varname in varlist
+            for varname in self.varlist
         }
 
-        try:
-            self.selected_date = datetime.strptime(
-                selected_date, "%Y%m%d").strftime("%Y-%m-%d")
-        except:
-            self.selected_date = selected_date
+#         self.selected_date_plain = selected_date
+# 
+#         self.selected_date = datetime.strptime(
+#             selected_date, "%Y%m%d").strftime("%Y-%m-%d")
 
 #     def retrieve_time_index(self, tstep=0):
 #         """ Generate index of current date time """
@@ -103,10 +112,10 @@ class Observations1dHandler(object):
 #         elif self.what == 'seconds':
 #             cdatetime = self.rdatetime + relativedelta(seconds=self.tim[tstep])
 
-    def generate_obs1d_tstep_trace(self, varname):
+    def generate_obs1d_tstep_trace(self, var):
         """ Generate trace to be added to data, per variable and timestep """
-        varname = 'od550aero'
-        val = self.values[varname][0]
+        varname = self.varlist[0]
+        #val = self.values[varname][0]
         name = 'Aeronet Station'
         return dict(
             type='scattermapbox',
@@ -114,11 +123,11 @@ class Observations1dHandler(object):
             lon=self.lon,
             lat=self.lat,
             mode='markers',
-            text=val,
+            #text=val,
             name=name,
             customdata=self.station_names,
             hovertemplate="name:%{customdata}<br>lon: %{lon:.4f}<br>" +
-                          "lat: %{lat:.4f}<br>value: %{text:.4f}",
+                          "lat: %{lat:.4f}", #"<br>value: %{text:.4f}",
             opacity=0.6,
             showlegend=False,
             marker=dict(
@@ -136,6 +145,95 @@ class Observations1dHandler(object):
         )
 
 
+class ObsTimeSeriesHandler(object):
+    """ Class to handle time series """
+
+    def __init__(self, obs, start_date, end_date, variable):
+        self.obs = obs
+        self.model = list(MODELS.keys())
+        self.variable = variable
+        self.dataframe = []
+
+        date_range = pd.date_range(start_date, end_date, freq='M')
+        months = [d.strftime("%Y%m") for d in date_range.to_pydatetime()]
+
+        month = months[0]
+        print('---', month)
+        opath = os.path.join(OBS[obs]['path'],
+                                'feather',
+                                '{}-{}-{}_interp.ft'.format(month, obs, variable))
+        self.dataframe.append(feather.read_dataframe(opath).rename(columns={'od550aero': variable}))
+        for mod in self.model:
+            fpath = os.path.join(OBS[obs]['path'],
+                                    'feather',
+                                    '{}-{}-{}_interp.ft'.format(month, mod, variable))
+            self.dataframe.append(feather.read_dataframe(fpath))
+
+    def retrieve_timeseries(self, idx, name):
+
+        title = "{} @ {} station".format(
+            VARS[self.variable]['name'], name
+        )
+        fig = go.Figure()
+        for mod, df in zip([self.obs]+self.model, self.dataframe):
+            if 'lat' in df.columns:
+                lat_col = 'lat'
+                lon_col = 'lon'
+            else:
+                lat_col = 'latitude'
+                lon_col = 'longitude'
+
+#             df_lats = find_nearest(df[lat_col].values, lat)
+#             df_lons = find_nearest(df[lon_col].values, lon)
+            timeseries = \
+                    df[df['station']==idx].set_index('time')
+#                 df.loc[(df[lat_col] == lat) &
+#                        (df[lon_col] == lon),
+#                        ('time', self.variable)].set_index('time')
+            #  if DEBUG: print(mod, df_lats, df_lons)
+            fig.add_trace(dict(
+                    type='scatter',
+                    name="{}".format(
+                        mod.upper()),
+                    x=timeseries.index,
+                    y=timeseries[self.variable],
+                    mode='lines+markers',
+                )
+            )
+        fig.update_layout(
+            title=dict(text=title, x=0.45, y=1.),
+            uirevision=True,
+            autosize=True,
+            showlegend=True,
+            hovermode="closest",        # highlight closest point on hover
+            margin={"r": 20, "t": 30, "l": 20, "b": 10},
+        )
+        fig.update_xaxes(
+            rangeslider_visible=True,
+            rangeselector=dict(
+                buttons=list([
+#                     dict(count=6, label="6m",
+#                          step="month", stepmode="backward"),
+#                     dict(count=1, label="YTD",
+#                          step="year", stepmode="todate"),
+#                     dict(count=1, label="1y",
+#                          step="year", stepmode="backward"),
+                    dict(step="all", label="all"),
+                    dict(count=1, label="1m",
+                         step="month", stepmode="backward"),
+                    dict(count=14, label="2w",
+                         step="day", stepmode="backward"),
+                    dict(count=7, # label="1w",
+                         step="day", stepmode="backward"),
+                ])
+            )
+        )
+
+#        fig['layout']['xaxis'].update(range=['2020-04-01', '2020-04-17 09:00'])
+
+        return fig
+
+
 class TimeSeriesHandler(object):
     """ Class to handle time series """
 
@@ -145,7 +243,10 @@ class TimeSeriesHandler(object):
         self.model = model
         self.variable = variable
         self.dataframe = []
-        month = datetime.strptime(date, "%Y%m%d").strftime("%Y%m")
+        try:
+            month = datetime.strptime(date, "%Y%m%d").strftime("%Y%m")
+        except:
+            month = datetime.strptime(date, "%Y-%m-%d").strftime("%Y%m")
         for mod in model:
             fpath = os.path.join(MODELS[mod]['path'],
                                     'feather',
@@ -261,11 +362,10 @@ class FigureHandler(object):
             }
 
         if selected_date:
-            try:
-                self.selected_date = datetime.strptime(
-                    selected_date, "%Y%m%d").strftime("%Y-%m-%d")
-            except:
-                self.selected_date = selected_date
+            self.selected_date_plain = selected_date
+
+            self.selected_date = datetime.strptime(
+                selected_date, "%Y%m%d").strftime("%Y-%m-%d")
 
         self.fig = None
 
@@ -349,7 +449,7 @@ class FigureHandler(object):
     def generate_contour_tstep_trace(self, varname, tstep=0):
         """ Generate trace to be added to data, per variable and timestep """
         geojson_file = GEOJSON_TEMPLATE.format(MODELS[self.model]['path'],
-                tstep, self.selected_date, varname)
+                self.selected_date_plain, tstep, self.selected_date_plain, varname)
 
         if os.path.exists(geojson_file):
             geojson = json.load(open(geojson_file))

@@ -21,6 +21,7 @@ from data_handler import STYLES
 from data_handler import FREQ
 from data_handler import DEBUG
 
+from tools import get_eval_timeseries
 from tools import get_timeseries
 from tools import get_figure
 from tools import get_obs1d
@@ -40,8 +41,20 @@ TIMEOUT = 10
 srv = flask.Flask(__name__)
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP,
                                                 dbc.themes.GRID],
+#                url_base_pathname='/dash/',
                 server=srv)
+app.css.config.serve_locally = True
+app.scripts.config.serve_locally = True
+app.config.update({
+    # as the proxy server will remove the prefix
+#    'routes_pathname_prefix': '/',
+
+    # the front-end will prefix this string to the requests
+    # that are made to the proxy server
+#    'requests_pathname_prefix': '/dash/'
+})
 server = app.server
+
 app.config.suppress_callback_exceptions = True
 
 if DEBUG: print('SERVER: start creating app layout')
@@ -75,13 +88,13 @@ app.layout = html.Div(
                     className='horizontal-menu',
                     children=[
                         html.Span(
-                            dcc.DatePickerSingle(
+                            dcc.DatePickerRange(
                                 id='eval-date-picker',
                                 min_date_allowed=dt.strptime(start_date, "%Y%m%d"),
                                 max_date_allowed=dt.strptime(end_date, "%Y%m%d"),
                                 initial_visible_month=dt.strptime(end_date, "%Y%m%d"),
                                 display_format='DD MMM YYYY',
-                                date=end_date,
+                                end_date=end_date,
                             ),
                             className="linetool",
                         ),
@@ -102,6 +115,7 @@ app.layout = html.Div(
                                 figure=get_figure(),
                             ),
                         ),
+                        tabs.eval_time_series,
                     ]),
             dcc.Tab(label='Observations',
                     className='horizontal-menu',
@@ -298,32 +312,79 @@ def update_figure(date, model, variable, tstep, static):
     return res
 
 
+# retrieve evaluation timeseries according to station selected
+@app.callback(
+    [Output('ts-eval-modal', 'children'),
+     Output('ts-eval-modal', 'is_open')],
+    [Input('eval-date-picker', 'start_date'),
+     Input('eval-date-picker', 'end_date'),
+     Input('obs-dropdown', 'value'),
+     Input('graph-eval', 'clickData'),
+     Input('graph-eval', 'id')],
+)
+def show_eval_timeseries(start_date, end_date, obs, cdata, element):
+    print(start_date, end_date, obs, cdata, element)
+    lat = lon = None
+    if cdata:
+#         lat = click['points'][0]['lat']
+#         lon = click['points'][0]['lon']
+        idx = cdata['points'][0]['pointIndex']
+        if idx != 0:
+            name = cdata['points'][0]['customdata']
+
+            if DEBUG: print('"""""', obs)
+            return dbc.ModalBody(
+                dcc.Graph(
+                    id='timeseries-eval-modal',
+                    figure=get_eval_timeseries(obs, start_date, end_date, DEFAULT_VAR, idx-1, name),
+                )
+            ), True
+
+    return dbc.ModalBody(
+        dcc.Graph(
+            id='timeseries-eval-modal',
+            figure={},
+        )
+    ), False
+
+
 # update evaluation figure according to all parameters
 @app.callback(
     Output('graph-eval', 'figure'),
-    [Input('eval-date-picker', 'date'),
+    [Input('eval-date-picker', 'start_date'),
+     Input('eval-date-picker', 'end_date'),
      Input('obs-dropdown', 'value')],
     [State('graph-eval', 'relayoutData')])
-def update_eval(date, obs, relayoutdata):
+def update_eval(sdate, edate, obs, relayoutdata):
     if DEBUG: print('SERVER: calling figure from EVAL picker callback')
     # if DEBUG: print('SERVER: interval ' + str(n))
 
-    if date is not None:
-        date = date.split(' ')[0]
+    if sdate is not None:
+        sdate = sdate.split()[0]
         try:
-            date = dt.strptime(
-                date, "%Y-%m-%d").strftime("%Y%m%d")
+            sdate = dt.strptime(
+                sdate, "%Y-%m-%d").strftime("%Y%m%d")
         except:
             pass
-        if DEBUG: print('SERVER: callback date {}'.format(date))
+        if DEBUG: print('SERVER: callback start_date {}'.format(sdate))
     else:
-        date = end_date
+        sdate = end_date
 
-    fig = get_figure(model=None, var=DEFAULT_VAR, selected_date=date)
+    if edate is not None:
+        edate = edate.split()[0]
+        try:
+            edate = dt.strptime(
+                edate, "%Y-%m-%d").strftime("%Y%m%d")
+        except:
+            pass
+        if DEBUG: print('SERVER: callback end_date {}'.format(edate))
+    else:
+        edate = end_date
+    fig = get_figure(model=None, var=DEFAULT_VAR)  # , selected_date=date)
 
     if fig:
         if obs:
-            fig.add_trace(get_obs1d(date, DEFAULT_VAR))
+            fig.add_trace(get_obs1d(sdate, edate, obs, DEFAULT_VAR))
 
         if relayoutdata:
             relayoutdata = {k: relayoutdata[k]
@@ -345,5 +406,5 @@ def update_eval(date, obs, relayoutdata):
 if __name__ == '__main__':
     import socket
     hostname = socket.gethostbyaddr(socket.gethostname())[0]
-    app.run_server(debug=False, processes=4, threaded=False,
-                   host=hostname, port=9999)
+    app.run_server(debug=True, processes=4, threaded=False,
+                   host=hostname, port=7777)
