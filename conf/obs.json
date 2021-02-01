@@ -1,0 +1,8 @@
+{
+    "aeronet": {
+	"obs_var": "od550aero",
+	"mod_var": "OD550_DUST",
+	"template" : "od550aero_{}",
+	"path" : "/data/interactive_test/obs/aeronet/"
+    }
+}
