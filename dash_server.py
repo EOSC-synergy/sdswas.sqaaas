@@ -336,7 +336,7 @@ def show_eval_timeseries(start_date, end_date, obs, cdata, element):
             return dbc.ModalBody(
                 dcc.Graph(
                     id='timeseries-eval-modal',
-                    figure=get_eval_timeseries(obs, start_date, end_date, DEFAULT_VAR, idx-1, name),
+                    figure=get_eval_timeseries(obs, start_date, end_date, DEFAULT_VAR, idx, name),
                 )
             ), True
 

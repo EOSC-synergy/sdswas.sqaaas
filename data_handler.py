@@ -76,9 +76,9 @@ class Observations1dHandler(object):
         self.varlist = [var for var in self.input_file.variables if var == OBS[obs]['obs_var']]
         print('VARLIST', self.varlist)
 
-        self.station_names = [st_name[~st_name.mask].tostring().decode('utf-8')
+        self.station_names = np.array([st_name[~st_name.mask].tostring().decode('utf-8')
                               for st_name in
-                              self.input_file.variables['station_name'][:]]
+                              self.input_file.variables['station_name'][:]])
 
         self.values = {
             varname: self.input_file.variables[varname][:]
@@ -116,16 +116,21 @@ class Observations1dHandler(object):
         """ Generate trace to be added to data, per variable and timestep """
         varname = self.varlist[0]
         #val = self.values[varname][0]
+        notnan = (np.array([i for i in range(self.values[varname].shape[1]) if not self.values[varname][:,i].mask.all()]),)
+        clon = self.lon[notnan]
+        clat = self.lat[notnan]
+        cstations = self.station_names[notnan]
+        print(len(clon), len(clat), len(cstations))
         name = 'Aeronet Station'
         return dict(
             type='scattermapbox',
             below='',
-            lon=self.lon,
-            lat=self.lat,
+            lon=clon,
+            lat=clat,
             mode='markers',
             #text=val,
             name=name,
-            customdata=self.station_names,
+            customdata=cstations,
             hovertemplate="name:%{customdata}<br>lon: %{lon:.4f}<br>" +
                           "lat: %{lat:.4f}", #"<br>value: %{text:.4f}",
             opacity=0.6,
@@ -157,25 +162,37 @@ class ObsTimeSeriesHandler(object):
         date_range = pd.date_range(start_date, end_date, freq='M')
         months = [d.strftime("%Y%m") for d in date_range.to_pydatetime()]
 
-        month = months[0]
+        if months:
+            month = months[0]
+        else:
+            month = datetime.strptime(end_date, "%Y-%m-%d").strftime("%Y%m")
+
         print('---', month)
         opath = os.path.join(OBS[obs]['path'],
                                 'feather',
                                 '{}-{}-{}_interp.ft'.format(month, obs, variable))
-        self.dataframe.append(feather.read_dataframe(opath).rename(columns={'od550aero': variable}))
+        obs_df = feather.read_dataframe(opath).rename(columns={'od550aero': variable})
+        notnans = [st for st in obs_df['station'].unique() if not obs_df[obs_df['station']==st]['OD550_DUST'].isnull().all()]
+        obs_df = obs_df[obs_df['station'].isin(notnans)]
+        self.dataframe.append(obs_df)
         for mod in self.model:
             fpath = os.path.join(OBS[obs]['path'],
                                     'feather',
                                     '{}-{}-{}_interp.ft'.format(month, mod, variable))
-            self.dataframe.append(feather.read_dataframe(fpath))
+            mod_df = feather.read_dataframe(fpath)
+            mod_df = mod_df[mod_df['station'].isin(notnans)]
+            self.dataframe.append(mod_df)
 
     def retrieve_timeseries(self, idx, name):
 
-        title = "{} @ {} station".format(
-            VARS[self.variable]['name'], name
-        )
+        old_indexes = self.dataframe[0]['station'].unique()
+        new_indexes = np.arange(self.dataframe[0]['station'].unique().size)
+        dict_idx = dict(zip(new_indexes, old_indexes))
         fig = go.Figure()
         for mod, df in zip([self.obs]+self.model, self.dataframe):
+            timeseries = \
+                    df[df['station']==dict_idx[idx]].set_index('time')
+
             if 'lat' in df.columns:
                 lat_col = 'lat'
                 lon_col = 'lon'
@@ -183,23 +200,36 @@ class ObsTimeSeriesHandler(object):
                 lat_col = 'latitude'
                 lon_col = 'longitude'
 
-#             df_lats = find_nearest(df[lat_col].values, lat)
-#             df_lons = find_nearest(df[lon_col].values, lon)
-            timeseries = \
-                    df[df['station']==idx].set_index('time')
-#                 df.loc[(df[lat_col] == lat) &
-#                        (df[lon_col] == lon),
-#                        ('time', self.variable)].set_index('time')
-            #  if DEBUG: print(mod, df_lats, df_lons)
+            if mod == self.obs:
+                sc_mode = 'markers'
+                marker = {'size': 10, 'symbol': "triangle-up-dot"}
+                visible = True
+                print(mod)
+                print(timeseries['OD550_DUST'].values)
+            else:
+                sc_mode = 'lines+markers'
+                marker = {'size': 5}
+                visible = 'legendonly'
+                cur_lat = round(timeseries[lat_col][0], 4)
+                cur_lon = round(timeseries[lon_col][0], 4)
+
+
             fig.add_trace(dict(
                     type='scatter',
                     name="{}".format(
                         mod.upper()),
                     x=timeseries.index,
                     y=timeseries[self.variable],
-                    mode='lines+markers',
+                    mode=sc_mode,
+                    marker=marker,
+                    visible=visible
                 )
             )
+
+        title = "{} @ {} (lat = {:.4f}, lon = {:.4f})".format(
+            VARS[self.variable]['name'], name, cur_lat, cur_lon,
+        )
+
         fig.update_layout(
             title=dict(text=title, x=0.45, y=1.),
             uirevision=True,
