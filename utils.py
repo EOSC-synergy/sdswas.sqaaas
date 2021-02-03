@@ -1,13 +1,65 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+""" Utils module with utility functions """
+
 import matplotlib as mpl
 from matplotlib import cm
+import xarray as xr
 import numpy as np
 import math
+import feather
+
 
 TIMES = {
     'animation': 900,
     'transition': 500,
     'slider_transition': 500
 }
+
+
+def retrieve_timeseries(fname, lat, lon, variable, method='netcdf'):
+    """ """
+    if method == 'feather':
+        df = feather.read_dataframe(fname)
+        if 'lat' in df.columns:
+            lat_col = 'lat'
+            lon_col = 'lon'
+        else:
+            lat_col = 'latitude'
+            lon_col = 'longitude'
+        n_lon = find_nearest(df[lon_col].values, lon)
+        n_lat = find_nearest(df[lat_col].values, lat)
+        ts = df.loc[(df[lat_col] == n_lat) &
+                    (df[lon_col] == n_lon), 
+                    ('time', variable)].set_index('time')
+        return n_lat, n_lon, ts.index, ts[variable]
+
+    def preprocess(ds, n=8):
+        return ds.isel(time=range(n))
+
+    ds = xr.open_mfdataset(fname, concat_dim='time', combine='nested', preprocess=preprocess)
+    if 'lat' in ds.variables:
+        da = ds[variable].sel(lon=lon, lat=lat, method='nearest')
+        return da['lat'].values, da['lon'].values, da.indexes['time'], da
+    else:
+        da = ds[variable].sel(longitude=lon, latitude=lat, method='nearest')
+        return da['latitude'].values, da['longitude'].values, da.indexes['time'], da
+
+
+def find_nearest(array, value):
+    idx = np.searchsorted(array, value, side="left")
+    if idx > 0 and (idx == len(array) or math.fabs(value - array[idx-1]) <
+                    math.fabs(value - array[idx])):
+        return array[idx-1]
+    else:
+        return array[idx]
+
+
+def calc_matrix(n):
+    sqrt_n = math.sqrt(n)
+    ncols = sqrt_n == int(sqrt_n) and int(sqrt_n) or int(sqrt_n) + 1
+    nrows = n%ncols > 0 and int(n/ncols)+1 or int(n/ncols)
+    return ncols, nrows
 
 
 def magnitude(num):

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-""" Tools module with utility functions """
+""" Tools module with functions related to plots """
 
 from data_handler import FigureHandler
 from data_handler import TimeSeriesHandler
@@ -8,14 +8,6 @@ from data_handler import ObsTimeSeriesHandler
 from data_handler import Observations1dHandler
 from data_handler import DEBUG
 from tabs import end_date
-import math
-
-
-def calc_matrix(n):
-    sqrt_n = math.sqrt(n)
-    ncols = sqrt_n == int(sqrt_n) and int(sqrt_n) or int(sqrt_n) + 1
-    nrows = n%ncols > 0 and int(n/ncols)+1 or int(n/ncols)
-    return ncols, nrows
 
 
 def get_eval_timeseries(obs, start_date, end_date, var, idx, name):
@@ -31,7 +23,7 @@ def get_timeseries(model, date, var, lat, lon):
     if DEBUG: print('SERVER: TS init for models {} ... '.format(str(model)))
     th = TimeSeriesHandler(model, date, var)
     if DEBUG: print('SERVER: TS generation ... ')
-    return th.retrieve_timeseries(lat, lon)
+    return th.retrieve_timeseries(lat, lon, method='feather')
 
 
 def get_figure(model=None, var=None, selected_date=end_date, tstep=0,

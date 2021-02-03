@@ -8,13 +8,13 @@ import numpy as np
 from netCDF4 import Dataset as nc_file
 import pandas as pd
 import feather
-import math
 import json
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import calendar
 import os
 
+from utils import retrieve_timeseries
 from utils import get_colorscale
 
 
@@ -47,15 +47,6 @@ GEOJSON_TEMPLATE = "{}/geojson/{}/{:02d}_{}_{}.geojson"
 NETCDF_TEMPLATE = "{}/netcdf/{}{}.nc"
 
 
-def find_nearest(array, value):
-    idx = np.searchsorted(array, value, side="left")
-    if idx > 0 and (idx == len(array) or math.fabs(value - array[idx-1]) <
-                    math.fabs(value - array[idx])):
-        return array[idx-1]
-    else:
-        return array[idx]
-
-
 class Observations1dHandler(object):
     """ Class which handles 1D obs data """
 
@@ -86,7 +77,7 @@ class Observations1dHandler(object):
         }
 
         self.bounds = {
-            varname: np.array(VARS['OD550_DUST']['bounds']).astype('float32')
+            varname: np.array(VARS[OBS[obs]['mod_var']]['bounds']).astype('float32')
             for varname in self.varlist
         }
 
@@ -172,7 +163,7 @@ class ObsTimeSeriesHandler(object):
                                 'feather',
                                 '{}-{}-{}_interp.ft'.format(month, obs, variable))
         obs_df = feather.read_dataframe(opath).rename(columns={'od550aero': variable})
-        notnans = [st for st in obs_df['station'].unique() if not obs_df[obs_df['station']==st]['OD550_DUST'].isnull().all()]
+        notnans = [st for st in obs_df['station'].unique() if not obs_df[obs_df['station']==st][variable].isnull().all()]
         obs_df = obs_df[obs_df['station'].isin(notnans)]
         self.dataframe.append(obs_df)
         for mod in self.model:
@@ -205,7 +196,7 @@ class ObsTimeSeriesHandler(object):
                 marker = {'size': 10, 'symbol': "triangle-up-dot"}
                 visible = True
                 print(mod)
-                print(timeseries['OD550_DUST'].values)
+                print(timeseries[self.variable].values)
             else:
                 sc_mode = 'lines+markers'
                 marker = {'size': 5}
@@ -272,47 +263,42 @@ class TimeSeriesHandler(object):
             model = [model]
         self.model = model
         self.variable = variable
-        self.dataframe = []
+        self.fpaths = []
         try:
-            month = datetime.strptime(date, "%Y%m%d").strftime("%Y%m")
+            self.month = datetime.strptime(date, "%Y%m%d").strftime("%Y%m")
         except:
-            month = datetime.strptime(date, "%Y-%m-%d").strftime("%Y%m")
-        for mod in model:
-            fpath = os.path.join(MODELS[mod]['path'],
-                                    'feather',
-                                    '{}-{}-{}.ft'.format(month, mod, variable))
-            self.dataframe.append(feather.read_dataframe(fpath))
+            self.month = datetime.strptime(date, "%Y-%m-%d").strftime("%Y%m")
 
-    def retrieve_timeseries(self, lat, lon, model=None):
+    def retrieve_timeseries(self, lat, lon, model=None, method='netcdf'):
 
         if not model:
             model = self.model
+
+        for mod in model:
+            if method == 'feather':
+                path_template = '{}-{}-{}.ft'.format(self.month, mod, self.variable)
+            elif method == 'netcdf':
+                path_template = '{}*{}.nc'.format(self.month, MODELS[mod]['template'], self.variable)
+            fpath = os.path.join(MODELS[mod]['path'],
+                                    method,
+                                    path_template)
+            self.fpaths.append(fpath)
 
         title = "{} @ lat = {} and lon = {}".format(
             VARS[self.variable]['name'], round(lat, 4), round(lon, 4)
         )
         fig = go.Figure()
-        for mod, df in zip(model, self.dataframe):
-            if 'lat' in df.columns:
-                lat_col = 'lat'
-                lon_col = 'lon'
-            else:
-                lat_col = 'latitude'
-                lon_col = 'longitude'
 
-            df_lats = find_nearest(df[lat_col].values, lat)
-            df_lons = find_nearest(df[lon_col].values, lon)
-            timeseries = \
-                df.loc[(df[lat_col] == df_lats) &
-                       (df[lon_col] == df_lons),
-                       ('time', self.variable)].set_index('time')
-            if DEBUG: print(mod, df_lats, df_lons)
+        for mod, fpath in zip(model, self.fpaths):
+            print(mod, fpath)
+            ts_lat, ts_lon, ts_index, ts_values = retrieve_timeseries(fpath, lat, lon, self.variable, method=method)
+
             fig.add_trace(dict(
                     type='scatter',
                     name="{} ({}, {})".format(
-                        mod.upper(), round(df_lats, 4), round(df_lons, 4)),
-                    x=timeseries.index,
-                    y=timeseries[self.variable],
+                        mod.upper(), ts_lat.round(4), ts_lon.round(4)),
+                    x=ts_index,
+                    y=ts_values,
                     mode='lines+markers',
                 )
             )

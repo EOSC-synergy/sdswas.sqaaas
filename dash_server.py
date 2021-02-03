@@ -25,7 +25,7 @@ from tools import get_eval_timeseries
 from tools import get_timeseries
 from tools import get_figure
 from tools import get_obs1d
-from tools import calc_matrix
+from utils import calc_matrix
 
 import tabs
 from tabs import start_date
