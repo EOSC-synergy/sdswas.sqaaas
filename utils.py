@@ -6,6 +6,7 @@ import matplotlib as mpl
 from matplotlib import cm
 import xarray as xr
 import numpy as np
+import pandas as pd
 import math
 import feather
 
@@ -15,6 +16,30 @@ TIMES = {
     'transition': 500,
     'slider_transition': 500
 }
+
+
+def concat_dataframes(fname_tpl, months, variable, rename_from=None, notnans=None):
+    """ Concatenate monthly dataframes """
+
+    # build feather files paths
+    opaths = [fname_tpl.format(month, variable)
+        for month in months]
+
+    # read monthly dataframes and concatenate into one
+    if rename_from:
+        mon_dfs = pd.concat([feather.read_dataframe(opath)
+            .rename(columns={rename_from: variable})
+            for opath in opaths])
+    # in case of models we don't rename the variable column
+    else:
+        mon_dfs = pd.concat([feather.read_dataframe(opath)
+            for opath in opaths])
+
+    if not notnans:
+        notnans = [st for st in mon_dfs['station'].unique()
+            if not mon_dfs[mon_dfs['station']==st][variable].isnull().all()]
+
+    return notnans, mon_dfs[mon_dfs['station'].isin(notnans)]
 
 
 def retrieve_timeseries(fname, lat, lon, variable, method='netcdf'):
@@ -47,6 +72,7 @@ def retrieve_timeseries(fname, lat, lon, variable, method='netcdf'):
 
 
 def find_nearest(array, value):
+    """ Find the nearest values of a couple of coordinates """
     idx = np.searchsorted(array, value, side="left")
     if idx > 0 and (idx == len(array) or math.fabs(value - array[idx-1]) <
                     math.fabs(value - array[idx])):
@@ -56,6 +82,7 @@ def find_nearest(array, value):
 
 
 def calc_matrix(n):
+    """ Calculate the mosaic optimum matrix shape """
     sqrt_n = math.sqrt(n)
     ncols = sqrt_n == int(sqrt_n) and int(sqrt_n) or int(sqrt_n) + 1
     nrows = n%ncols > 0 and int(n/ncols)+1 or int(n/ncols)

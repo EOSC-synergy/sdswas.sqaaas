@@ -14,6 +14,7 @@ from dateutil.relativedelta import relativedelta
 import calendar
 import os
 
+from utils import concat_dataframes
 from utils import retrieve_timeseries
 from utils import get_colorscale
 
@@ -149,40 +150,39 @@ class ObsTimeSeriesHandler(object):
         self.model = list(MODELS.keys())
         self.variable = variable
         self.dataframe = []
+        self.date_range = pd.date_range(start_date, end_date, freq='D')
 
-        date_range = pd.date_range(start_date, end_date, freq='M')
-        months = [d.strftime("%Y%m") for d in date_range.to_pydatetime()]
-
-        if months:
-            month = months[0]
-        else:
-            month = datetime.strptime(end_date, "%Y-%m-%d").strftime("%Y%m")
-
-        print('---', month)
-        opath = os.path.join(OBS[obs]['path'],
+        fname_tpl = os.path.join(OBS[obs]['path'],
                                 'feather',
-                                '{}-{}-{}_interp.ft'.format(month, obs, variable))
-        obs_df = feather.read_dataframe(opath).rename(columns={'od550aero': variable})
-        notnans = [st for st in obs_df['station'].unique() if not obs_df[obs_df['station']==st][variable].isnull().all()]
-        obs_df = obs_df[obs_df['station'].isin(notnans)]
+                                '{{}}-{dat}-{{}}_interp.ft')
+
+        months = np.unique([d.strftime("%Y%m") for d in self.date_range.to_pydatetime()])
+
+        print('MONTHS', months)
+#         if not months:
+#             months = [datetime.strptime(end_date, "%Y-%m-%d").strftime("%Y%m")]
+
+        fname_obs = fname_tpl.format(dat=obs)
+        notnans, obs_df = concat_dataframes(fname_obs, months, variable,
+                rename_from=OBS[obs]['obs_var'])
         self.dataframe.append(obs_df)
+
         for mod in self.model:
-            fpath = os.path.join(OBS[obs]['path'],
-                                    'feather',
-                                    '{}-{}-{}_interp.ft'.format(month, mod, variable))
-            mod_df = feather.read_dataframe(fpath)
-            mod_df = mod_df[mod_df['station'].isin(notnans)]
+            fname_mod = fname_tpl.format(dat=mod)
+            _, mod_df = concat_dataframes(fname_mod, months, variable,
+                    rename_from=None, notnans=notnans)
             self.dataframe.append(mod_df)
 
     def retrieve_timeseries(self, idx, name):
 
         old_indexes = self.dataframe[0]['station'].unique()
-        new_indexes = np.arange(self.dataframe[0]['station'].unique().size)
+        new_indexes = np.arange(old_indexes.size)
         dict_idx = dict(zip(new_indexes, old_indexes))
         fig = go.Figure()
         for mod, df in zip([self.obs]+self.model, self.dataframe):
             timeseries = \
                     df[df['station']==dict_idx[idx]].set_index('time')
+            #visible_ts = timeseries[timeseries.index.isin(self.date_range)]
 
             if 'lat' in df.columns:
                 lat_col = 'lat'
@@ -196,7 +196,7 @@ class ObsTimeSeriesHandler(object):
                 marker = {'size': 10, 'symbol': "triangle-up-dot"}
                 visible = True
                 print(mod)
-                print(timeseries[self.variable].values)
+                print(timeseries[self.variable].size)
             else:
                 sc_mode = 'lines+markers'
                 marker = {'size': 5}
@@ -226,10 +226,11 @@ class ObsTimeSeriesHandler(object):
             uirevision=True,
             autosize=True,
             showlegend=True,
-            hovermode="closest",        # highlight closest point on hover
-            margin={"r": 20, "t": 30, "l": 20, "b": 10},
+            hovermode="x",        # highlight closest point on hover
+            margin={"r": 10, "t": 30, "l": 10, "b": 10},
         )
         fig.update_xaxes(
+            range=[self.date_range[0], self.date_range[-1]],
             rangeslider_visible=True,
             rangeselector=dict(
                 buttons=list([

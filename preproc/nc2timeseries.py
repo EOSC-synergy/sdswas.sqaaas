@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Copyright 2016 Earth Sciences Department, BSC-CNS
+# Copyright 2021 Earth Sciences Department, BSC-CNS
 
 """ Save time series """
 
@@ -13,9 +13,11 @@ from datetime import datetime
 from glob import glob
 
 
-VARS = json.load(open('../conf/vars.json'))
-MODELS = json.load(open('../conf/models.json'))
-OBS = json.load(open('../conf/obs.json'))
+CURRENT_PATH = os.path.abspath(os.path.dirname(__file__))
+
+VARS = json.load(open(os.path.join(CURRENT_PATH, '../conf/vars.json')))
+MODELS = json.load(open(os.path.join(CURRENT_PATH, '../conf/models.json')))
+OBS = json.load(open(os.path.join(CURRENT_PATH, '../conf/obs.json')))
 
 
 def preprocess(ds, n=8):
