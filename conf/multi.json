@@ -1,0 +1,22 @@
+{
+    "median": {
+        "name": "MEDIAN",
+        "template": "_3H_MEDIAN",
+        "path": "/data/interactive_test/models/median"
+    },
+    "mean": {
+        "name": "MEAN",
+        "template": "_3H_MEAN",
+        "path": "/data/interactive_test/models/median"
+    },
+    "mean": {
+        "name": "STDEV",
+        "template": "_3H_STDEV",
+        "path": "/data/interactive_test/models/median"
+    },
+    "mean": {
+        "name": "RANGE",
+        "template": "_3H_RANGE",
+        "path": "/data/interactive_test/models/median"
+    }
+}
