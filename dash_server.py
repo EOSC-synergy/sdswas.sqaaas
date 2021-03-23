@@ -41,17 +41,17 @@ TIMEOUT = 10
 srv = flask.Flask(__name__)
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP,
                                                 dbc.themes.GRID],
-#                url_base_pathname='/dash/',
+                url_base_pathname='/dashboard/',
                 server=srv)
 app.css.config.serve_locally = True
 app.scripts.config.serve_locally = True
 app.config.update({
     # as the proxy server will remove the prefix
-#    'routes_pathname_prefix': '/',
+    'routes_pathname_prefix': '/',
 
     # the front-end will prefix this string to the requests
     # that are made to the proxy server
-#    'requests_pathname_prefix': '/dash/'
+    'requests_pathname_prefix': '/dashboard/'
 })
 server = app.server
 
