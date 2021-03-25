@@ -344,8 +344,8 @@ class FigureHandler(object):
         if isinstance(model, list):
             model = model[0]
 
+        self.model = model
         if model:
-            self.model = model
             if DEBUG: print("MODEL", model)
             filepath = NETCDF_TEMPLATE.format(
                 MODELS[self.model]['path'],

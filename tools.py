@@ -7,7 +7,9 @@ from data_handler import TimeSeriesHandler
 from data_handler import ObsTimeSeriesHandler
 from data_handler import Observations1dHandler
 from data_handler import DEBUG
-from tabs import end_date
+
+start_date = "20201001"
+end_date = "20201231"
 
 
 def get_eval_timeseries(obs, start_date, end_date, var, idx, name):

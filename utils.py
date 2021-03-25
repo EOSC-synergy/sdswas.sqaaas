@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 import math
 import feather
+import dash_core_components as dcc
 
 
 TIMES = {
@@ -164,3 +165,18 @@ def get_animation_buttons():
         xanchor="right",
         yanchor="top"
     )
+
+
+def get_graph(index, figure, style={}):
+    """ Renders map graph """
+
+    return dcc.Graph(
+        id={
+            'type': 'graph-with-slider',
+            'index': index,
+        },
+        figure=figure,
+        style=style
+    )
+
+

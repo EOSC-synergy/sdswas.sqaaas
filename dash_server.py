@@ -12,11 +12,14 @@ from dash.dependencies import Input
 from dash.dependencies import State
 from dash.dependencies import ALL
 from dash.dependencies import MATCH
+from dash.exceptions import PreventUpdate
 import flask
 from flask_caching import Cache
 
 from data_handler import DEFAULT_VAR
 from data_handler import DEFAULT_MODEL
+from data_handler import VARS 
+from data_handler import MODELS
 from data_handler import STYLES
 from data_handler import FREQ
 from data_handler import DEBUG
@@ -25,18 +28,23 @@ from tools import get_eval_timeseries
 from tools import get_timeseries
 from tools import get_figure
 from tools import get_obs1d
+from tools import start_date
+from tools import end_date
 from utils import calc_matrix
 
 import tabs
-from tabs import start_date
-from tabs import end_date
+from tabs.forecast import tab_forecast
+from tabs.forecast import sidebar_forecast
+from tabs.evaluation import tab_evaluation
+from tabs.evaluation import sidebar_evaluation
+
+from utils import get_graph
 
 from datetime import datetime as dt
 import math
 
 
 TIMEOUT = 10
-
 
 srv = flask.Flask(__name__)
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP,
@@ -66,58 +74,8 @@ app.layout = html.Div(
             className='sidebar'
         ),
         dcc.Tabs(id='app-tabs', value='forecast-tab', children=[
-            dcc.Tab(label='Forecast',
-                    value='forecast-tab',
-                    className='horizontal-menu',
-                    children=[
-                        dbc.Container(
-                            id='graph-collection',
-                            children=[],
-                            fluid=True,
-                        ),
-                        dcc.Interval(id='slider-interval',
-                                        interval=1000,
-                                        n_intervals=0,
-                                        disabled=True),
-                        tabs.time_slider,
-                        # tabs.progress_bar,
-                        tabs.time_series,
-                        ]
-                    ),
-            dcc.Tab(label='Evaluation',
-                    value='evaluation-tab',
-                    className='horizontal-menu',
-                    children=[
-                        html.Span(
-                            dcc.DatePickerRange(
-                                id='eval-date-picker',
-                                min_date_allowed=dt.strptime(start_date, "%Y%m%d"),
-                                max_date_allowed=dt.strptime(end_date, "%Y%m%d"),
-                                initial_visible_month=dt.strptime(end_date, "%Y%m%d"),
-                                display_format='DD MMM YYYY',
-                                end_date=end_date,
-                            ),
-                            className="linetool",
-                        ),
-                        html.Span(
-                            dcc.Dropdown(
-                                id='obs-dropdown',
-                                options=[{'label': 'Aeronet v3 lev15',
-                                        'value': 'aeronet'}],
-                                placeholder='Select observation network',
-                                # clearable=False,
-                                searchable=False
-                            ),
-                            className="linetool",
-                        ),
-                        html.Div(
-                            dcc.Graph(
-                                id='graph-eval',
-                                figure=get_figure(),
-                            ),
-                        ),
-                        tabs.eval_time_series,
-                    ]),
+            tab_forecast,
+            tab_evaluation,
             dcc.Tab(label='Observations',
                     className='horizontal-menu',
                     children=[]),
@@ -159,10 +117,11 @@ if DEBUG: print('SERVER: stop creating app layout')
     [Input('app-tabs', 'value')],
 )
 def render_sidebar(tab):
+    """ Function rendering requested tab """
     if tab == 'evaluation-tab':
-        return tabs.sidebar_evaluation
+        return sidebar_evaluation
 
-    return tabs.sidebar_forecast
+    return sidebar_forecast(VARS, DEFAULT_VAR, MODELS, DEFAULT_MODEL)
 
 
 @app.callback(
@@ -171,6 +130,7 @@ def render_sidebar(tab):
     [State({'type': 'graph-with-slider', 'index': MATCH}, 'figure')]
 )
 def update_layout(*args):
+    """ Function updating map layout cartography """
     ctx = dash.callback_context
     figures = args[-1]
 
@@ -194,6 +154,7 @@ def update_layout(*args):
      State('variable-dropdown-forecast', 'value')],
 )
 def show_timeseries(date, cdata, element, model, variable):
+    """ Renders model comparison timeseries """
     lat = lon = None
     for click, elem in zip(cdata, element):
         if elem['index'] in model and click:
@@ -210,12 +171,13 @@ def show_timeseries(date, cdata, element, model, variable):
             )
         ), True
 
-    return dbc.ModalBody(
-        dcc.Graph(
-            id='timeseries-modal',
-            figure={},
-        )
-    ), False
+    raise PreventUpdate
+#     return dbc.ModalBody(
+#         dcc.Graph(
+#             id='timeseries-modal',
+#             figure={},
+#         )
+#     ), False
 
 
 # start/stop animation
@@ -226,6 +188,7 @@ def show_timeseries(date, cdata, element, model, variable):
     [State('slider-interval', 'disabled'),
      State('slider-graph', 'value')])
 def start_stop_autoslider(n, disabled, value):
+    """ Play/Pause map animation """
     if DEBUG: print("VALUE", value)
     if not value:
         value = 0
@@ -234,15 +197,14 @@ def start_stop_autoslider(n, disabled, value):
     return disabled, int(value/FREQ)
 
 
-# update slider value according to the number of intervals
 @app.callback(
     Output('slider-graph', 'value'),
     [Input('slider-interval', 'n_intervals')])
 def update_slider(n):
+    """ Update slider value according to the number of intervals """
     if DEBUG: print('SERVER: updating slider-graph ' + str(n))
     if not n:
         return
-
     if n >= 24:
         tstep = int(round(24*math.modf(n/24)[0], 0))
     else:
@@ -258,8 +220,10 @@ def update_slider(n):
      Input('model-dropdown', 'value'),
      Input('variable-dropdown-forecast', 'value'),
      Input('slider-graph', 'value')],
-    [State('slider-interval', 'disabled')])
-def update_figure(date, model, variable, tstep, static):
+    [State('graph-collection', 'children'),
+     State('slider-interval', 'disabled')])
+def update_figure(date, model, variable, tstep, graphs, static):
+    """ Update mosaic of maps """
     if DEBUG: print('SERVER: calling figure from picker callback')
     # if DEBUG: print('SERVER: interval ' + str(n))
     if DEBUG: print('SERVER: tstep ' + str(tstep))
@@ -288,19 +252,15 @@ def update_figure(date, model, variable, tstep, static):
 
     if DEBUG: print('SERVER: tstep calc ' + str(tstep))
 
+    if DEBUG and len(graphs) > 0: print('SERVER: graphs ' + str(graphs[0]['props']['children'][-1]['props']['children']['props']['id']))
+
     figures = []
     if not model:
         fig = get_figure(model, variable, date, tstep, static)
         figures.append(
             dbc.Row([
                 dbc.Col([
-                    dcc.Graph(
-                        id={
-                            'type': 'graph-with-slider',
-                            'index': 'none',
-                        },
-                        figure=fig,
-                    ),
+                    get_graph(index='none', figure=fig)
                 ])
             ])
         )
@@ -310,14 +270,11 @@ def update_figure(date, model, variable, tstep, static):
     ncols, nrows = calc_matrix(len(model))
     for mod in model:
         figures.append(
-            dcc.Graph(
-                id={
-                    'type': 'graph-with-slider',
-                    'index': mod,
-                },
+            get_graph(
+                index=mod,
                 figure=get_figure(mod, variable, date, tstep,
                                   static, (nrows, ncols)),
-                style={'height': '{}vh'.format(int(85/nrows))},
+                style={'height': '{}vh'.format(int(85/nrows))}
             )
         )
         idx += 1
