@@ -252,7 +252,7 @@ def update_figure(date, model, variable, tstep, graphs, static):
 
     if DEBUG: print('SERVER: tstep calc ' + str(tstep))
 
-    if DEBUG and len(graphs) > 0: print('SERVER: graphs ' + str(graphs[0]['props']['children'][-1]['props']['children']['props']['id']))
+    if DEBUG and len(graphs) > 0: print('SERVER: graphs ' + str(graphs[0]['props']['children'][-1]['props']['children']['props'].keys()))
 
     figures = []
     if not model:
@@ -324,12 +324,13 @@ def show_eval_timeseries(start_date, end_date, obs, cdata, element):
                 )
             ), True
 
-    return dbc.ModalBody(
-        dcc.Graph(
-            id='timeseries-eval-modal',
-            figure={},
-        )
-    ), False
+    raise PreventUpdate
+#     return dbc.ModalBody(
+#         dcc.Graph(
+#             id='timeseries-eval-modal',
+#             figure={},
+#         )
+#     ), False
 
 
 # update evaluation figure according to all parameters

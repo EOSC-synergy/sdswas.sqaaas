@@ -308,7 +308,8 @@ class TimeSeriesHandler(object):
             uirevision=True,
             autosize=True,
             showlegend=True,
-            hovermode="closest",        # highlight closest point on hover
+            # hovermode="closest",        # highlight closest point on hover
+            hovermode="x",        # highlight closest point on hover
             margin={"r": 20, "t": 30, "l": 20, "b": 10},
         )
         fig.update_xaxes(
