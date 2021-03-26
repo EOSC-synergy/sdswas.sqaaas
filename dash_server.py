@@ -37,6 +37,8 @@ from tabs.forecast import tab_forecast
 from tabs.forecast import sidebar_forecast
 from tabs.evaluation import tab_evaluation
 from tabs.evaluation import sidebar_evaluation
+from tabs.observations import tab_observations
+from tabs.observations import sidebar_observations
 
 from utils import get_graph
 
@@ -74,11 +76,9 @@ app.layout = html.Div(
             className='sidebar'
         ),
         dcc.Tabs(id='app-tabs', value='forecast-tab', children=[
-            tab_forecast,
+            tab_forecast(),
             tab_evaluation,
-            dcc.Tab(label='Observations',
-                    className='horizontal-menu',
-                    children=[]),
+            tab_observations,
         ]),
     ],
     className="content",
@@ -87,41 +87,44 @@ app.layout = html.Div(
 if DEBUG: print('SERVER: stop creating app layout')
 
 
-# @app.callback(
-#     [Output("progress", "value"),
-#      Output("progress", "children"),
-#      Output("progress-interval", "disabled"),
-#      Output("progress-modal", "is_open")],
-#     [Input("progress-interval", "n_intervals"),
-#      Input({'type': 'graph-with-slider', 'index': ALL}, 'clickData')],
-#     [State('progress-interval', 'disabled')],
-# )
-# def update_progress(n, cdata, disabled):
-#
-#     if cdata and disabled:
-#         # check progress of some background process, in this
-#         # example we'll just
-#         # use n_intervals constrained to be in 0-100
-#         progress = min(n % 110, 100)
-#         # only add text after 5% progress to ensure text isn't
-#         # squashed too much
-#         return progress, \
-#             "{progress} %" if progress >= 5 else "", \
-#             False, True
-#
-#     return "", "", True, False
-
-
 @app.callback(
     Output('app-sidebar', 'children'),
     [Input('app-tabs', 'value')],
 )
 def render_sidebar(tab):
     """ Function rendering requested tab """
-    if tab == 'evaluation-tab':
-        return sidebar_evaluation
+    tabs = {
+        'forecast-tab' : [
+            sidebar_forecast,
+            (VARS, DEFAULT_VAR, MODELS, DEFAULT_MODEL)
+            ],
+        'evaluation-tab' : [
+            sidebar_evaluation,
+            None
+            ],
+        'observations-tab' : [
+            sidebar_observations,
+            None
+            ]
+    }
 
-    return sidebar_forecast(VARS, DEFAULT_VAR, MODELS, DEFAULT_MODEL)
+    if tabs[tab][1] is None:
+        return tabs[tab][0]()
+
+    return tabs[tab][0](*tabs[tab][1])
+
+### TAB FORECAST
+
+@app.callback(
+    Output('was-graph', 'children'),
+    [Input('was-date-picker', 'date'),
+     Input('was-dropdown', 'value'),
+     Input('variable-dropdown-forecast', 'value'),
+     Input('was-slider-graph', 'value')],
+)
+def update_was_figure(date, was, variable, day):
+    """ Update Warning Advisory Systems maps """
+    return []
 
 
 @app.callback(
@@ -172,12 +175,6 @@ def show_timeseries(date, cdata, element, model, variable):
         ), True
 
     raise PreventUpdate
-#     return dbc.ModalBody(
-#         dcc.Graph(
-#             id='timeseries-modal',
-#             figure={},
-#         )
-#     ), False
 
 
 # start/stop animation
@@ -213,7 +210,6 @@ def update_slider(n):
     return tstep*FREQ
 
 
-# update forecast figure according to all parameters
 @app.callback(
     Output('graph-collection', 'children'),
     [Input('model-date-picker', 'date'),
@@ -222,8 +218,8 @@ def update_slider(n):
      Input('slider-graph', 'value')],
     [State('graph-collection', 'children'),
      State('slider-interval', 'disabled')])
-def update_figure(date, model, variable, tstep, graphs, static):
-    """ Update mosaic of maps """
+def update_models_figure(date, model, variable, tstep, graphs, static):
+    """ Update mosaic of maps figures according to all parameters """
     if DEBUG: print('SERVER: calling figure from picker callback')
     # if DEBUG: print('SERVER: interval ' + str(n))
     if DEBUG: print('SERVER: tstep ' + str(tstep))
@@ -252,7 +248,7 @@ def update_figure(date, model, variable, tstep, graphs, static):
 
     if DEBUG: print('SERVER: tstep calc ' + str(tstep))
 
-    if DEBUG and len(graphs) > 0: print('SERVER: graphs ' + str(graphs[0]['props']['children'][-1]['props']['children']['props'].keys()))
+    #if DEBUG and len(graphs) > 0: print('SERVER: graphs ' + str(graphs[0]['props']['children'][-1]['props']['children']['props'].keys()))
 
     figures = []
     if not model:
@@ -266,9 +262,8 @@ def update_figure(date, model, variable, tstep, graphs, static):
         )
         return figures
 
-    idx = 0
     ncols, nrows = calc_matrix(len(model))
-    for mod in model:
+    for idx, mod in enumerate(model):
         figures.append(
             get_graph(
                 index=mod,
@@ -277,7 +272,6 @@ def update_figure(date, model, variable, tstep, graphs, static):
                 style={'height': '{}vh'.format(int(85/nrows))}
             )
         )
-        idx += 1
 
     res = [
         dbc.Row(
@@ -295,8 +289,8 @@ def update_figure(date, model, variable, tstep, graphs, static):
     if DEBUG: print(ncols, nrows, len(res), [(type(i), len(i.children)) for i in res])
     return res
 
+### TAB EVALUATION
 
-# retrieve evaluation timeseries according to station selected
 @app.callback(
     [Output('ts-eval-modal', 'children'),
      Output('ts-eval-modal', 'is_open')],
@@ -307,11 +301,9 @@ def update_figure(date, model, variable, tstep, graphs, static):
      Input('graph-eval', 'id')],
 )
 def show_eval_timeseries(start_date, end_date, obs, cdata, element):
+    """ Retrieve evaluation timeseries according to station selected """
     print(start_date, end_date, obs, cdata, element)
-    lat = lon = None
     if cdata:
-#         lat = click['points'][0]['lat']
-#         lon = click['points'][0]['lon']
         idx = cdata['points'][0]['pointIndex']
         if idx != 0:
             name = cdata['points'][0]['customdata']
@@ -325,15 +317,8 @@ def show_eval_timeseries(start_date, end_date, obs, cdata, element):
             ), True
 
     raise PreventUpdate
-#     return dbc.ModalBody(
-#         dcc.Graph(
-#             id='timeseries-eval-modal',
-#             figure={},
-#         )
-#     ), False
 
 
-# update evaluation figure according to all parameters
 @app.callback(
     Output('graph-eval', 'figure'),
     [Input('eval-date-picker', 'start_date'),
@@ -341,6 +326,7 @@ def show_eval_timeseries(start_date, end_date, obs, cdata, element):
      Input('obs-dropdown', 'value')],
     [State('graph-eval', 'relayoutData')])
 def update_eval(sdate, edate, obs, relayoutdata):
+    """ Update evaluation figure according to all parameters """
     if DEBUG: print('SERVER: calling figure from EVAL picker callback')
     # if DEBUG: print('SERVER: interval ' + str(n))
 

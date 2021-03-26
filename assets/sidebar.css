@@ -69,13 +69,14 @@
 .sidebar-item>summary {
     height: 2rem;
     padding-top: 0;
+    outline: none;
 }
 
 .sidebar-first-item .Select-menu-outer {
     background-color: #F1B545 !important;
 }
 
-#model-dropdown>label>input[type=checkbox] {
+.sidebar-dropdown>label>input[type=checkbox] {
     float: right;
     vertical-align: bottom;
     /*
@@ -84,13 +85,15 @@
     */
 }
 
-#model-dropdown>label {
+.sidebar-dropdown>label {
     padding-left: 1.5rem;
     margin-top: 0.5rem;
-    display: block;
     overflow: hidden;
-    line-height: 1.2rem;
+    display: block;
     font-size: small;
+}
+
+.sidebar-dropdown {
 }
 
 /* Page content. The value of the margin-left property should match the value of the sidebar's width property */
