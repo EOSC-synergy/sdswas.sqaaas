@@ -3,6 +3,7 @@
 """ Tools module with functions related to plots """
 
 from data_handler import FigureHandler
+from data_handler import WasFigureHandler
 from data_handler import TimeSeriesHandler
 from data_handler import ObsTimeSeriesHandler
 from data_handler import Observations1dHandler
@@ -28,6 +29,29 @@ def get_timeseries(model, date, var, lat, lon):
     return th.retrieve_timeseries(lat, lon, method='feather')
 
 
+def get_obs1d(sdate, edate, obs, var):
+    """ Retrieve 1D observation """
+    obs_handler = Observations1dHandler(sdate, edate, obs)
+    return obs_handler.generate_obs1d_tstep_trace(var)
+
+
+def get_was_figure(was=None, selected_date=end_date):
+    """ Retrieve figure """
+    # if DEBUG: print(var, selected_date, tstep)
+    try:
+        selected_date = dt.strptime(
+            selected_date, "%Y-%m-%d %H:%M:%S").strftime("%Y%m%d")
+    except:
+        pass
+    if was:
+        if DEBUG: print('SERVER: WAS Figure init ... ')
+        fh = WasFigureHandler(was=was, selected_date=selected_date)
+        if DEBUG: print('SERVER: WAS Figure generation ... ')
+        return fh.retrieve_var_tstep()
+    if DEBUG: print('SERVER: NO WAS Figure')
+    return WasFigureHandler().retrieve_var_tstep()
+
+
 def get_figure(model=None, var=None, selected_date=end_date, tstep=0,
                static=True, aspect=(1, 1)):
     """ Retrieve figure """
@@ -45,9 +69,4 @@ def get_figure(model=None, var=None, selected_date=end_date, tstep=0,
     if DEBUG: print('SERVER: No Figure')
     return FigureHandler().retrieve_var_tstep()
 
-
-def get_obs1d(sdate, edate, obs, var):
-    """ Retrieve 1D observation """
-    obs_handler = Observations1dHandler(sdate, edate, obs)
-    return obs_handler.generate_obs1d_tstep_trace(var)
 

@@ -7,6 +7,8 @@ from matplotlib.colors import ListedColormap
 import numpy as np
 from netCDF4 import Dataset as nc_file
 import pandas as pd
+import geopandas as gpd
+from shapely import geometry
 import feather
 import json
 from datetime import datetime
@@ -31,6 +33,7 @@ COLORMAP = ListedColormap(COLORS)
 VARS = json.load(open(os.path.join(DIR_PATH, 'conf/vars.json')))
 MODELS = json.load(open(os.path.join(DIR_PATH, 'conf/models.json')))
 OBS = json.load(open(os.path.join(DIR_PATH, 'conf/obs.json')))
+WAS = json.load(open(os.path.join(DIR_PATH, 'conf/was.json')))
 
 # Frequency = 3 Hourly
 FREQ = 3
@@ -150,6 +153,7 @@ class ObsTimeSeriesHandler(object):
         self.model = list(MODELS.keys())
         self.variable = variable
         self.dataframe = []
+        print("ObsTimeSeries", start_date, end_date)
         self.date_range = pd.date_range(start_date, end_date, freq='D')
 
         fname_tpl = os.path.join(OBS[obs]['path'],
@@ -602,56 +606,6 @@ class FigureHandler(object):
         #     showticklabels=False,
         # )
 
-#         if DEBUG: print('Adding frames ...')
-#         fig['frames'] = [
-#             dict(
-#                 data=[
-#                     self.generate_contour_tstep_trace(varname, tstep=num),
-#                     self.generate_var_tstep_trace(varname, tstep=num),
-#                 ],
-#                 layout=dict(title_text=self.get_title(varname, tstep=num)),
-#                 name=varname+str(num))
-#             for num in range(self.tim.size)
-#         ]
-#
-#         sliders = [
-#             dict(
-#                 steps=[
-#                     dict(
-#                         args=[
-#                             [frame.name],
-#                             dict(
-#                                 mode='immediate',
-#                                 frame=dict(duration=TIMES['animation'],
-#                                            redraw=True),
-#                                 transition=dict(
-#                                     duration=TIMES['transition'],
-#                                     # easing="quadratic-in-out",
-#                                 )
-#                             )
-#                         ],
-#                         method='animate',
-#                         label='{:d}'.format(timestep*3),
-#                         value=timestep,
-#                     )
-#                     for timestep, frame in enumerate(fig.frames)
-#                 ],
-#                 transition=dict(duration=TIMES['slider_transition'],
-#                                 easing="cubic-in-out"),
-#                 x=1.0,
-#                 y=1.08,
-#                 len=0.49,
-#                 pad={"r": 0, "t": 0},
-#                 xanchor="right",
-#                 yanchor="top",
-#                 currentvalue=dict(visible=False),
-#                 # currentvalue=dict(font=dict(size=12),
-#                 #     prefix='Timestep: ',
-#                 #     visible=True,
-#                 #     xanchor= 'center'),
-#                 )
-#         ]
-
         if DEBUG: print('Update layout ...')
         if varname:
             fig_title=dict(text='<b>{}</b>'.format(self.get_title(varname, tstep)),
@@ -673,13 +627,271 @@ class FigureHandler(object):
                 # self.get_variable_dropdown_buttons(),
             ],
             margin={"r": 0, "t": 0, "l": 0, "b": 0},
-#             xaxis=dict(
-#                 range=[self.xlon.min(), self.xlon.max()]
-#             ),
-#             yaxis=dict(
-#                 range=[self.ylat.min(), self.ylat.max()]
-#             ),
-            # sliders=sliders
+        )
+
+        # if DEBUG: print('Returning fig of size {}'.format(sys.getsizeof(self.fig)))
+        return self.fig
+
+
+class WasFigureHandler(object):
+    """ Class to manage the figure creation """
+
+    def __init__(self, was=None, model='median', variable='SCONC_DUST', selected_date=None):
+        """ Initialize WasFigureHandler with shapefile and netCDF data """
+        self.model = model
+        self.was = was
+
+        if self.was:
+            # read shapefile
+            print(WAS[self.was]['shp'])
+            self.was_df = gpd.read_file(WAS[self.was]['shp'])
+            self.was_df['lon_lat'] = self.was_df['geometry'].apply(lambda row: row.centroid)
+            self.was_df['LON'] = self.was_df['lon_lat'].apply(lambda row: row.x)
+            self.was_df['LAT'] = self.was_df['lon_lat'].apply(lambda row: row.y)
+            self.was_df = self.was_df.drop('lon_lat', axis=1)
+            lon = self.was_df['LON']
+            lat = self.was_df['LAT']
+
+        if self.model and selected_date:
+            # read nc file
+            if DEBUG: print("MODEL", model)
+            filepath = NETCDF_TEMPLATE.format(
+                MODELS[self.model]['path'],
+                selected_date,
+                MODELS[self.model]['template']
+            )
+            self.input_file = nc_file(filepath)
+            if 'lon' in self.input_file.variables:
+                lon = self.input_file.variables['lon'][:]
+                lat = self.input_file.variables['lat'][:]
+            else:
+                lon = self.input_file.variables['longitude'][:]
+                lat = self.input_file.variables['latitude'][:]
+            time_obj = self.input_file.variables['time']
+            self.tim = time_obj[:]
+            self.what, _, rdate, rtime = time_obj.units.split()[:4]
+            if len(rtime) > 5:
+                rtime = rtime[:5]
+            self.rdatetime = datetime.strptime("{} {}".format(rdate, rtime),
+                                               "%Y-%m-%d %H:%M")
+            varlist = [var for var in self.input_file.variables if var in VARS]
+
+            self.xlon, self.ylat = np.meshgrid(lon, lat)
+            self.vardata = self.input_file.variables[variable][:]*1e9
+
+#         self.bounds = {
+#             varname: np.array(VARS[varname]['bounds']).astype('float32')
+#             for varname in varlist
+#         }
+# 
+#         self.colormaps = {
+#             varname: get_colorscale(self.bounds[varname], COLORMAP)
+#             for varname in varlist
+#         }
+
+        if selected_date:
+            self.selected_date_plain = selected_date
+
+            self.selected_date = datetime.strptime(
+                selected_date, "%Y%m%d").strftime("%Y-%m-%d")
+
+        self.fig = None
+
+    def get_mapbox_style_buttons(self):
+        """ Relayout map with different styles """
+        return dict(
+            direction="up",
+            buttons=list([self.get_mapbox(style, relayout=True) for style in
+                          STYLES.keys()]),
+            # pad={"r": 0, "t": 0},
+            showactive=True,
+            x=0.9,
+            y=0.09,
+            xanchor="right",
+            yanchor="top",
+        )
+
+    def get_mapbox(self, style='carto-positron', relayout=False, zoom=1):
+        """ Returns mapbox layout """
+        if hasattr(self, 'ylat'):
+            center = go.layout.mapbox.Center(
+                lat=(self.ylat.max()-self.ylat.min())/2 +
+                self.ylat.min(),
+                lon=(self.xlon.max()-self.xlon.min())/2 +
+                self.xlon.min(),
+            )
+        else:
+            center = go.layout.mapbox.Center({'lat': 30, 'lon': 15})
+
+        mapbox_dict = dict(
+            uirevision=True,
+            style=style,
+            bearing=0,
+            center=center,
+            pitch=0,
+            zoom=zoom
+        )
+
+        if not relayout:
+            return mapbox_dict
+
+        return dict(
+            args=["mapbox", mapbox_dict],
+            label=STYLES[style].capitalize(),
+            method="relayout"
+        )
+
+    def get_updated_trace(self, varname, tstep=0):
+        """ Get updated trace """
+        return dict(
+            args=["scattermapbox", self.generate_var_tstep_trace(varname,
+                                                                 tstep)],
+            label=VARS[varname]['name'],
+            method="restyle"
+        )
+
+    def set_data(self, day=1):
+        """ Set time dependent data """
+
+        d_idx = []
+        d_date = self.rdatetime + relativedelta(days=day)
+
+        for n, tstep in enumerate(self.tim[:]):
+            ctime = (self.rdatetime + relativedelta(hours=float(tstep)))
+            if ctime.strftime("%Y%m%d") == d_date.strftime("%Y%m%d"):
+                d_idx.append(n)
+
+        return self.vardata[d_idx,:,:].max(axis=0)
+
+    def get_regions_data(self, day=1):
+        names = []
+        colors = []
+        if not hasattr(self, 'xlon'):
+            return names, colors
+
+        flon = self.xlon.flatten()
+        print('SHAPE LON', flon.shape)
+        flat = self.ylat.flatten()
+        print('SHAPE LAT', flat.shape)
+        data = self.set_data(day=day).flatten()
+        print('SHAPE DATA', data.shape)
+
+        for idx in self.was_df.index.values:
+            name = self.was_df.iloc[idx]['NAME_1']
+            geom = self.was_df.iloc[idx]['geometry']
+            mask = [geom.contains(geometry.Point(x, y)) for x, y in np.array([flon, flat]).T]
+            mlon = np.ma.masked_array(flon, mask=mask)
+            mlat = np.ma.masked_array(flat, mask=mask)
+            mdata = np.ma.masked_array(data, mask=mask)
+            reg_var = mdata.max()
+            perc = WAS[self.was]['values'][name]
+            color = ((reg_var<perc[0]) and 'green') or \
+                (((reg_var>=perc[0]) and (reg_var<perc[1])) and 'gold') or \
+                (((reg_var>=perc[1]) and (reg_var<perc[2])) and 'darkorange') or 'red'
+            names.append(name)
+            colors.append(color)
+
+        print(names, colors)
+        return names, colors
+
+    def retrieve_cdatetime(self, tstep=0):
+        tim = int(self.tim[tstep])
+        """ Retrieve data from NetCDF file """
+        if self.what == 'days':
+            cdatetime = self.rdatetime + relativedelta(days=tim)
+        elif self.what == 'hours':
+            cdatetime = self.rdatetime + relativedelta(hours=tim)
+        elif self.what == 'minutes':
+            cdatetime = self.rdatetime + relativedelta(minutes=tim)
+        elif self.what == 'seconds':
+            cdatetime = self.rdatetime + relativedelta(seconds=tim)
+
+        return cdatetime
+
+    def generate_contour_tstep_trace(self, day=1):
+        """ Generate trace to be added to data, per variable and timestep """
+
+        if hasattr(self, 'was_df'):
+            geojson = json.loads(self.was_df['geometry'].to_json())
+        else:
+            geojson = {
+                    "type": "FeatureCollection",
+                    "features": []
+                    }
+
+        names, colors = self.get_regions_data(day=day)
+        loc_val = [
+            (
+                feature['id'],
+                list(WAS[self.was]['colors'].keys()).index(color),
+            )
+            for feature, color in zip(geojson['features'], colors)
+            if feature['geometry']['coordinates']
+        ]
+        locations, values = np.array(loc_val).T if loc_val else ([], [])
+        print(locations, '--', values)
+        # if DEBUG: print(varname, self.colormaps[varname], values)
+        return dict(
+            type='choroplethmapbox',
+            name=str(self.was)+'_contours',
+            geojson=geojson,
+            z=values,
+            ids=locations,
+            locations=locations,
+            #zmin=bounds[0],
+            #zmax=bounds[-1],
+            showscale=False,
+            showlegend=False,
+            customdata=names,
+            hovertemplate="%{customdata}",
+            #hoverinfo='none',
+            #mode='markers',
+            colorscale=get_colorscale(range(len(WAS[self.was]['colors'])), ListedColormap(WAS[self.was]['colors'].keys())),
+            marker=dict(
+                opacity=0.6,
+                line_width=0,
+            ),
+            colorbar=None,
+        )
+
+    def get_title(self, tstep=0):
+        """ return title according to the date """
+        rdatetime = self.rdatetime
+        cdatetime = self.retrieve_cdatetime(tstep)
+        return r'{}'.format(WAS[self.was]['title'] % {
+            'rhour':  rdatetime.strftime("%H"),
+            'rday':   rdatetime.strftime("%d"),
+            'rmonth': rdatetime.strftime("%b"),
+            'ryear':  rdatetime.strftime("%Y"),
+            'shour':  cdatetime.strftime("%H"),
+            'sday':   cdatetime.strftime("%d"),
+            'smonth': cdatetime.strftime("%b"),
+            'syear':  cdatetime.strftime("%Y"),
+            'step':   "{:02d}".format(tstep*FREQ),
+        })
+
+    def retrieve_var_tstep(self, tstep=0, static=True, aspect=(1,1)):
+        """ run plot """
+        self.fig = go.Figure()
+        tstep = int(tstep)
+        if DEBUG: print('Adding contours ...')
+        self.fig.add_trace(self.generate_contour_tstep_trace(tstep))
+        if DEBUG: print('Update layout ...')
+        try:
+            fig_title=dict(text='<b>{}</b>'.format(self.get_title(tstep)),
+                           xanchor='left',
+                           yanchor='top',
+                           x=0.01, y=0.95)
+        except:
+            fig_title={}
+        self.fig.update_layout(
+            title=fig_title,
+            uirevision=True,
+            autosize=True,
+            hovermode="closest",        # highlight closest point on hover
+            mapbox=self.get_mapbox(zoom=7-(0.5*aspect[0])),
+            height=800,
+            margin={"r": 0, "t": 0, "l": 0, "b": 0},
         )
 
         # if DEBUG: print('Returning fig of size {}'.format(sys.getsizeof(self.fig)))

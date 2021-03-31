@@ -26,6 +26,7 @@ from data_handler import DEBUG
 
 from tools import get_eval_timeseries
 from tools import get_timeseries
+from tools import get_was_figure
 from tools import get_figure
 from tools import get_obs1d
 from tools import start_date
@@ -113,18 +114,51 @@ def render_sidebar(tab):
 
     return tabs[tab][0](*tabs[tab][1])
 
+@app.callback(
+    [Output('variable-dropdown-forecast', 'value'),
+     Output('forecast-tab', 'children'),
+     Output('collapse-1', 'is_open'),
+     Output('collapse-2', 'is_open')],
+    [Input('group-1-toggle', 'n_clicks'),
+     Input('group-2-toggle', 'n_clicks')],
+    [State('collapse-1', 'is_open'),
+     State('collapse-2', 'is_open'),
+     State('variable-dropdown-forecast', 'value'),]
+)
+def render_forecast_tab(modbutton, wasbutton, modopen, wasopen, var):
+    """ Function rendering requested tab """
+    ctx = dash.callback_context
+
+    if not ctx.triggered:
+        return False, False, False
+    else:
+        button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+
+    if button_id == "group-1-toggle" and modbutton:
+        return var, tab_forecast('models'), not modopen, False
+    elif button_id == "group-2-toggle" and wasbutton:
+        return 'SCONC_DUST', tab_forecast('was'), False, not wasopen
+
+    raise PreventUpdate
+
+
 ### TAB FORECAST
+
 
 @app.callback(
     Output('was-graph', 'children'),
     [Input('was-date-picker', 'date'),
-     Input('was-dropdown', 'value'),
-     Input('variable-dropdown-forecast', 'value'),
-     Input('was-slider-graph', 'value')],
+     Input('was-slider-graph', 'value'),
+     Input('was-dropdown', 'value'),],
 )
-def update_was_figure(date, was, variable, day):
+def update_was_figure(date, day, was):
     """ Update Warning Advisory Systems maps """
-    return []
+    print('WAS', was)
+    if was:
+        was = was[0]
+        return get_graph(index=was, figure=get_was_figure(was, selected_date=date))
+    print("WAS figure " + date, was, day)
+    return get_graph(index='none', figure=get_was_figure(selected_date=date))
 
 
 @app.callback(
@@ -165,7 +199,7 @@ def show_timeseries(date, cdata, element, model, variable):
             lon = click['points'][0]['lon']
             break
 
-    if DEBUG: print('"""""', model)
+    if DEBUG: print('SHOW TS """""', model, lat, lon)
     if lat and lon:
         return dbc.ModalBody(
             dcc.Graph(
@@ -308,7 +342,7 @@ def show_eval_timeseries(start_date, end_date, obs, cdata, element):
         if idx != 0:
             name = cdata['points'][0]['customdata']
 
-            if DEBUG: print('"""""', obs)
+            if DEBUG: print('SHOW EVAL TS"""""', obs, idx, name)
             return dbc.ModalBody(
                 dcc.Graph(
                     id='timeseries-eval-modal',

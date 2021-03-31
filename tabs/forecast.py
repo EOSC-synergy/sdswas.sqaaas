@@ -104,8 +104,8 @@ was_time_slider = html.Div([
             id='was-slider-graph',
             min=1, max=2, step=1, value=1,
             marks={
-                tstep: '{:d}'.format(tstep)
-                for tstep in range(2)
+                tstep: 'Day {:d}'.format(tstep)
+                for tstep in range(3)
             },
         ),
         className="timesliderline",
@@ -147,12 +147,9 @@ def tab_forecast(window='models'):
         fullscreen_style={'opacity': '0.5'},
         children=[
             html.Div(
-                dbc.Container(
                     id='was-graph',
                     children=[],
-                    fluid=True,
-            )),
-
+            ),
             html.Div(
                 was_time_slider,
             ),
@@ -166,6 +163,7 @@ def tab_forecast(window='models'):
     }
     
     return dcc.Tab(label='Forecast',
+        id='forecast-tab',
         value='forecast-tab',
         className='horizontal-menu',
         children=windows[window],
@@ -188,27 +186,47 @@ def sidebar_forecast(variables, default_var, models, default_model):
         className="sidebar-first-item",
         style={ 'background-color': '#F1B545' },
     ),
-    html.Details([
-        html.Summary("Models"),
-        dcc.Checklist(
-            id='model-dropdown',
-            options=[{'label': models[model]['name'],
-                      'value': model} for model in models],
-            value=[default_model,],
-            className="sidebar-dropdown"
-        )],
-        className="sidebar-item",
-    ),
-    html.Details([
-        html.Summary("Warning Advisory"),
-        dcc.Checklist(
-            id='was-dropdown',
-            options=[{'label': 'BURKINA FASO',
-                      'value': 'burkinafaso'}],
-            value=['',],
-            className="sidebar-dropdown"
-        )],
-        className="sidebar-item",
-    ),
+    html.Div([
+        dbc.Card([
+            dbc.CardHeader(html.H2(
+                dbc.Button("Models", id='group-1-toggle'),
+            )),
+            dbc.Collapse(
+                id='collapse-1',
+                children=[
+                    dbc.CardBody(
+                        dcc.Checklist(
+                            id='model-dropdown',
+                            options=[{'label': models[model]['name'],
+                                      'value': model} for model in models],
+                            value=[default_model,],
+                            className="sidebar-dropdown"
+                        )
+                    )
+                ]
+            )],
+        ),
+        html.Div([
+            dbc.CardHeader(html.H2(
+                dbc.Button("Warning Advisory", id='group-2-toggle'),
+            )),
+            dbc.Collapse(
+                id='collapse-2',
+                children=[
+                    dbc.CardBody(
+                        dcc.Checklist(
+                            id='was-dropdown',
+                            options=[{'label': 'BURKINA FASO',
+                                      'value': 'burkinafaso'}],
+                            value=['burkinafaso',],
+                            className="sidebar-dropdown"
+                        )
+                    )
+                ]
+            )],
+        ),
+    ],
+    className="accordion"
+    )
 ]
 

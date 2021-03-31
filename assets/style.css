@@ -45,6 +45,17 @@
 }
 */
 
+#was-date-picker #date {
+    color: #F1B545 !important;
+    background-color: #2B383E !important;
+    border: none !important;
+    font-family: Roboto Medium !important;
+    font-size: small !important;
+    text-transform: uppercase;
+    padding: 0.9rem;
+    margin-right: 0;
+}
+
 #model-date-picker #date {
     color: #F1B545 !important;
     background-color: #2B383E !important;
@@ -69,6 +80,10 @@ input.DateInput_input {
 
 div.SingleDatePickerInput {
     border: none;
+}
+
+#was-slider-graph {
+    width: 10rem;
 }
 
 #slider-graph {
