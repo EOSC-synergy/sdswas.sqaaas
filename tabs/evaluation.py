@@ -40,10 +40,8 @@ eval_time_series = dbc.Spinner(
 )
 
 
-tab_evaluation = dcc.Tab(label='Evaluation',
-    value='evaluation-tab',
-    className='horizontal-menu',
-    children=[
+def tab_evaluation(window='nrt'):
+    nrt_children = [
         html.Span(
             dcc.DatePickerRange(
                 id='eval-date-picker',
@@ -53,6 +51,7 @@ tab_evaluation = dcc.Tab(label='Evaluation',
                 display_format='DD MMM YYYY',
                 end_date=end_date,
             ),
+            style={ 'width': '50%'},
             className="linetool",
         ),
         html.Span(
@@ -64,6 +63,7 @@ tab_evaluation = dcc.Tab(label='Evaluation',
                 # clearable=False,
                 searchable=False
             ),
+            style={ 'width': '50%'},
             className="linetool",
         ),
         html.Div(
@@ -74,7 +74,96 @@ tab_evaluation = dcc.Tab(label='Evaluation',
         ),
         eval_time_series,
     ]
-)
+
+    scores_children = [
+        html.H3(
+            "Evaluation skill scores"
+            ),
+        html.P(
+            "Bñabñabñsjbkdjbhfkjdbgkjrhegkljhbgklhb",
+            ),
+        html.Span(
+            dcc.Dropdown(
+                id='obs-models-dropdown',
+                options=[{'label': MODELS[model]['name'],
+                          'value': model} for model in MODELS],
+                placeholder='Select model',
+                # clearable=False,
+                searchable=False
+            ),
+            style={ 'width': '25%'},
+            className="linetool",
+        ),
+        html.Span(
+            dcc.Dropdown(
+                id='obs-statistics-dropdown',
+                options=[
+                    {'label': 'BIAS', 'value': 'bias'},
+                    {'label': 'CORR', 'value': 'corr'},
+                    {'label': 'RMSE', 'value': 'rmse'},
+                ],
+                placeholder='Select statistic',
+                # clearable=False,
+                searchable=False
+            ),
+            style={ 'width': '20%'},
+            className="linetool",
+        ),
+        html.Span(
+            dcc.Dropdown(
+                id='obs-network-dropdown',
+                options=[{'label': 'Aeronet v3 lev15',
+                        'value': 'aeronet'}],
+                placeholder='Select observation network',
+                # clearable=False,
+                searchable=False
+            ),
+            style={ 'width': '25%'},
+            className="linetool",
+        ),
+        html.Span(
+            dcc.Dropdown(
+                id='obs-timescale-dropdown',
+                options=[{'label': 'Monthly',
+                        'value': 'monthly'}],
+                placeholder='Select observation network',
+                value='montly',
+                # clearable=False,
+                searchable=False
+            ),
+            style={ 'width': '20%'},
+            className="linetool",
+        ),
+        html.Span(
+            dcc.Dropdown(
+                id='obs-selection-dropdown',
+                options=[
+                    {'label': '{} 2020'.format(month),
+                     'value': '{} 2020'.format(month)}
+                     for month in ['Oct', 'Nov', 'Dec']
+                     ],
+                placeholder='Select observation network',
+                value='montly',
+                # clearable=False,
+                searchable=False
+            ),
+            style={ 'width': '25%'},
+            className="linetool",
+        ),
+
+    ]
+
+    windows = {
+        'nrt': nrt_children,
+        'scores': scores_children,
+    }
+    
+    return dcc.Tab(label='Evaluation',
+        id='evaluation-tab',
+        value='evaluation-tab',
+        className='horizontal-menu',
+        children=windows[window],
+    )
 
 
 def sidebar_evaluation():
@@ -94,13 +183,19 @@ def sidebar_evaluation():
         style={ 'background-color': '#F1B545' },
     ),
     html.Div([
-        html.Label("Near-real-time comparison"),
-        ],
+        # html.Label("Near-real-time comparison"),
+        dbc.Button("Near-real-time comparison",
+            color="link",
+            id='nrt-evaluation'
+        )],
         className="sidebar-item",
     ),
     html.Div([
-        html.Label("Evaluation skill scores"),
-        ],
+        # html.Label("Evaluation skill scores"),
+        dbc.Button("Evaluation skill scores",
+            color="link",
+            id='scores-evaluation'
+        )],
         className="sidebar-item",
     ),
 ]

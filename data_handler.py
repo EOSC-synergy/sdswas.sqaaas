@@ -185,7 +185,7 @@ class ObsTimeSeriesHandler(object):
         fig = go.Figure()
         for mod, df in zip([self.obs]+self.model, self.dataframe):
             timeseries = \
-                    df[df['station']==dict_idx[idx]].set_index('time')
+                df[df['station']==dict_idx[idx]].set_index('time')
             #visible_ts = timeseries[timeseries.index.isin(self.date_range)]
 
             if 'lat' in df.columns:
@@ -649,8 +649,8 @@ class WasFigureHandler(object):
             self.was_df['LON'] = self.was_df['lon_lat'].apply(lambda row: row.x)
             self.was_df['LAT'] = self.was_df['lon_lat'].apply(lambda row: row.y)
             self.was_df = self.was_df.drop('lon_lat', axis=1)
-            lon = self.was_df['LON']
-            lat = self.was_df['LAT']
+            self.wlon = self.was_df['LON']
+            self.wlat = self.was_df['LAT']
 
         if self.model and selected_date:
             # read nc file
@@ -715,10 +715,10 @@ class WasFigureHandler(object):
         """ Returns mapbox layout """
         if hasattr(self, 'ylat'):
             center = go.layout.mapbox.Center(
-                lat=(self.ylat.max()-self.ylat.min())/2 +
-                self.ylat.min(),
-                lon=(self.xlon.max()-self.xlon.min())/2 +
-                self.xlon.min(),
+                lat=(self.wlat.max()-self.wlat.min())/2 +
+                self.wlat.min(),
+                lon=(self.wlon.max()-self.wlon.min())/2 +
+                self.wlon.min(),
             )
         else:
             center = go.layout.mapbox.Center({'lat': 30, 'lon': 15})
@@ -766,8 +766,9 @@ class WasFigureHandler(object):
     def get_regions_data(self, day=1):
         names = []
         colors = []
+        definitions = []
         if not hasattr(self, 'xlon'):
-            return names, colors
+            return names, colors, definitions
 
         flon = self.xlon.flatten()
         print('SHAPE LON', flon.shape)
@@ -779,20 +780,21 @@ class WasFigureHandler(object):
         for idx in self.was_df.index.values:
             name = self.was_df.iloc[idx]['NAME_1']
             geom = self.was_df.iloc[idx]['geometry']
-            mask = [geom.contains(geometry.Point(x, y)) for x, y in np.array([flon, flat]).T]
-            mlon = np.ma.masked_array(flon, mask=mask)
-            mlat = np.ma.masked_array(flat, mask=mask)
-            mdata = np.ma.masked_array(data, mask=mask)
-            reg_var = mdata.max()
+            mask = np.array([geom.contains(geometry.Point(x, y)) for x, y in np.array([flon, flat]).T])
+            mdata = np.ma.masked_array(data, mask=~mask)
+            print(";;;;", mdata[~mdata.mask])
+            reg_var = mdata[~mdata.mask].max()
             perc = WAS[self.was]['values'][name]
+            print("::::", name, reg_var, perc)
             color = ((reg_var<perc[0]) and 'green') or \
                 (((reg_var>=perc[0]) and (reg_var<perc[1])) and 'gold') or \
                 (((reg_var>=perc[1]) and (reg_var<perc[2])) and 'darkorange') or 'red'
             names.append(name)
             colors.append(color)
+            definitions.append(WAS[self.was]['colors'][color])
 
-        print(names, colors)
-        return names, colors
+        print(names, colors, definitions)
+        return names, colors, definitions
 
     def retrieve_cdatetime(self, tstep=0):
         tim = int(self.tim[tstep])
@@ -818,12 +820,12 @@ class WasFigureHandler(object):
                     "type": "FeatureCollection",
                     "features": []
                     }
-
-        names, colors = self.get_regions_data(day=day)
+        colormap = list(WAS[self.was]['colors'].keys())
+        names, colors, definitions = self.get_regions_data(day=day)
         loc_val = [
             (
                 feature['id'],
-                list(WAS[self.was]['colors'].keys()).index(color),
+                colormap.index(color),
             )
             for feature, color in zip(geojson['features'], colors)
             if feature['geometry']['coordinates']
@@ -833,7 +835,7 @@ class WasFigureHandler(object):
         # if DEBUG: print(varname, self.colormaps[varname], values)
         return dict(
             type='choroplethmapbox',
-            name=str(self.was)+'_contours',
+            name='',  # str(self.was)+'_contours',
             geojson=geojson,
             z=values,
             ids=locations,
@@ -842,22 +844,23 @@ class WasFigureHandler(object):
             #zmax=bounds[-1],
             showscale=False,
             showlegend=False,
-            customdata=names,
+            customdata=["Region: {}<br>Warning level: {}".format(name, definition) for name, definition in zip(names, definitions)],
             hovertemplate="%{customdata}",
             #hoverinfo='none',
             #mode='markers',
-            colorscale=get_colorscale(range(len(WAS[self.was]['colors'])), ListedColormap(WAS[self.was]['colors'].keys())),
+            colorscale=get_colorscale(np.arange(len(colormap)-1)-0.5 , ListedColormap(colormap), True),
             marker=dict(
                 opacity=0.6,
-                line_width=0,
+                line_width=0.5,
+                line_color='white',
             ),
             colorbar=None,
         )
 
-    def get_title(self, tstep=0):
+    def get_title(self, day=1):
         """ return title according to the date """
         rdatetime = self.rdatetime
-        cdatetime = self.retrieve_cdatetime(tstep)
+        cdatetime = self.rdatetime + relativedelta(days=day)
         return r'{}'.format(WAS[self.was]['title'] % {
             'rhour':  rdatetime.strftime("%H"),
             'rday':   rdatetime.strftime("%d"),
@@ -867,18 +870,18 @@ class WasFigureHandler(object):
             'sday':   cdatetime.strftime("%d"),
             'smonth': cdatetime.strftime("%b"),
             'syear':  cdatetime.strftime("%Y"),
-            'step':   "{:02d}".format(tstep*FREQ),
+            #'step':   "{:02d}".format(tstep*FREQ),
         })
 
-    def retrieve_var_tstep(self, tstep=0, static=True, aspect=(1,1)):
+    def retrieve_var_tstep(self, day=1, static=True, aspect=(1,1)):
         """ run plot """
         self.fig = go.Figure()
-        tstep = int(tstep)
+        day = int(day)
         if DEBUG: print('Adding contours ...')
-        self.fig.add_trace(self.generate_contour_tstep_trace(tstep))
+        self.fig.add_trace(self.generate_contour_tstep_trace(day))
         if DEBUG: print('Update layout ...')
         try:
-            fig_title=dict(text='<b>{}</b>'.format(self.get_title(tstep)),
+            fig_title=dict(text='<b>{}</b>'.format(self.get_title(day)),
                            xanchor='left',
                            yanchor='top',
                            x=0.01, y=0.95)

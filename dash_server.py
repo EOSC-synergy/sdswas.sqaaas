@@ -78,7 +78,7 @@ app.layout = html.Div(
         ),
         dcc.Tabs(id='app-tabs', value='forecast-tab', children=[
             tab_forecast(),
-            tab_evaluation,
+            tab_evaluation(),
             tab_observations,
         ]),
     ],
@@ -113,6 +113,29 @@ def render_sidebar(tab):
         return tabs[tab][0]()
 
     return tabs[tab][0](*tabs[tab][1])
+
+
+@app.callback(
+    Output('evaluation-tab', 'children'),
+    [Input('nrt-evaluation', 'n_clicks'),
+     Input('scores-evaluation', 'n_clicks')],
+)
+def render_evaluation_tab(nrtbutton, scoresbutton):
+    """ Function rendering requested tab """
+    ctx = dash.callback_context
+
+    if not ctx.triggered:
+        raise PreventUpdate
+    else:
+        button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+
+    if button_id == "nrt-evaluation" and nrtbutton:
+        return tab_evaluation('nrt')
+    elif button_id == "scores-evaluation" and scoresbutton:
+        return tab_evaluation('scores')
+
+    raise PreventUpdate
+
 
 @app.callback(
     [Output('variable-dropdown-forecast', 'value'),
@@ -154,9 +177,20 @@ def render_forecast_tab(modbutton, wasbutton, modopen, wasopen, var):
 def update_was_figure(date, day, was):
     """ Update Warning Advisory Systems maps """
     print('WAS', was)
+    if date is not None:
+        date = date.split(' ')[0]
+        try:
+            date = dt.strptime(
+                date, "%Y-%m-%d").strftime("%Y%m%d")
+        except:
+            pass
+        if DEBUG: print('SERVER: callback date {}'.format(date))
+    else:
+        date = end_date
+
     if was:
         was = was[0]
-        return get_graph(index=was, figure=get_was_figure(was, selected_date=date))
+        return get_graph(index=was, figure=get_was_figure(was, day, selected_date=date))
     print("WAS figure " + date, was, day)
     return get_graph(index='none', figure=get_was_figure(selected_date=date))
 

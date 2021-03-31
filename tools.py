@@ -35,7 +35,7 @@ def get_obs1d(sdate, edate, obs, var):
     return obs_handler.generate_obs1d_tstep_trace(var)
 
 
-def get_was_figure(was=None, selected_date=end_date):
+def get_was_figure(was=None, day=1, selected_date=end_date):
     """ Retrieve figure """
     # if DEBUG: print(var, selected_date, tstep)
     try:
@@ -47,7 +47,7 @@ def get_was_figure(was=None, selected_date=end_date):
         if DEBUG: print('SERVER: WAS Figure init ... ')
         fh = WasFigureHandler(was=was, selected_date=selected_date)
         if DEBUG: print('SERVER: WAS Figure generation ... ')
-        return fh.retrieve_var_tstep()
+        return fh.retrieve_var_tstep(day=day)
     if DEBUG: print('SERVER: NO WAS Figure')
     return WasFigureHandler().retrieve_var_tstep()
 
