@@ -1,6 +1,7 @@
 import dash_core_components as dcc
 import dash_bootstrap_components as dbc
 import dash_html_components as html
+import dash_table
 from data_handler import DEFAULT_VAR
 from data_handler import DEFAULT_MODEL
 from data_handler import FREQ
@@ -43,6 +44,23 @@ eval_time_series = dbc.Spinner(
 def tab_evaluation(window='nrt'):
     nrt_children = [
         html.Span(
+            html.P(
+                "Near-real-time Comparison"
+                ),
+            className="description-title"
+        ),
+        html.Span(
+            html.P(
+                """Rather than a detailed validation of the dust forecast, the
+                model evaluation is an assessment of how the forecast behaves
+                relative to a few key observations that are available in
+                near-real-time. This allows the modelling groups and the end
+                users to have a quick overview of the quality of the
+                forecast.""",
+                ),
+            className="description-body"
+        ),
+        html.Span(
             dcc.DatePickerRange(
                 id='eval-date-picker',
                 min_date_allowed=dt.strptime(start_date, "%Y%m%d"),
@@ -76,12 +94,23 @@ def tab_evaluation(window='nrt'):
     ]
 
     scores_children = [
-        html.H3(
-            "Evaluation skill scores"
-            ),
-        html.P(
-            "Bñabñabñsjbkdjbhfkjdbgkjrhegkljhbgklhb",
-            ),
+        html.Span(
+            html.P(
+                "Evaluation skill scores"
+                ),
+            className="description-title"
+        ),
+        html.Span(
+            html.P(
+                """An important step in dust forecasting is the evaluation of
+                the results that have been generated. This process consists of
+                the comparison of the model results to multiple kinds of
+                observations and is aimed to facilitate the understanding of
+                the model capabilities, limitations, and appropriateness for
+                the purpose for which it was designed.""",
+                ),
+            className="description-body"
+        ),
         html.Span(
             dcc.Dropdown(
                 id='obs-models-dropdown',
@@ -91,7 +120,7 @@ def tab_evaluation(window='nrt'):
                 # clearable=False,
                 searchable=False
             ),
-            style={ 'width': '25%'},
+            style={ 'width': '12rem'},
             className="linetool",
         ),
         html.Span(
@@ -106,7 +135,7 @@ def tab_evaluation(window='nrt'):
                 # clearable=False,
                 searchable=False
             ),
-            style={ 'width': '20%'},
+            style={ 'width': '10rem' },
             className="linetool",
         ),
         html.Span(
@@ -118,7 +147,7 @@ def tab_evaluation(window='nrt'):
                 # clearable=False,
                 searchable=False
             ),
-            style={ 'width': '25%'},
+            style={ 'width': '10rem'},
             className="linetool",
         ),
         html.Span(
@@ -131,7 +160,7 @@ def tab_evaluation(window='nrt'):
                 # clearable=False,
                 searchable=False
             ),
-            style={ 'width': '20%'},
+            style={ 'width': '10rem'},
             className="linetool",
         ),
         html.Span(
@@ -147,8 +176,19 @@ def tab_evaluation(window='nrt'):
                 # clearable=False,
                 searchable=False
             ),
-            style={ 'width': '25%'},
+            style={ 'width': '10rem'},
             className="linetool",
+        ),
+        html.Span(
+            html.Button('APPLY', id='scores-apply', n_clicks=0),
+            className="linetool",
+        ),
+        html.Div(
+            dash_table.DataTable(
+                id='scores-table',
+                columns=[],  #get_scores_table(),
+                data=[],
+            ),
         ),
 
     ]

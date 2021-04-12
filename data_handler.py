@@ -9,7 +9,6 @@ from netCDF4 import Dataset as nc_file
 import pandas as pd
 import geopandas as gpd
 from shapely import geometry
-import feather
 import json
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
@@ -148,9 +147,11 @@ class Observations1dHandler(object):
 class ObsTimeSeriesHandler(object):
     """ Class to handle time series """
 
-    def __init__(self, obs, start_date, end_date, variable):
+    def __init__(self, obs, start_date, end_date, variable, models=None):
         self.obs = obs
-        self.model = list(MODELS.keys())
+        if models is None:
+            models = list(MODELS.keys())
+        self.model = models
         self.variable = variable
         self.dataframe = []
         print("ObsTimeSeries", start_date, end_date)
@@ -177,6 +178,7 @@ class ObsTimeSeriesHandler(object):
                     rename_from=None, notnans=notnans)
             self.dataframe.append(mod_df)
 
+
     def retrieve_timeseries(self, idx, name):
 
         old_indexes = self.dataframe[0]['station'].unique()
@@ -184,6 +186,7 @@ class ObsTimeSeriesHandler(object):
         dict_idx = dict(zip(new_indexes, old_indexes))
         fig = go.Figure()
         for mod, df in zip([self.obs]+self.model, self.dataframe):
+            print("MOD", mod, "COLS", df.columns)
             timeseries = \
                 df[df['station']==dict_idx[idx]].set_index('time')
             #visible_ts = timeseries[timeseries.index.isin(self.date_range)]

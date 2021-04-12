@@ -38,7 +38,7 @@ def concat_dataframes(fname_tpl, months, variable, rename_from=None, notnans=Non
         mon_dfs = pd.concat([feather.read_dataframe(opath)
             for opath in opaths])
 
-    if not notnans:
+    if notnans is None:
         notnans = [st for st in mon_dfs['station'].unique()
             if not mon_dfs[mon_dfs['station']==st][variable].isnull().all()]
 

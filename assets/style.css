@@ -45,6 +45,40 @@
 }
 */
 
+.description-title>p {
+  height: 35px;
+  color: #2F4047;
+  font-family: "Libre Baskerville";
+  font-size: 24px;
+  font-weight: bold;
+  letter-spacing: 0;
+  line-height: 35px;
+  margin-top: 1rem !important;
+}
+
+.description-body>p {
+  height: 47px;
+  opacity: 0.8;
+  color: #2B383E;
+  font-family: Roboto;
+  font-size: 14px;
+  letter-spacing: 0;
+  line-height: 22px;
+}
+
+.btn-link {
+  color: #2B383E;
+  font-family: Roboto;
+}
+
+#scores-apply {
+  background-color: #2B383E;
+  color: #FFFFFF;
+  font-family: Roboto;
+  letter-spacing: 0;
+  height: 2rem;
+}
+
 #was-date-picker #date {
     color: #F1B545 !important;
     background-color: #2B383E !important;
