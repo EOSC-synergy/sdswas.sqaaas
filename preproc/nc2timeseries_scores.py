@@ -46,17 +46,16 @@ def preprocess(ds, n=8):
     return ds.isel(time=range(n))
 
 
-def ret_scores(mod, obs, flt, st):
-    flt_stat = flt.get_group(st).set_index('time')
+def ret_scores(mod_df, obs_df, grp, grpname='station_name', obs='aeronet'):
     try:
-        obs_stat = obs.get_group(st).set_index('time')[flt_stat[OBS['aeronet']['flt_var']]>0.6]
+        obs_stat = obs_df.get_group(grp).set_index('time')
     except:
-        return flt_stat['station_name'][0], {'BIAS':  np.nan, 'CORR': np.nan, 'RMSE': np.nan, 'FRGE': np.nan}
+        return obs_stat[grpname][0], {'BIAS':  np.nan, 'CORR': np.nan, 'RMSE': np.nan, 'FRGE': np.nan}
     if obs_stat.size == 0:
-        return flt_stat['station_name'][0], {'BIAS':  np.nan, 'CORR': np.nan, 'RMSE': np.nan, 'FRGE': np.nan}
-    mod_stat = mod.get_group(st).set_index('time')
+        return obs_stat[grpname][0], {'BIAS':  np.nan, 'CORR': np.nan, 'RMSE': np.nan, 'FRGE': np.nan}
+    mod_stat = mod_df.get_group(grp).set_index('time')
     tot = obs_stat.merge(mod_stat, on='time')
-    mvar, ovar = OBS['aeronet']['mod_var'], OBS['aeronet']['obs_var']
+    mvar, ovar = OBS[obs]['mod_var'], OBS[obs]['obs_var']
     try:
         bias = (tot[mvar] - tot[ovar]).mean()
     except:
@@ -73,7 +72,11 @@ def ret_scores(mod, obs, flt, st):
         frge = 2*((tot[mvar] - tot[ovar])/(tot[mvar] + tot[ovar])).abs().mean()
     except:
         frge = np.nan
-    return obs_stat['station_name'][0], {'BIAS':  bias, 'CORR': corr.values[0][1], 'RMSE': rmse, 'FRGE': frge}
+    try:
+        totn = tot[ovar].notnull().sum()
+    except:
+        totn = np.nan
+    return obs_stat[grpname][0], {'BIAS':  bias, 'CORR': corr.values[0][1], 'RMSE': rmse, 'FRGE': frge, 'TOTN': totn}
 
 
 def convert2timeseries(model, obs=None, months=None):
@@ -114,11 +117,13 @@ def convert2timeseries(model, obs=None, months=None):
     rmse_df = pd.DataFrame(columns=columns)
     corr_df = pd.DataFrame(columns=columns)
     frge_df = pd.DataFrame(columns=columns)
+    totn_df = pd.DataFrame(columns=columns)
 
-    sites = pd.read_table('/home/fbeninca/devel/interactive-forecast-viewer/conf/aeronet_sites.txt', delimiter=r"\s+", engine='python')
+    # read sites for a text file
+    sites = pd.read_table(os.path.join(CURRENT_PATH, '../conf/',
+        OBS[obs]['sites']), delimiter=r"\s+",
+        engine='python').sort_values(by='AREA')
 
-    # for mpath, opath, fpath, month in zip(*mod_paths, obs_paths, flt_paths, months):
-    # for outputs in zip(*mod_paths, obs_paths, flt_paths, months):
     models_ds = []
     for mpath in mod_paths:
         fnames = [x for mp in mpath for x in sorted(glob(mp))]
@@ -134,30 +139,51 @@ def convert2timeseries(model, obs=None, months=None):
             continue
 
     try:
-        obs_ds = xr.open_mfdataset(obs_paths,
-                               concat_dim='time',
-                               combine='nested',
-                               )
-        obs_ds = obs_ds.where(obs_ds['station_name'].isin(sites['SITE'].values.astype(np.bytes_)))
-        obs_df = obs_ds.to_dataframe().reset_index().dropna(subset=['station_name'])
-        obs_df = obs_df[['time', 'station', 'ndata', 'station_name', OBS[obs]['obs_var']]]
-        old_stations = obs_df['station'].unique()
-        new_stations = np.arange(old_stations.size)
-        for old_st, new_st in zip(old_stations, new_stations):
-            obs_df.loc[obs_df['station'] == old_st, 'station'] = new_st
-        obs_lat = obs_ds['latitude'].dropna('station')[0].drop_vars('time')
-        obs_lon = obs_ds['longitude'].dropna('station')[0].drop_vars('time')
-        obs_grps = obs_df.groupby('station')
+        # read filter variable
         flt_ds = xr.open_mfdataset(flt_paths,
                                concat_dim='time',
                                combine='nested',
                                )
+
+        # select stations and remove others
         flt_ds = flt_ds.where(flt_ds['station_name'].isin(sites['SITE'].values.astype(np.bytes_)))
         flt_df = flt_ds.to_dataframe().reset_index().dropna(subset=['station_name'])
         flt_df = flt_df[['time', 'station', 'ndata', 'station_name', OBS[obs]['flt_var']]]
+
+        # re-numbering stations
+        old_stations = flt_df['station'].unique()
+        new_stations = np.arange(old_stations.size)
         for old_st, new_st in zip(old_stations, new_stations):
             flt_df.loc[flt_df['station'] == old_st, 'station'] = new_st
-        flt_grps = flt_df.groupby('station')
+
+        # read observations and transform to a dataframe with only needed stations
+        obs_ds = xr.open_mfdataset(obs_paths,
+                               concat_dim='time',
+                               combine='nested',
+                               )
+        # select only stations in a given text file and remove others
+        obs_ds = obs_ds.where(obs_ds['station_name'].isin(sites['SITE'].values.astype(np.bytes_)))
+        obs_df = obs_ds.to_dataframe().reset_index().dropna(subset=['station_name'])
+        obs_df = obs_df[['time', 'station', 'ndata', 'station_name', OBS[obs]['obs_var']]]
+
+        # re-numbering stations
+        for old_st, new_st in zip(old_stations, new_stations):
+            obs_df.loc[obs_df['station'] == old_st, 'station'] = new_st
+
+        # adding area to each station
+        for site in sites['SITE']:
+            obs_df.loc[obs_df['station_name'] == site.encode('utf-8'), 'area'] = sites.loc[sites['SITE'] == site, 'AREA'].values
+
+        # apply filtering on the whole dataframe
+        obs_df.loc[flt_df[OBS[obs]['flt_var']]>0.6, OBS[obs]['obs_var']] = np.nan
+
+        # retrieve lat and lon only with 'station' dimension to perform the interpolation
+        obs_lat = obs_ds['latitude'].dropna('station')[0].drop_vars('time')
+        obs_lon = obs_ds['longitude'].dropna('station')[0].drop_vars('time')
+
+        # group by area
+        obs_grps_area = obs_df.groupby('area')
+
     except Exception as err:
         print('Error', str(err))
 
@@ -174,6 +200,7 @@ def convert2timeseries(model, obs=None, months=None):
         rmse = []
         corr = []
         frge = []
+        totn = []
         print('IDX', mod_idx)
         if variable in mod_ds.variables:
             if obs_ds:
@@ -188,15 +215,32 @@ def convert2timeseries(model, obs=None, months=None):
                 print('converting dataset to df ...')
 
             mod_df = mod_interp.to_dataframe().reset_index()
-            mod_grps = mod_df.groupby('station')
 
-            for grp in mod_grps:
-                station, scores = ret_scores(mod_grps, obs_grps, flt_grps, grp[0])
-                stations.append(station)
+            # adding area to each station
+            for st in mod_df['station']:
+                mod_df.loc[mod_df['station'] == st, 'area'] = obs_df.loc[obs_df['station'] == st, 'area'].values[0]
+
+            # print(mod_df)
+            mod_grps_area = mod_df.groupby('area')
+
+            for obs_area in obs_grps_area:
+                mod_grps_stat = mod_grps_area.get_group(obs_area[0]).groupby('station')
+                obs_grps_stat = obs_grps_area.get_group(obs_area[0]).groupby('station')
+                for stat in obs_grps_stat:
+                    station, scores = ret_scores(mod_grps_stat, obs_grps_stat, stat[0])
+                    stations.append(station.decode('utf-8'))
+                    bias.append(scores['BIAS'])
+                    rmse.append(scores['RMSE'])
+                    corr.append(scores['CORR'])
+                    frge.append(scores['FRGE'])
+                    totn.append(scores['TOTN'])
+                area, scores = ret_scores(mod_grps_area, obs_grps_area, obs_area[0], grpname='area')
+                stations.append(area)
                 bias.append(scores['BIAS'])
                 rmse.append(scores['RMSE'])
                 corr.append(scores['CORR'])
                 frge.append(scores['FRGE'])
+                totn.append(scores['TOTN'])
 
         print(stations)
         print(columns[mod_idx+1])
@@ -204,6 +248,7 @@ def convert2timeseries(model, obs=None, months=None):
         print('RMSE', rmse)
         print('CORR', corr)
         print('FRGE', frge)
+        print('TOTN', totn)
         bias_df['station'] = stations
         bias_df[columns[mod_idx+1]] = bias
         rmse_df['station'] = stations
@@ -212,6 +257,8 @@ def convert2timeseries(model, obs=None, months=None):
         corr_df[columns[mod_idx+1]] = corr
         frge_df['station'] = stations
         frge_df[columns[mod_idx+1]] = frge
+        totn_df['station'] = stations
+        totn_df[columns[mod_idx+1]] = totn
 
     if obs_ds:
         obs_ds.close()
@@ -219,7 +266,27 @@ def convert2timeseries(model, obs=None, months=None):
         flt_ds.close()
     mod_ds.close()
 
-    print('BIAS', bias_df)
+    if len(months) == 1:
+        fname = "{}".format(months[0])
+    else:
+        fname = "{}-{}".format(months[0], months[-1])
+
+    print("Writing h5 ...")
+    bias_df_out = os.path.join(OBS[obs]['path'], "h5", "{}_bias.h5")
+    corr_df_out = os.path.join(OBS[obs]['path'], "h5", "{}_corr.h5")
+    rmse_df_out = os.path.join(OBS[obs]['path'], "h5", "{}_rmse.h5")
+    frge_df_out = os.path.join(OBS[obs]['path'], "h5", "{}_frge.h5")
+    totn_df_out = os.path.join(OBS[obs]['path'], "h5", "{}_totn.h5")
+    print("BIAS", bias_df_out.format(fname))
+    bias_df.to_hdf(bias_df_out.format(fname), os.path.basename(bias_df_out.format(fname))[:-3], format='table')
+    print("CORR", bias_df_out)
+    corr_df.to_hdf(corr_df_out.format(fname), os.path.basename(corr_df_out.format(fname))[:-3], format='table')
+    print("RMSE", bias_df_out)
+    rmse_df.to_hdf(rmse_df_out.format(fname), os.path.basename(rmse_df_out.format(fname))[:-3], format='table')
+    print("FRGE", bias_df_out)
+    frge_df.to_hdf(frge_df_out.format(fname), os.path.basename(frge_df_out.format(fname))[:-3], format='table')
+    print("TOTN", bias_df_out)
+    totn_df.to_hdf(totn_df_out.format(fname), os.path.basename(totn_df_out.format(fname))[:-3], format='table')
 
 
 if __name__ == "__main__":

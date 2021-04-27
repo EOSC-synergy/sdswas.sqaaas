@@ -130,6 +130,8 @@ def tab_evaluation(window='nrt'):
                     {'label': 'BIAS', 'value': 'bias'},
                     {'label': 'CORR', 'value': 'corr'},
                     {'label': 'RMSE', 'value': 'rmse'},
+                    {'label': 'FRGE', 'value': 'frge'},
+                    {'label': 'CASES', 'value': 'totn'},
                 ],
                 placeholder='Select statistic',
                 # clearable=False,
@@ -167,9 +169,9 @@ def tab_evaluation(window='nrt'):
             dcc.Dropdown(
                 id='obs-selection-dropdown',
                 options=[
-                    {'label': '{} 2020'.format(month),
-                     'value': '{} 2020'.format(month)}
-                     for month in ['Oct', 'Nov', 'Dec']
+                    {'label': '{}'.format(dt.strftime(dt.strptime(month, "%Y%m"), "%B %Y")),
+                     'value': '{}'.format(month)}
+                     for month in ['202010', '202011', '202012']
                      ],
                 placeholder='Select observation network',
                 value='montly',
@@ -188,6 +190,19 @@ def tab_evaluation(window='nrt'):
                 id='scores-table',
                 columns=[],  #get_scores_table(),
                 data=[],
+                style_cell_conditional=[
+                    {
+                        'if': {'column_id': 'station'},
+                        'textAlign': 'left'
+                    }
+                ],
+                style_header={
+                    'backgroundColor': '#2B383E',
+                    'fontWeight': 'bold',
+                    'color': '#FFFFFF',
+                    'font-family': '"Roboto", sans-serif'
+                },
+                style_as_list_view=True,
             ),
         ),
 

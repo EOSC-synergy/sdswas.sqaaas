@@ -4,6 +4,7 @@
 	"flt_var": "ae440-870aero",
 	"mod_var": "OD550_DUST",
 	"template" : "{}_{}",
+	"sites": "./aeronet_sites.txt",
 	"path" : "/data/interactive_test/obs/aeronet/"
     }
 }

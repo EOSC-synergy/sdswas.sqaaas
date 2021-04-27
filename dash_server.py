@@ -23,6 +23,7 @@ from data_handler import MODELS
 from data_handler import STYLES
 from data_handler import FREQ
 from data_handler import DEBUG
+from data_handler import OBS
 
 from tools import get_eval_timeseries
 from tools import get_timeseries
@@ -45,6 +46,8 @@ from utils import get_graph
 
 from datetime import datetime as dt
 import math
+import os.path
+import pandas as pd
 
 
 TIMEOUT = 10
@@ -358,6 +361,37 @@ def update_models_figure(date, model, variable, tstep, graphs, static):
     return res
 
 ### TAB EVALUATION
+
+@app.callback(
+    [Output('scores-table', 'columns'),
+     Output('scores-table', 'data')],
+    [Input('obs-models-dropdown', 'value'),
+     Input('obs-statistics-dropdown', 'value'),
+     Input('obs-network-dropdown', 'value'),
+     Input('obs-timescale-dropdown', 'value'),
+     Input('obs-selection-dropdown', 'value'),
+     Input('scores-apply', 'n_clicks')],
+)
+def scores_tables_retrieve(models, stat, network, timescale, selection, n):
+    """ Read scores tables and show data """
+    if not n:
+        raise PreventUpdate
+
+    if isinstance(models, str):
+        models = [models]
+
+    models = ['station'] + models
+
+    print("@@@@@@@@@@@", models, stat, network, timescale, selection, n)
+    filedir = OBS[network]['path']
+    filename = "{}_{}.h5".format(selection, stat)
+    filepath = os.path.join(filedir, "h5", filename)
+    df = pd.read_hdf(filepath, filename[:-3])
+    columns = [{'name': i in MODELS and MODELS[i]['name'] or 'station', 'id': i} for i in models]
+    data = df[models].round(decimals=2).to_dict('records')
+    print(columns, data)
+    return columns, data
+
 
 @app.callback(
     [Output('ts-eval-modal', 'children'),

@@ -58,7 +58,7 @@ class Observations1dHandler(object):
         lday = edate[:-2] + str(calendar.monthrange(int(edate[:4]), int(edate[4:6]))[1])
         date_range = pd.date_range(fday, lday, freq='M')
         months = [d.strftime("%Y%m") for d in date_range.to_pydatetime()]
-        filepath = "{}.nc".format(os.path.join(OBS[obs]['path'], 'netcdf', OBS[obs]['template'].format(months[0])))
+        filepath = "{}.nc".format(os.path.join(OBS[obs]['path'], 'netcdf', OBS[obs]['template'].format(OBS[obs]['obs_var'], months[0])))
         self.input_file = nc_file(filepath)
         self.lon = self.input_file.variables['longitude'][:]
         self.lat = self.input_file.variables['latitude'][:]
