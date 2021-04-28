@@ -387,8 +387,8 @@ def scores_tables_retrieve(models, stat, network, timescale, selection, n):
     filename = "{}_{}.h5".format(selection, stat)
     filepath = os.path.join(filedir, "h5", filename)
     df = pd.read_hdf(filepath, filename[:-3])
-    columns = [{'name': i in MODELS and MODELS[i]['name'] or 'station', 'id': i} for i in models]
-    data = df[models].round(decimals=2).to_dict('records')
+    columns = [{'name': i in MODELS and [stat.upper(), MODELS[i]['name']] or [stat.upper(), ''], 'id': i} for i in models]
+    data = df[models].round(decimals=2).fillna('-').to_dict('records')
     print(columns, data)
     return columns, data
 

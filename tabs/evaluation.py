@@ -190,19 +190,32 @@ def tab_evaluation(window='nrt'):
                 id='scores-table',
                 columns=[],  #get_scores_table(),
                 data=[],
-                style_cell_conditional=[
+                style_cell={
+                    'whiteSpace': 'normal',
+                    'height': 'auto',
+                    'textAlign': 'center',
+                    'font-family': '"Roboto", sans-serif',
+                },
+                style_data_conditional=[
                     {
                         'if': {'column_id': 'station'},
                         'textAlign': 'left'
-                    }
+                    },
                 ],
                 style_header={
                     'backgroundColor': '#2B383E',
                     'fontWeight': 'bold',
                     'color': '#FFFFFF',
-                    'font-family': '"Roboto", sans-serif'
+                    'textAlign': 'center',
                 },
-                style_as_list_view=True,
+                style_header_conditional=[
+                    {
+                        'if': {'header_index': 0},
+                        'backgroundColor': '#F1B545',
+                        'color': '#2B383E',
+                    },
+                ],
+                merge_duplicate_headers=True,
             ),
         ),
 
