@@ -10,11 +10,13 @@ from data_handler import MODELS
 from data_handler import STYLES
 from tools import get_figure
 
+from collections import OrderedDict
 from datetime import datetime as dt
 
 start_date = "20201001"
 end_date = "20201231"
 
+STATS = OrderedDict({ 'bias': 'BIAS', 'corr': 'CORR', 'rmse': 'RMSE', 'totn': 'CASES' })
 
 eval_time_series = dbc.Spinner(
     id='loading-ts-eval-modal',
@@ -127,11 +129,7 @@ def tab_evaluation(window='nrt'):
             dcc.Dropdown(
                 id='obs-statistics-dropdown',
                 options=[
-                    {'label': 'BIAS', 'value': 'bias'},
-                    {'label': 'CORR', 'value': 'corr'},
-                    {'label': 'RMSE', 'value': 'rmse'},
-                    {'label': 'FRGE', 'value': 'frge'},
-                    {'label': 'CASES', 'value': 'totn'},
+                    {'label': v, 'value': l} for l, v in STATS.items()
                 ],
                 placeholder='Select statistic',
                 # clearable=False,
@@ -185,9 +183,9 @@ def tab_evaluation(window='nrt'):
             html.Button('APPLY', id='scores-apply', n_clicks=0),
             className="linetool",
         ),
-        html.Div(
+        html.Div([
             dash_table.DataTable(
-                id='scores-table',
+                id='scores-table-{}'.format(score),
                 columns=[],  #get_scores_table(),
                 data=[],
                 style_cell={
@@ -216,9 +214,8 @@ def tab_evaluation(window='nrt'):
                     },
                 ],
                 merge_duplicate_headers=True,
-            ),
-        ),
-
+            ) for score in STATS.keys()
+        ]),
     ]
 
     windows = {

@@ -9,6 +9,9 @@ from data_handler import ObsTimeSeriesHandler
 from data_handler import Observations1dHandler
 from data_handler import DEBUG
 
+from datetime import datetime as dt
+
+
 start_date = "20201001"
 end_date = "20201231"
 
@@ -37,12 +40,13 @@ def get_obs1d(sdate, edate, obs, var):
 
 def get_was_figure(was=None, day=1, selected_date=end_date):
     """ Retrieve figure """
-    # if DEBUG: print(var, selected_date, tstep)
+    if DEBUG: print(was, day, selected_date)
     try:
         selected_date = dt.strptime(
-            selected_date, "%Y-%m-%d %H:%M:%S").strftime("%Y%m%d")
+            selected_date, "%Y-%m-%d").strftime("%Y%m%d")
     except:
         pass
+    if DEBUG: print(was, day, selected_date)
     if was:
         if DEBUG: print('SERVER: WAS Figure init ... ')
         fh = WasFigureHandler(was=was, selected_date=selected_date)
