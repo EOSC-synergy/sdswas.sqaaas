@@ -120,7 +120,8 @@ def tab_evaluation(window='nrt'):
                           'value': model} for model in MODELS],
                 placeholder='Select model',
                 # clearable=False,
-                searchable=False
+                searchable=False,
+                multi=True,
             ),
             style={ 'width': '12rem'},
             className="linetool",
@@ -133,7 +134,8 @@ def tab_evaluation(window='nrt'):
                 ],
                 placeholder='Select statistic',
                 # clearable=False,
-                searchable=False
+                searchable=False,
+                multi=True,
             ),
             style={ 'width': '10rem' },
             className="linetool",
@@ -197,8 +199,30 @@ def tab_evaluation(window='nrt'):
                 style_data_conditional=[
                     {
                         'if': {'column_id': 'station'},
-                        'textAlign': 'left'
+                        'textAlign': 'left',
+                        'padding': '0.1rem 1rem',
                     },
+                    {
+                        "if": {
+                            'filter_query': '{station} != "Mediterranean" && {station} != "Middle_East" && {station} != "Sahel/Sahara"',
+                            "state": "selected"
+                            },
+                        "backgroundColor": "inherit !important",
+                        "border": "inherit !important",
+                    },
+                    {
+                        "if": {
+                            'filter_query': '{station} = "Mediterranean" || {station} = "Middle_East" || {station} = "Sahel/Sahara" || {station} = "Total"',
+                            },
+                        "fontWeight": "bold",
+                        'padding': '1rem',
+                    },
+                    {
+                        "if": {
+                            'filter_query': '{station} = "Total"',
+                            },
+                        "backgroundColor": "#F0F1F2",
+                    }
                 ],
                 style_header={
                     'backgroundColor': '#2B383E',
@@ -215,7 +239,12 @@ def tab_evaluation(window='nrt'):
                 ],
                 merge_duplicate_headers=True,
             ) for score in STATS.keys()
-        ]),
+        ],
+        style={
+                'padding': '1rem 0.1rem 0.1rem 1rem',
+                'width': '95%',
+              },
+        ),
     ]
 
     windows = {

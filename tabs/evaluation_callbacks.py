@@ -91,6 +91,8 @@ def register_callbacks(app):
     def scores_tables_retrieve(models, stat, network, timescale, selection, n, *tables):
         """ Read scores tables and show data """
 
+        areas = ['Mediterranean', 'Middle_East', 'Sahel/Sahara', 'Total']
+
         if not n:
             raise PreventUpdate
 
@@ -117,15 +119,42 @@ def register_callbacks(app):
             curr_active_cell = active_cells[table_idx]
             if table_idx in stat_idxs:
                 filename = "{}_{}.h5".format(selection, SCORES[table_idx])
+                tab_name = "{}_{}".format(SCORES[table_idx], selection)
                 filepath = os.path.join(filedir, "h5", filename)
-                df = pd.read_hdf(filepath, filename[:-3])
+                print(":::", filepath, tab_name)
+                df = pd.read_hdf(filepath, tab_name)  # .round(decimals=2).fillna('-')
                 # replace "tables" columns
                 tables[obj_idx] = [{'name': i in MODELS and
                     [SCORES[table_idx].upper(), MODELS[i]['name']] or
                     [SCORES[table_idx].upper(), ''], 'id': i} for
                     i in models]
                 # replace "tables" data
-                tables[obj_idx+1] = df[models].round(decimals=2).fillna('-').to_dict('records')
+                if curr_active_cell is not None:
+                    curr_data = tables[obj_idx+1]
+                    row_number = curr_active_cell['row']
+                    # 1st case:
+                    print('CURRDATA', curr_data)
+                    print('ROWNUMBER', row_number)
+                    value = curr_data[row_number]['station']
+                    if value not in areas[:-1]:
+                        raise PreventUpdate
+                    val_idx = df.loc[df['station']==value].index[0]
+                    # check following data
+                    if row_number < len(curr_data)-1:
+                        foll_val = curr_data[row_number+1]['station']
+                        if foll_val in areas:
+                            foll_idx = df.loc[df['station']==foll_val].index[0]
+                            tables[obj_idx+1] = [table_row for table_row in curr_data if curr_data.index(table_row) < row_number] + df.iloc[val_idx:foll_idx-1][models].to_dict('rows') + [table_row for table_row in curr_data if curr_data.index(table_row) > row_number]
+                        else:
+                            foll_area = areas[areas.index(value)+1]
+                            print("'''", curr_data)
+                            print("---", foll_area)
+                            foll_idx = curr_data.index([row for row in curr_data if row['station'] == foll_area][0])
+                            tables[obj_idx+1] = [table_row for table_row in curr_data if curr_data.index(table_row) <= row_number] +  [table_row for table_row in curr_data if curr_data.index(table_row) >= foll_idx]
+
+                else:
+                    tables[obj_idx+1] = df.loc[df['station'].isin(areas), models].to_dict('records')
+
             else:
                 tables[obj_idx] = []
                 tables[obj_idx+1] = []

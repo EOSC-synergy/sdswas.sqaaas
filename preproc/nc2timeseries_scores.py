@@ -46,37 +46,50 @@ def preprocess(ds, n=8):
     return ds.isel(time=range(n))
 
 
-def ret_scores(mod_df, obs_df, grp, grpname='station_name', obs='aeronet'):
-    try:
+def ret_scores(mod_df, obs_df, grp=None, grpname=None, obs='aeronet'):
+    decs = 2
+    if grp is None:
+        obs_stat = obs_df.set_index('time')
+    else:
         obs_stat = obs_df.get_group(grp).set_index('time')
-    except:
-        return obs_stat[grpname][0], {'BIAS':  np.nan, 'CORR': np.nan, 'RMSE': np.nan, 'FRGE': np.nan}
-    if obs_stat.size == 0:
-        return obs_stat[grpname][0], {'BIAS':  np.nan, 'CORR': np.nan, 'RMSE': np.nan, 'FRGE': np.nan}
-    mod_stat = mod_df.get_group(grp).set_index('time')
+    if obs_stat.size == 0 and grpname is None:
+        return 'Total', {'BIAS':  np.nan, 'CORR': np.nan, 'RMSE': np.nan, 'FRGE': np.nan, 'TOTN': np.nan}
+    elif obs_stat.size == 0:
+        return obs_stat[grpname][0], {'BIAS':  np.nan, 'CORR': np.nan, 'RMSE': np.nan, 'FRGE': np.nan, 'TOTN': np.nan}
+    if grp is None:
+        mod_stat = mod_df.set_index('time')
+    else:
+        mod_stat = mod_df.get_group(grp).set_index('time')
     tot = obs_stat.merge(mod_stat, on='time')
     mvar, ovar = OBS[obs]['mod_var'], OBS[obs]['obs_var']
     try:
-        bias = (tot[mvar] - tot[ovar]).mean()
+        bias = (tot[mvar] - tot[ovar]).mean().round(decimals=decs).astype(str)
     except:
-        bias = np.nan
+        bias = '-'
     try:
-        corr = tot[[ovar, mvar]].corr()
+        corr = tot[[ovar, mvar]].corr().values[0][1].round(decimals=decs)
+        corr = not np.isnan(corr) and corr.astype(str) or '-'
     except:
-        corr = np.nan
+        corr = '-'
     try:
-        rmse = mean_squared_error(tot[ovar], tot[mvar], squared=False)
+        rmse = mean_squared_error(tot[ovar][~tot[ovar].isna()], tot[mvar][~tot[ovar].isna()], squared=False).round(decimals=decs).astype(str)
     except:
-        rmse = np.nan
+        rmse = '-'
     try:
-        frge = 2*((tot[mvar] - tot[ovar])/(tot[mvar] + tot[ovar])).abs().mean()
+        frge = (2*((tot[mvar] - tot[ovar])/(tot[mvar] + tot[ovar]))).abs().mean().round(decimals=decs).astype(str)
     except:
-        frge = np.nan
+        frge = '-'
     try:
-        totn = tot[ovar].notnull().sum()
+        totn = tot[ovar].notnull().sum().round(decimals=decs).astype(str)
     except:
-        totn = np.nan
-    return obs_stat[grpname][0], {'BIAS':  bias, 'CORR': corr.values[0][1], 'RMSE': rmse, 'FRGE': frge, 'TOTN': totn}
+        totn = '-'
+    if grpname is None:
+        ret_name = 'Total'
+    else:
+        ret_name = obs_stat[grpname][0]
+        if isinstance(ret_name, bytes):
+            ret_name = ret_name.decode('utf-8')
+    return ret_name, {'BIAS':  bias, 'CORR': corr, 'RMSE': rmse, 'FRGE': frge, 'TOTN': totn}
 
 
 def convert2timeseries(model, obs=None, months=None):
@@ -224,16 +237,6 @@ def convert2timeseries(model, obs=None, months=None):
             mod_grps_area = mod_df.groupby('area')
 
             for obs_area in obs_grps_area:
-                mod_grps_stat = mod_grps_area.get_group(obs_area[0]).groupby('station')
-                obs_grps_stat = obs_grps_area.get_group(obs_area[0]).groupby('station')
-                for stat in obs_grps_stat:
-                    station, scores = ret_scores(mod_grps_stat, obs_grps_stat, stat[0])
-                    stations.append(station.decode('utf-8'))
-                    bias.append(scores['BIAS'])
-                    rmse.append(scores['RMSE'])
-                    corr.append(scores['CORR'])
-                    frge.append(scores['FRGE'])
-                    totn.append(scores['TOTN'])
                 area, scores = ret_scores(mod_grps_area, obs_grps_area, obs_area[0], grpname='area')
                 stations.append(area)
                 bias.append(scores['BIAS'])
@@ -241,7 +244,33 @@ def convert2timeseries(model, obs=None, months=None):
                 corr.append(scores['CORR'])
                 frge.append(scores['FRGE'])
                 totn.append(scores['TOTN'])
+                mod_grps_stat = mod_grps_area.get_group(obs_area[0]).groupby('station')
+                obs_grps_stat = obs_grps_area.get_group(obs_area[0]).groupby('station')
+                for stat in obs_grps_stat:
+                    station, scores = ret_scores(mod_grps_stat, obs_grps_stat, stat[0], grpname='station_name')
+                    stations.append(station)
+                    bias.append(scores['BIAS'])
+                    rmse.append(scores['RMSE'])
+                    corr.append(scores['CORR'])
+                    frge.append(scores['FRGE'])
+                    totn.append(scores['TOTN'])
 
+            total, scores = ret_scores(mod_df, obs_df)
+            stations.append(total)
+            bias.append(scores['BIAS'])
+            rmse.append(scores['RMSE'])
+            corr.append(scores['CORR'])
+            frge.append(scores['FRGE'])
+            totn.append(scores['TOTN'])
+            print(stations)
+            print(columns[mod_idx+1])
+            print('BIAS', bias)
+            print('RMSE', rmse)
+            print('CORR', corr)
+            print('FRGE', frge)
+            print('TOTN', totn)
+
+        # break
         print(stations)
         print(columns[mod_idx+1])
         print('BIAS', bias)
@@ -278,15 +307,15 @@ def convert2timeseries(model, obs=None, months=None):
     frge_df_out = os.path.join(OBS[obs]['path'], "h5", "{}_frge.h5")
     totn_df_out = os.path.join(OBS[obs]['path'], "h5", "{}_totn.h5")
     print("BIAS", bias_df_out.format(fname))
-    bias_df.to_hdf(bias_df_out.format(fname), os.path.basename(bias_df_out.format(fname))[:-3], format='table')
-    print("CORR", bias_df_out)
-    corr_df.to_hdf(corr_df_out.format(fname), os.path.basename(corr_df_out.format(fname))[:-3], format='table')
-    print("RMSE", bias_df_out)
-    rmse_df.to_hdf(rmse_df_out.format(fname), os.path.basename(rmse_df_out.format(fname))[:-3], format='table')
-    print("FRGE", bias_df_out)
-    frge_df.to_hdf(frge_df_out.format(fname), os.path.basename(frge_df_out.format(fname))[:-3], format='table')
-    print("TOTN", bias_df_out)
-    totn_df.to_hdf(totn_df_out.format(fname), os.path.basename(totn_df_out.format(fname))[:-3], format='table')
+    bias_df.to_hdf(bias_df_out.format(fname), "bias_{}".format(fname), format='table')
+    print("CORR", corr_df_out.format(fname))
+    corr_df.to_hdf(corr_df_out.format(fname), "corr_{}".format(fname), format='table')
+    print("RMSE", rmse_df_out.format(fname))
+    rmse_df.to_hdf(rmse_df_out.format(fname), "rmse_{}".format(fname), format='table')
+    print("FRGE", frge_df_out.format(fname))
+    frge_df.to_hdf(frge_df_out.format(fname), "frge_{}".format(fname), format='table')
+    print("TOTN", totn_df_out.format(fname))
+    totn_df.to_hdf(totn_df_out.format(fname), "totn_{}".format(fname), format='table')
 
 
 if __name__ == "__main__":
