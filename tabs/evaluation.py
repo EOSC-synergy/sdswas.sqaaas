@@ -204,7 +204,6 @@ def tab_evaluation(window='nrt'):
                     },
                     {
                         "if": {
-                            'filter_query': '{station} != "Mediterranean" && {station} != "Middle_East" && {station} != "Sahel/Sahara"',
                             "state": "selected"
                             },
                         "backgroundColor": "inherit !important",

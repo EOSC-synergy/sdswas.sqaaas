@@ -38,6 +38,32 @@ time_series = dbc.Spinner(
 )
 
 
+layers = html.Div([
+    html.Span(
+        dbc.DropdownMenu(
+            id='map-view-dropdown',
+            label='VIEW',
+            children=[
+                dbc.DropdownMenuItem(STYLES[style], id=style)
+                for style in STYLES],
+            direction="up",
+        ),
+        className="layers",
+    ),
+    html.Span(
+        dbc.DropdownMenu(
+            id='map-layers-dropdown',
+            label='LAYERS',
+            children=[
+                dbc.DropdownMenuItem('AIRPORTS', id='airports')
+            ],
+            direction="up",
+            #value="open-street-map",
+        ),
+        className="layers",
+    ),
+    ])
+
 time_slider = html.Div([
     html.Span(
         dcc.DatePickerSingle(
@@ -69,18 +95,35 @@ time_slider = html.Div([
         ),
         className="timesliderline",
     ),
+    ],
+    className="timeslider"
+)
+
+
+prob_time_slider = html.Div([
     html.Span(
-        dbc.DropdownMenu(
-            id='layout-dropdown',
-            label='Layout',
-            children=[
-                dbc.DropdownMenuItem(STYLES[style], id=style)
-                for style in STYLES],
-            direction="up",
-            #value="open-street-map",
+        dcc.DatePickerSingle(
+            id='prob-date-picker',
+            min_date_allowed=dt.strptime(start_date, "%Y%m%d"),
+            max_date_allowed=dt.strptime(end_date, "%Y%m%d"),
+            initial_visible_month=dt.strptime(end_date, "%Y%m%d"),
+            display_format='DD MMM YYYY',
+            date=end_date,
+            with_portal=True,
         ),
         className="timesliderline",
-    )
+    ),
+    html.Span(
+        dcc.Slider(
+            id='prob-slider-graph',
+            min=1, max=2, step=1, value=1,
+            marks={
+                tstep: 'Day {:d}'.format(tstep)
+                for tstep in range(3)
+            },
+        ),
+        className="timesliderline",
+    ),
     ],
     className="timeslider"
 )
@@ -139,6 +182,7 @@ def tab_forecast(window='models'):
         ]),
         # tabs.progress_bar,
         time_series,
+        layers,
     ]
 
     was_children = [dbc.Spinner(
@@ -150,8 +194,27 @@ def tab_forecast(window='models'):
                     id='was-graph',
                     children=[],
             ),
-            html.Div(
+            html.Div([
                 was_time_slider,
+                layers,
+                ]
+            ),
+        ]),
+    ]
+
+    prob_children = [dbc.Spinner(
+        id='loading-prob-graph',
+        fullscreen=True,
+        fullscreen_style={'opacity': '0.5'},
+        children=[
+            html.Div(
+                    id='prob-graph',
+                    children=[],
+            ),
+            html.Div([
+                prob_time_slider,
+                layers,
+                ]
             ),
         ]),
     ]
@@ -159,7 +222,7 @@ def tab_forecast(window='models'):
     windows = {
         'models': models_children,
         'was': was_children,
-        # 'prob': prob_children
+        'prob': prob_children
     }
     
     return dcc.Tab(label='Forecast',
@@ -208,10 +271,31 @@ def sidebar_forecast(variables, default_var, models, default_model):
         ),
         html.Div([
             dbc.CardHeader(html.H2(
-                dbc.Button("Warning Advisory", id='group-2-toggle'),
+                dbc.Button("Probability Maps", id='group-2-toggle'),
             )),
             dbc.Collapse(
                 id='collapse-2',
+                children=[
+                    dbc.CardBody(
+                        dcc.Checklist(
+                            id='prob-dropdown',
+                            options=[{'label': '{} µg/m3'.format(thresh),
+                                      'value': 'prob_{}'.format(thresh)}
+                                      for thresh in (50, 100, 200, 500)
+                                      ],
+                            value=['prob_50',],
+                            className="sidebar-dropdown"
+                        )
+                    )
+                ]
+            )],
+        ),
+        html.Div([
+            dbc.CardHeader(html.H2(
+                dbc.Button("Warning Advisory", id='group-3-toggle'),
+            )),
+            dbc.Collapse(
+                id='collapse-3',
                 children=[
                     dbc.CardBody(
                         dcc.Checklist(

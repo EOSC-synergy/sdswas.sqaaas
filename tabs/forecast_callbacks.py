@@ -40,14 +40,17 @@ def register_callbacks(app):
         [Output('variable-dropdown-forecast', 'value'),
          Output('forecast-tab', 'children'),
          Output('collapse-1', 'is_open'),
-         Output('collapse-2', 'is_open')],
+         Output('collapse-2', 'is_open'),
+         Output('collapse-3', 'is_open')],
         [Input('group-1-toggle', 'n_clicks'),
-         Input('group-2-toggle', 'n_clicks')],
+         Input('group-2-toggle', 'n_clicks'),
+         Input('group-3-toggle', 'n_clicks')],
         [State('collapse-1', 'is_open'),
          State('collapse-2', 'is_open'),
+         State('collapse-3', 'is_open'),
          State('variable-dropdown-forecast', 'value'),]
     )
-    def render_forecast_tab(modbutton, wasbutton, modopen, wasopen, var):
+    def render_forecast_tab(modbutton, probbutton, wasbutton, modopen, probopen, wasopen, var):
         """ Function rendering requested tab """
         ctx = dash.callback_context
 
@@ -57,9 +60,11 @@ def register_callbacks(app):
             button_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
         if button_id == "group-1-toggle" and modbutton:
-            return var, tab_forecast('models'), not modopen, False
-        elif button_id == "group-2-toggle" and wasbutton:
-            return 'SCONC_DUST', tab_forecast('was'), False, not wasopen
+            return var, tab_forecast('models'), not modopen, False, False
+        elif button_id == "group-2-toggle" and probbutton:
+            return var, tab_forecast('prob'), False, not probopen, False
+        elif button_id == "group-3-toggle" and wasbutton:
+            return 'SCONC_DUST', tab_forecast('was'), False, False, not wasopen
 
         raise PreventUpdate
 

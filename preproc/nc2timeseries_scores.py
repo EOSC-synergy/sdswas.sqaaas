@@ -80,9 +80,10 @@ def ret_scores(mod_df, obs_df, grp=None, grpname=None, obs='aeronet'):
     except:
         frge = '-'
     try:
-        totn = tot[ovar].notnull().sum().round(decimals=decs).astype(str)
+        print(";;;", tot[ovar][tot[ovar].notnull()].shape)
+        totn = str(tot[ovar][tot[ovar].notnull()].shape[0])
     except:
-        totn = '-'
+        totn = '0'
     if grpname is None:
         ret_name = 'Total'
     else:

@@ -116,12 +116,15 @@ def register_callbacks(app):
             obj_idx = table_idx * 2
             curr_columns = tables[obj_idx]
             curr_data = tables[obj_idx+1]
-            curr_active_cell = active_cells[table_idx]
+            if active_cells[table_idx] is not None and \
+                  active_cells[table_idx]['column_id'] == 'station':
+                curr_active_cell = active_cells[table_idx]
+            else:
+                curr_active_cell = None
             if table_idx in stat_idxs:
                 filename = "{}_{}.h5".format(selection, SCORES[table_idx])
                 tab_name = "{}_{}".format(SCORES[table_idx], selection)
                 filepath = os.path.join(filedir, "h5", filename)
-                print(":::", filepath, tab_name)
                 df = pd.read_hdf(filepath, tab_name)  # .round(decimals=2).fillna('-')
                 # replace "tables" columns
                 tables[obj_idx] = [{'name': i in MODELS and
@@ -130,7 +133,10 @@ def register_callbacks(app):
                     i in models]
                 # replace "tables" data
                 if curr_active_cell is not None:
+                    print("ACTIVE", curr_active_cell)
                     curr_data = tables[obj_idx+1]
+                    if not curr_data:
+                        continue
                     row_number = curr_active_cell['row']
                     # 1st case:
                     print('CURRDATA', curr_data)
