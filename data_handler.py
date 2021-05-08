@@ -33,6 +33,7 @@ VARS = json.load(open(os.path.join(DIR_PATH, 'conf/vars.json')))
 MODELS = json.load(open(os.path.join(DIR_PATH, 'conf/models.json')))
 OBS = json.load(open(os.path.join(DIR_PATH, 'conf/obs.json')))
 WAS = json.load(open(os.path.join(DIR_PATH, 'conf/was.json')))
+PROB = json.load(open(os.path.join(DIR_PATH, 'conf/prob.json')))
 
 # Frequency = 3 Hourly
 FREQ = 3
@@ -448,7 +449,7 @@ class FigureHandler(object):
 
     def set_data(self, varname, tstep=0):
         """ Set time dependent data """
-        mul = VARS[varname]['mul']
+        mul = 1  # VARS[varname]['mul']
         var = self.input_file.variables[varname][tstep]*mul
         idx = np.where(var.ravel() >= VARS[varname]['bounds'][0])  # !=-9.e+33)
         xlon = self.xlon.ravel()[idx]
@@ -611,6 +612,310 @@ class FigureHandler(object):
 
         if DEBUG: print('Update layout ...')
         if varname:
+            fig_title=dict(text='<b>{}</b>'.format(self.get_title(varname, tstep)),
+                           xanchor='left',
+                           yanchor='top',
+                           x=0.01, y=0.95)
+        else:
+            fig_title={}
+        self.fig.update_layout(
+            title=fig_title,
+            uirevision=True,
+            autosize=True,
+            hovermode="closest",        # highlight closest point on hover
+            mapbox=self.get_mapbox(zoom=3-(0.5*aspect[0])),
+            # width="100%",
+            updatemenus=[
+                # get_animation_buttons(),
+                # self.get_mapbox_style_buttons(),
+                # self.get_variable_dropdown_buttons(),
+            ],
+            margin={"r": 0, "t": 0, "l": 0, "b": 0},
+        )
+
+        # if DEBUG: print('Returning fig of size {}'.format(sys.getsizeof(self.fig)))
+        return self.fig
+
+
+class ProbFigureHandler(object):
+    """ Class to manage the figure creation """
+
+    def __init__(self, var=None, prob=None, selected_date=None):
+        """ """
+
+        if var is None:
+            var = DEFAULT_VAR
+
+        self.varname = var
+
+        probs = PROB[var]['prob_thresh']
+        if prob is None:
+            prob = probs[0]
+
+        self.bounds = range(10, 110, 10)
+
+        self.prob = prob
+
+        geojson_path = PROB[var]['geojson_path']
+        geojson_file = PROB[var]['geojson_template']
+        netcdf_path = PROB[var]['netcdf_path']
+        netcdf_file = PROB[var]['netcdf_template']
+
+        self.geojson = os.path.join(geojson_path, geojson_file).format(prob=prob, date=selected_date, var=var)
+        self.filepath = os.path.join(netcdf_path, netcdf_file).format(prob=prob, date=selected_date)
+
+        if os.path.exists(self.filepath):
+            self.input_file = nc_file(self.filepath)
+
+            if 'lon' in self.input_file.variables:
+                lon = self.input_file.variables['lon'][:]
+                lat = self.input_file.variables['lat'][:]
+            else:
+                lon = self.input_file.variables['longitude'][:]
+                lat = self.input_file.variables['latitude'][:]
+            time_obj = self.input_file.variables['time']
+            self.tim = time_obj[:]
+            self.what, _, rdate, rtime = time_obj.units.split()[:4]
+            if len(rtime) > 5:
+                rtime = rtime[:5]
+            self.rdatetime = datetime.strptime("{} {}".format(rdate, rtime),
+                                               "%Y-%m-%d %H:%M")
+            varlist = [var for var in self.input_file.variables if var in VARS]
+            self.xlon, self.ylat = np.meshgrid(lon, lat)
+
+            self.colormaps = {
+                varname: get_colorscale(self.bounds, COLORMAP)
+                for varname in varlist
+            }
+
+            if selected_date:
+                self.selected_date_plain = selected_date
+
+                self.selected_date = datetime.strptime(
+                    selected_date, "%Y%m%d").strftime("%Y-%m-%d")
+
+        self.fig = None
+
+    def get_mapbox_style_buttons(self):
+        """ Relayout map with different styles """
+        return dict(
+            direction="up",
+            buttons=list([self.get_mapbox(style, relayout=True) for style in
+                          STYLES.keys()]),
+            # pad={"r": 0, "t": 0},
+            showactive=True,
+            x=0.9,
+            y=0.09,
+            xanchor="right",
+            yanchor="top",
+        )
+
+    def get_mapbox(self, style='carto-positron', relayout=False, zoom=3):
+        """ Returns mapbox layout """
+        if hasattr(self, 'ylat'):
+            center = go.layout.mapbox.Center(
+                lat=(self.ylat.max()-self.ylat.min())/2 +
+                self.ylat.min(),
+                lon=(self.xlon.max()-self.xlon.min())/2 +
+                self.xlon.min(),
+            )
+        else:
+            center = go.layout.mapbox.Center({'lat': 30, 'lon': 15})
+        mapbox_dict = dict(
+            uirevision=True,
+            style=style,
+            bearing=0,
+            center=center,
+            pitch=0,
+            zoom=zoom
+        )
+
+        if not relayout:
+            return mapbox_dict
+
+        return dict(
+            args=["mapbox", mapbox_dict],
+            label=STYLES[style].capitalize(),
+            method="relayout"
+        )
+
+    def get_updated_trace(self, varname, tstep=0):
+        """ Get updated trace """
+        return dict(
+            args=["scattermapbox", self.generate_var_tstep_trace(varname,
+                                                                 tstep)],
+            label=VARS[varname]['name'],
+            method="restyle"
+        )
+
+    def set_data(self, varname, tstep=0):
+        """ Set time dependent data """
+        mul = VARS[varname]['mul']
+        var = self.input_file.variables[varname][tstep]*mul
+        idx = np.where(var.ravel() >= VARS[varname]['bounds'][0])  # !=-9.e+33)
+        xlon = self.xlon.ravel()[idx]
+        ylat = self.ylat.ravel()[idx]
+        var = var.ravel()[idx]
+
+        return xlon, ylat, var
+
+    def retrieve_cdatetime(self, tstep=0):
+        tim = int(self.tim[tstep])
+        """ Retrieve data from NetCDF file """
+        if self.what == 'days':
+            cdatetime = self.rdatetime + relativedelta(days=tim)
+        elif self.what == 'hours':
+            cdatetime = self.rdatetime + relativedelta(hours=tim)
+        elif self.what == 'minutes':
+            cdatetime = self.rdatetime + relativedelta(minutes=tim)
+        elif self.what == 'seconds':
+            cdatetime = self.rdatetime + relativedelta(seconds=tim)
+
+        return cdatetime
+
+    def generate_contour_tstep_trace(self, varname, tstep=0):
+        """ Generate trace to be added to data, per variable and timestep """
+        if varname is None:
+            varname = self.varname
+
+        geojson_file = self.geojson.format(step=tstep)
+
+        if os.path.exists(geojson_file):
+            geojson = json.load(open(geojson_file))
+        else:
+            print('ERROR', geojson_file, 'not available')
+            geojson = {
+                    "type": "FeatureCollection",
+                    "features": []
+                    }
+
+        name = VARS[varname]['name']
+        bounds = self.bounds
+        loc_val = [
+            (
+                feature['id'],
+                np.around(feature['properties']['value'], 2),
+            )
+            for feature in geojson['features']
+            if feature['geometry']['coordinates']
+        ]
+        locations, values = np.array(loc_val).T if loc_val else ([], [])
+        if DEBUG: print("*****", varname, self.colormaps[varname], values)
+        return dict(
+            type='choroplethmapbox',
+            name=name+'_contours',
+            geojson=geojson,
+            z=values,
+            ids=locations,
+            locations=locations,
+            zmin=bounds[0],
+            zmax=bounds[-1],
+            colorscale=self.colormaps[varname],
+            showscale=False,
+            showlegend=False,
+            hoverinfo='none',
+            marker=dict(
+                opacity=0.6,
+                line_width=0,
+            ),
+            colorbar=None,
+#                 {
+#                     "borderwidth": 0,
+#                     "outlinewidth": 0,
+#                     "thickness": 15,
+#                     "tickfont": {"size": 14},
+#                     "tickvals": self.bounds[varname][:-1],
+#                     "tickmode": "array",
+#                     "x": 0.95,
+#                     "y": 0.5,
+#                 },
+        )
+
+    def generate_var_tstep_trace(self, varname=None, tstep=0):
+        """ Generate trace to be added to data, per variable and timestep """
+        if varname is None:
+            return dict(
+                type='scattermapbox',
+                below='',
+                lon=[15],
+                lat=[30],
+                hoverinfo='none',
+                opacity=0,
+                showlegend=False,
+                marker=dict(
+                    showscale=False,
+                    size=0,
+                    colorbar=None,
+                ),
+            )
+        varname = self.varname
+        xlon, ylat, val = self.set_data(varname, tstep)
+        name = VARS[varname]['name']
+        return dict(
+            type='scattermapbox',
+            below='',
+            lon=xlon,
+            lat=ylat,
+            text=val,
+            name=name,
+            hovertemplate="lon: %{lon:.4f}<br>lat: %{lat:.4f}<br>" +
+            "value: %{text:.4f}",
+            opacity=0.6,
+            showlegend=False,
+            marker=dict(
+                # autocolorscale=True,
+                showscale=False,
+                color=val,
+                # opacity=0.6,
+                size=0,
+                colorscale=self.colormaps[varname],
+                cmin=self.bounds[0],
+                cmax=self.bounds[-1],
+                colorbar=None,
+            ),
+        )
+
+    def get_title(self, varname, tstep=0):
+        """ return title according to the date """
+        rdatetime = self.rdatetime
+        cdatetime = self.retrieve_cdatetime(tstep)
+        return PROB[varname]['title'].format(
+            prob=self.prob,
+            rday=rdatetime.strftime("%d"),
+            rmonth=rdatetime.strftime("%b"),
+            ryear=rdatetime.strftime("%Y"),
+            sday=cdatetime.strftime("%d"),
+            smonth=cdatetime.strftime("%b"),
+            syear=cdatetime.strftime("%Y"),
+        )
+
+    def retrieve_var_tstep(self, varname=None, day=0, static=True, aspect=(1,1)):
+        """ run plot """
+        tstep = int(day)
+        if varname is None:
+            varname = self.varname
+        print("***", varname, day, static, self.geojson, self.filepath)
+        self.fig = go.Figure()
+        if varname and os.path.exists(self.geojson.format(step=day)):
+            if DEBUG: print('Adding contours ...')
+            self.fig.add_trace(self.generate_contour_tstep_trace(varname, tstep))
+        if varname and os.path.exists(self.filepath) and static:
+            if DEBUG: print('Adding points ...')
+            self.fig.add_trace(self.generate_var_tstep_trace(varname, tstep))
+        elif varname is None or not os.path.exists(self.filepath):
+            if DEBUG: print('Adding one point ...')
+            self.fig.add_trace(self.generate_var_tstep_trace())
+
+        # axis_style = dict(
+        #     zeroline=False,
+        #     showline=False,
+        #     showgrid=True,
+        #     ticks='',
+        #     showticklabels=False,
+        # )
+
+        if DEBUG: print('Update layout ...')
+        if varname and os.path.exists(self.filepath):
             fig_title=dict(text='<b>{}</b>'.format(self.get_title(varname, tstep)),
                            xanchor='left',
                            yanchor='top',
@@ -847,7 +1152,8 @@ class WasFigureHandler(object):
             #zmax=bounds[-1],
             showscale=False,
             showlegend=False,
-            customdata=["Region: {}<br>Warning level: {}".format(name, definition) for name, definition in zip(names, definitions)],
+            customdata=["Region: {}<br>Warning level: {}".format(name,
+                definition) for name, definition in zip(names, definitions)],
             hovertemplate="%{customdata}",
             #hoverinfo='none',
             #mode='markers',

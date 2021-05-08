@@ -273,10 +273,8 @@ def sidebar_evaluation():
             disabled=True,
         )],
         className="sidebar-first-item",
-        style={ 'background-color': '#F1B545' },
     ),
     html.Div([
-        # html.Label("Near-real-time comparison"),
         dbc.Button("Near-real-time comparison",
             color="link",
             id='nrt-evaluation'
@@ -284,7 +282,6 @@ def sidebar_evaluation():
         className="sidebar-item",
     ),
     html.Div([
-        # html.Label("Evaluation skill scores"),
         dbc.Button("Evaluation skill scores",
             color="link",
             id='scores-evaluation'

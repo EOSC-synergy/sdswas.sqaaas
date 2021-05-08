@@ -3,7 +3,7 @@
   margin: 0 !important;
   padding: 0 !important;
   width: 15% !important;
-  font-family: Roboto Medium;
+  font-family: "Roboto", sans-serif;
 /*  background-color: #F1B545 !important; */
   color: #2B383E !important;
   position: fixed !important;
@@ -85,6 +85,15 @@
     */
 }
 
+.sidebar-dropdown>label>input[type=radio] {
+    float: right;
+    vertical-align: bottom;
+    /*
+    margin-right: 1rem !important;
+    margin-top: 0.6rem;
+    */
+}
+
 .sidebar-dropdown>label {
     padding-left: 1.5rem;
     margin-top: 0.5rem;
@@ -95,6 +104,12 @@
 
 .sidebar-dropdown {
 }
+
+.accordion .card {
+    border-radius: 0;
+    border-right: 0;
+}
+
 
 /* Page content. The value of the margin-left property should match the value of the sidebar's width property */
 div.tab-parent {

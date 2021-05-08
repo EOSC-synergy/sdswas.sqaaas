@@ -4,6 +4,7 @@
 
 from data_handler import FigureHandler
 from data_handler import WasFigureHandler
+from data_handler import ProbFigureHandler
 from data_handler import TimeSeriesHandler
 from data_handler import ObsTimeSeriesHandler
 from data_handler import Observations1dHandler
@@ -36,6 +37,24 @@ def get_obs1d(sdate, edate, obs, var):
     """ Retrieve 1D observation """
     obs_handler = Observations1dHandler(sdate, edate, obs)
     return obs_handler.generate_obs1d_tstep_trace(var)
+
+
+def get_prob_figure(var, prob=None, day=0, selected_date=end_date):
+    """ Retrieve figure """
+    if DEBUG: print(prob, day, selected_date)
+    try:
+        selected_date = dt.strptime(
+            selected_date, "%Y-%m-%d").strftime("%Y%m%d")
+    except:
+        pass
+    if DEBUG: print(prob, day, selected_date)
+    if prob:
+        if DEBUG: print('SERVER: PROB Figure init ... ')
+        fh = ProbFigureHandler(var=var, prob=prob, selected_date=selected_date)
+        if DEBUG: print('SERVER: PROB Figure generation ... ')
+        return fh.retrieve_var_tstep(day=day)
+    if DEBUG: print('SERVER: NO PROB Figure')
+    return ProbFigureHandler().retrieve_var_tstep()
 
 
 def get_was_figure(was=None, day=1, selected_date=end_date):

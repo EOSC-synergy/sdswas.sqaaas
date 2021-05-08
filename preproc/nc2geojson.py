@@ -21,8 +21,9 @@ np.set_printoptions(precision=2)
 
 CURRENT_PATH = os.path.abspath(os.path.dirname(__file__))
 
-VARS = json.load(open('../conf/vars.json'))
-
+# VARS = json.load(open('../conf/vars.json'))
+VARS = ['SCONC_DUST',]
+BOUNDS = range(10, 110, 10)
 
 def nc2geojson(outdir='.', filelist=[], outfile_tpl=''):
     """ NetCDF(s) to geojson converter """
@@ -51,8 +52,8 @@ def nc2geojson(outdir='.', filelist=[], outfile_tpl=''):
 
         for variable in VARS:
 
-            mul = VARS[variable]['mul']
-            levels = VARS[variable]['bounds']
+            mul = 1  # VARS[variable]['mul']
+            levels = BOUNDS  # VARS[variable]['bounds']
 
             # loop over timesteps
             for t, m in enumerate(timevals):

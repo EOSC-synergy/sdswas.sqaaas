@@ -16,10 +16,12 @@ from data_handler import MODELS
 from data_handler import STYLES
 from data_handler import FREQ
 from data_handler import DEBUG
+from data_handler import PROB 
 
 from tools import get_eval_timeseries
 from tools import get_timeseries
 from tools import get_was_figure
+from tools import get_prob_figure
 from tools import get_figure
 from tools import get_obs1d
 from tools import start_date
@@ -94,6 +96,46 @@ def register_callbacks(app):
             return get_graph(index=was, figure=get_was_figure(was, day, selected_date=date))
         print("WAS figure " + date, was, day)
         return get_graph(index='none', figure=get_was_figure(selected_date=date))
+
+
+    @app.callback(
+        Output('prob-graph', 'children'),
+        [Input('prob-date-picker', 'date'),
+         Input('prob-slider-graph', 'value'),
+         Input('variable-dropdown-forecast', 'value'),
+         Input('prob-dropdown', 'value'),],
+    )
+    def update_prob_figure(date, day, var, prob):
+        """ Update Warning Advisory Systems maps """
+        print('PROB', date, day, var, prob)
+        if date is not None:
+            date = date.split(' ')[0]
+            try:
+                date = dt.strptime(
+                    date, "%Y-%m-%d").strftime("%Y%m%d")
+            except:
+                pass
+            if DEBUG: print('SERVER: callback date {}'.format(date))
+        else:
+            date = end_date
+
+        if prob:
+            prob = prob.replace('prob_', '')
+            return get_graph(index=prob, figure=get_prob_figure(var, prob, day, selected_date=date))
+        print("PROB figure " + date, prob, day)
+        return get_graph(index='none', figure=get_prob_figure(var, selected_date=date))
+
+
+    @app.callback(
+        [Output('prob-dropdown', 'options'),
+         Output('prob-dropdown', 'value')],
+        [Input('variable-dropdown-forecast', 'value')],
+    )
+    def update_prob_dropdown(var):
+        """ Update Prob maps dropdown """
+        opt_list = PROB[var]['prob_thresh']
+        units = PROB[var]['units']
+        return [{'label': '{} {}'.format(prob, units), 'value': 'prob_{}'.format(prob)} for prob in opt_list], 'prob_{}'.format(opt_list[0])
 
 
     @app.callback(

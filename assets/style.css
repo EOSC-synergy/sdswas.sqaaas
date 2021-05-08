@@ -11,7 +11,7 @@
 
 .horizontal-menu {
     background-color: #2B383E !important;
-    font-family: Roboto Medium;
+    font-family: "Roboto", sans-serif;
     font-weight: bold;
     border: 2px solid #2B383E !important;
     color: white !important;
@@ -60,7 +60,7 @@
   height: 47px;
   opacity: 0.8;
   color: #2B383E;
-  font-family: Roboto;
+  font-family: "Roboto", sans-serif !important;
   font-size: 14px;
   letter-spacing: 0;
   line-height: 22px;
@@ -68,22 +68,37 @@
 
 .btn-link {
   color: #2B383E;
-  font-family: Roboto;
+  font-family: "Roboto", sans-serif !important;
 }
 
 #scores-apply {
   background-color: #2B383E;
   color: #FFFFFF;
-  font-family: Roboto;
+  font-family: "Roboto", sans-serif !important;
   letter-spacing: 0;
   height: 2rem;
+}
+
+#forecast-footer {
+    display: table-row;
+}
+
+#prob-date-picker #date {
+    color: #F1B545 !important;
+    background-color: #2B383E !important;
+    border: none !important;
+    font-family: "Roboto", sans-serif !important;
+    font-size: small !important;
+    text-transform: uppercase;
+    padding: 0.9rem;
+    margin-right: 0;
 }
 
 #was-date-picker #date {
     color: #F1B545 !important;
     background-color: #2B383E !important;
     border: none !important;
-    font-family: Roboto Medium !important;
+    font-family: "Roboto", sans-serif !important;
     font-size: small !important;
     text-transform: uppercase;
     padding: 0.9rem;
@@ -94,7 +109,7 @@
     color: #F1B545 !important;
     background-color: #2B383E !important;
     border: none !important;
-    font-family: Roboto Medium !important;
+    font-family: "Roboto", sans-serif !important;
     font-size: small !important;
     text-transform: uppercase;
     padding: 0.9rem;
@@ -120,8 +135,16 @@ div.SingleDatePickerInput {
     width: 10rem;
 }
 
+#prob-slider-graph {
+    width: 10rem;
+}
+
 #slider-graph {
     width: 30rem;
+}
+
+#prob-graph {
+    height: 90vh !important;
 }
 
 #btn-play {
@@ -146,7 +169,9 @@ div.SingleDatePickerInput {
     padding-top: 1rem;
     padding-right: 1rem;
     padding-bottom: 1rem;
-    /*width: calc(50%/2);*/
+    /*
+    */
+    width: calc(50%/2);
 }
 
 .timesliderline {
@@ -155,29 +180,73 @@ div.SingleDatePickerInput {
     margin: 0;
 }
 
-#layout-dropdown {
-    background-color: #2B383E !important;
-}
-
-#layout-dropdown>button {
-    width: 8rem;
-    height: 1rem;
-    vertical-align: super;
-    margin: 0.2rem 0.4rem;
-    color: #F1B545 !important;
-}
-
-#layout-dropdown .dropdown-menu>button {
-    width: 7rem;
-}
-
 .timeslider {
+    display: table-cell;
     position: relative;
+    /*
+    height: 50px;
     display: table-row;
     left: 0.4rem;
     bottom: 3.5rem;
-    color: #F1B545 !important;
+    color: #F1B545 !important;*/
     background-color: #2B383E !important;
+}
+
+#layout-dropdown {
+    display: inline-flex;
+    float: left;
+    margin-left: 1rem;
+}
+
+#layout-dropdown #map-view-dropdown {
+}
+
+#layout-dropdown #map-view-dropdown>button {
+    margin-left: 1rem;
+    width: 8rem;
+    border-radius: 0 !important;
+    background-color: #2B383E !important;
+}
+
+#layout-dropdown #map-layers-dropdown {
+}
+
+.btn-secondary {
+    box-shadow: none !important;
+    border: 0 !important;
+}
+
+#layout-dropdown #map-layers-dropdown>button {
+    margin-left: 1rem;
+    width: 8rem;
+    border-radius: 0 !important;
+    background-color: #2B383E !important;
+}
+
+#layout-dropdown .dropdown-menu {
+    min-width: 8rem;
+    width: 8rem;
+    border-radius: 0 !important;
+    background-color: #6C7B82;
+    padding: 0;
+    margin-top: 0;
+}
+
+#layout-dropdown .dropdown-item {
+    text-align: center;
+    text-transform: uppercase;
+    font-size: smaller;
+    color: #FFFFFF;
+    padding: .25rem 0;
+    border-bottom: 1px solid #ffffff;
+}
+
+.dropdown-item:focus, .dropdown-item:hover {
+    background-color: #2B383E;
+}
+
+.js-plotly-plot {
+    height: 90vh !important;
 }
 
 /*

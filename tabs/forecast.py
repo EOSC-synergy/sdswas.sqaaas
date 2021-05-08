@@ -38,7 +38,7 @@ time_series = dbc.Spinner(
 )
 
 
-layers = html.Div([
+layout_view = html.Div([
     html.Span(
         dbc.DropdownMenu(
             id='map-view-dropdown',
@@ -48,8 +48,9 @@ layers = html.Div([
                 for style in STYLES],
             direction="up",
         ),
-        className="layers",
-    ),
+    )])
+
+layout_layers = html.Div([
     html.Span(
         dbc.DropdownMenu(
             id='map-layers-dropdown',
@@ -58,11 +59,8 @@ layers = html.Div([
                 dbc.DropdownMenuItem('AIRPORTS', id='airports')
             ],
             direction="up",
-            #value="open-street-map",
         ),
-        className="layers",
-    ),
-    ])
+    )])
 
 time_slider = html.Div([
     html.Span(
@@ -116,9 +114,9 @@ prob_time_slider = html.Div([
     html.Span(
         dcc.Slider(
             id='prob-slider-graph',
-            min=1, max=2, step=1, value=1,
+            min=0, max=1, step=1, value=0,
             marks={
-                tstep: 'Day {:d}'.format(tstep)
+                tstep: 'Day {:d}'.format(tstep+1)
                 for tstep in range(3)
             },
         ),
@@ -176,13 +174,15 @@ def tab_forecast(window='models'):
                     n_intervals=0,
                     disabled=True
             )),
-            html.Div(
+            html.Div([
                 time_slider,
+                layout_view,
+                layout_layers,
+                ],
+                id='layout-dropdown',
             ),
         ]),
-        # tabs.progress_bar,
         time_series,
-        layers,
     ]
 
     was_children = [dbc.Spinner(
@@ -191,13 +191,14 @@ def tab_forecast(window='models'):
         fullscreen_style={'opacity': '0.5'},
         children=[
             html.Div(
-                    id='was-graph',
-                    children=[],
+                id='was-graph',
+                children=[],
             ),
             html.Div([
                 was_time_slider,
-                layers,
-                ]
+                layout_view,
+                ],
+                id='layout-dropdown',
             ),
         ]),
     ]
@@ -208,13 +209,14 @@ def tab_forecast(window='models'):
         fullscreen_style={'opacity': '0.5'},
         children=[
             html.Div(
-                    id='prob-graph',
-                    children=[],
+                id='prob-graph',
+                children=[],
             ),
             html.Div([
                 prob_time_slider,
-                layers,
-                ]
+                layout_view,
+                ],
+                id='layout-dropdown',
             ),
         ]),
     ]
@@ -222,7 +224,7 @@ def tab_forecast(window='models'):
     windows = {
         'models': models_children,
         'was': was_children,
-        'prob': prob_children
+        'prob': prob_children,
     }
     
     return dcc.Tab(label='Forecast',
@@ -252,10 +254,12 @@ def sidebar_forecast(variables, default_var, models, default_model):
     html.Div([
         dbc.Card([
             dbc.CardHeader(html.H2(
-                dbc.Button("Models", id='group-1-toggle'),
+                dbc.Button("Models",
+                    color="link", id='group-1-toggle'),
             )),
             dbc.Collapse(
                 id='collapse-1',
+                is_open=True,
                 children=[
                     dbc.CardBody(
                         dcc.Checklist(
@@ -269,30 +273,29 @@ def sidebar_forecast(variables, default_var, models, default_model):
                 ]
             )],
         ),
-        html.Div([
+        dbc.Card([
             dbc.CardHeader(html.H2(
-                dbc.Button("Probability Maps", id='group-2-toggle'),
+                dbc.Button("Probability Maps",
+                    color="link", id='group-2-toggle'),
             )),
             dbc.Collapse(
                 id='collapse-2',
                 children=[
                     dbc.CardBody(
-                        dcc.Checklist(
+                        dcc.RadioItems(
                             id='prob-dropdown',
-                            options=[{'label': '{} µg/m3'.format(thresh),
-                                      'value': 'prob_{}'.format(thresh)}
-                                      for thresh in (50, 100, 200, 500)
-                                      ],
-                            value=['prob_50',],
+                            options=[],
+                            value=None,
                             className="sidebar-dropdown"
                         )
                     )
                 ]
             )],
         ),
-        html.Div([
+        dbc.Card([
             dbc.CardHeader(html.H2(
-                dbc.Button("Warning Advisory", id='group-3-toggle'),
+                dbc.Button("Warning Advisory",
+                    color="link", id='group-3-toggle')
             )),
             dbc.Collapse(
                 id='collapse-3',
