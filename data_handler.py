@@ -366,13 +366,32 @@ class FigureHandler(object):
             model = model[0]
 
         self.model = model
-        if model:
+
+        if self.model not in MODELS and self.model in OBS:
+            self.filedir = OBS[self.model]['path']
+            self.filevars = [OBS[self.model]['obs_var']]
+            self.confvars = [OBS[self.model]['mod_var']]
+            filetpl = OBS[self.model]['template'].format(OBS[self.model]['obs_var'], selected_date) + '.nc'
+            filepath = os.path.join(self.filedir, 'netcdf', filetpl)
+
+        elif self.model in MODELS:
             if DEBUG: print("MODEL", model)
+            self.filedir = MODELS[self.model]['path']
+            self.filevars = VARS
+            self.confvars = None
+
             filepath = NETCDF_TEMPLATE.format(
-                MODELS[self.model]['path'],
+                self.filedir,
                 selected_date,
                 MODELS[self.model]['template']
             )
+        else:
+            self.filedir = None
+            self.filevars = None
+            self.confvars = None
+            filepath = None
+
+        if filepath is not None:
             self.input_file = nc_file(filepath)
             if 'lon' in self.input_file.variables:
                 lon = self.input_file.variables['lon'][:]
@@ -387,17 +406,25 @@ class FigureHandler(object):
                 rtime = rtime[:5]
             self.rdatetime = datetime.strptime("{} {}".format(rdate, rtime),
                                                "%Y-%m-%d %H:%M")
-            varlist = [var for var in self.input_file.variables if var in VARS]
+            varlist = [var for var in self.input_file.variables if var in self.filevars]
             self.xlon, self.ylat = np.meshgrid(lon, lat)
-            self.bounds = {
-                varname: np.array(VARS[varname]['bounds']).astype('float32')
-                for varname in varlist
-            }
+
+            if self.confvars is not None:
+                self.bounds = {
+                    varname: np.array(VARS[confvar]['bounds']).astype('float32')
+                    for varname, confvar in zip(self.filevars, self.confvars) if varname in varlist
+                }
+            else:
+                self.bounds = {
+                    varname: np.array(VARS[varname]['bounds']).astype('float32')
+                    for varname in varlist
+                }
 
             self.colormaps = {
                 varname: get_colorscale(self.bounds[varname], COLORMAP)
                 for varname in varlist
             }
+            print(varlist, self.confvars, self.filevars, self.bounds, self.colormaps)
 
         if selected_date:
             self.selected_date_plain = selected_date
@@ -461,9 +488,12 @@ class FigureHandler(object):
 
     def set_data(self, varname, tstep=0):
         """ Set time dependent data """
-        mul = VARS[varname]['mul']
+        if self.model in OBS:
+            mul = VARS[OBS[self.model]['mod_var']]['mul']
+        else:
+            mul = VARS[varname]['mul']
         var = self.input_file.variables[varname][tstep]*mul
-        idx = np.where(var.ravel() >= VARS[varname]['bounds'][0])  # !=-9.e+33)
+        idx = np.where(var.ravel() >= self.bounds[varname][0])  # !=-9.e+33)
         xlon = self.xlon.ravel()[idx]
         ylat = self.ylat.ravel()[idx]
         var = var.ravel()[idx]
@@ -486,7 +516,7 @@ class FigureHandler(object):
 
     def generate_contour_tstep_trace(self, varname, tstep=0):
         """ Generate trace to be added to data, per variable and timestep """
-        geojson_file = GEOJSON_TEMPLATE.format(MODELS[self.model]['path'],
+        geojson_file = GEOJSON_TEMPLATE.format(self.filedir,
                 self.selected_date_plain, tstep, self.selected_date_plain, varname)
 
         if os.path.exists(geojson_file):
@@ -498,7 +528,11 @@ class FigureHandler(object):
                     "features": []
                     }
 
-        name = VARS[varname]['name']
+        if varname not in VARS and self.model in OBS:
+            name = VARS[OBS[self.model]['mod_var']]['name']
+        else:
+            name = VARS[varname]['name']
+        print(self.bounds)
         bounds = self.bounds[varname]
         loc_val = [
             (
@@ -558,7 +592,10 @@ class FigureHandler(object):
                 ),
             )
         xlon, ylat, val = self.set_data(varname, tstep)
-        name = VARS[varname]['name']
+        if self.model in OBS:
+            name = OBS[self.model]['name']
+        else:
+            name = MODELS[self.model]['name']
         return dict(
             type='scattermapbox',
             below='',
@@ -585,10 +622,15 @@ class FigureHandler(object):
 
     def get_title(self, varname, tstep=0):
         """ return title according to the date """
+        if self.model in OBS:
+            name = OBS[self.model]['name']
+            title = OBS[self.model]['title']
+        else:
+            name = MODELS[self.model]['name']
+            title = VARS[varname]['title']
         rdatetime = self.rdatetime
         cdatetime = self.retrieve_cdatetime(tstep)
-        return r'{} {}'.format(MODELS[self.model]['name'],
-                               VARS[varname]['title'] % {
+        return r'{} {}'.format(name, title % {
             'rhour':  rdatetime.strftime("%H"),
             'rday':   rdatetime.strftime("%d"),
             'rmonth': rdatetime.strftime("%b"),
@@ -604,6 +646,9 @@ class FigureHandler(object):
         """ run plot """
         self.fig = go.Figure()
         tstep = int(tstep)
+        if varname is not None and self.model in OBS:
+            varname = OBS[self.model]['obs_var']
+
         if varname:
             if DEBUG: print('Adding contours ...')
             self.fig.add_trace(self.generate_contour_tstep_trace(varname, tstep))

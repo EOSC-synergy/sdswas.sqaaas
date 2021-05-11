@@ -21,9 +21,9 @@ np.set_printoptions(precision=2)
 
 CURRENT_PATH = os.path.abspath(os.path.dirname(__file__))
 
-VARS = json.load(open('../conf/vars.json'))
-VARS = ['SCONC_DUST',]
-BOUNDS = range(10, 110, 10)
+VARS = json.load(open(os.path.join(CURRENT_PATH, '../conf/vars.json')))
+BOUNDS = VARS['OD550_DUST']['bounds']  # range(10, 110, 10)
+VARS = ['od550aero',]
 
 def nc2geojson(outdir='.', filelist=[], outfile_tpl=''):
     """ NetCDF(s) to geojson converter """

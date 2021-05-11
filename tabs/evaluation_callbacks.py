@@ -229,16 +229,17 @@ def register_callbacks(app):
             if DEBUG: print('SERVER: callback end_date {}'.format(edate))
         else:
             edate = end_date
-        fig = get_figure(model=None, var=DEFAULT_VAR)  # , selected_date=date)
 
-        if fig:
-            if obs:
-                fig.add_trace(get_obs1d(sdate, edate, obs, DEFAULT_VAR))
+        fig = get_figure(model=None, var=DEFAULT_VAR)
+        if obs == 'aeronet':
+            fig.add_trace(get_obs1d(sdate, edate, obs, DEFAULT_VAR))
+        elif obs == 'modis':
+            fig = get_figure(model=obs, var=DEFAULT_VAR, selected_date=sdate)
 
-            if relayoutdata:
-                relayoutdata = {k: relayoutdata[k]
-                                for k in relayoutdata
-                                if k not in ('mapbox._derived',)}
-                fig.layout.update(relayoutdata)
+        if fig and relayoutdata:
+            relayoutdata = {k: relayoutdata[k]
+                            for k in relayoutdata
+                            if k not in ('mapbox._derived',)}
+            fig.layout.update(relayoutdata)
 
         return fig

@@ -18,13 +18,10 @@ from data_handler import FREQ
 from data_handler import DEBUG
 from data_handler import PROB 
 
-from tools import get_eval_timeseries
 from tools import get_timeseries
 from tools import get_was_figure
 from tools import get_prob_figure
 from tools import get_figure
-from tools import get_obs1d
-from tools import start_date
 from tools import end_date
 from utils import calc_matrix
 from utils import get_graph
@@ -143,7 +140,7 @@ def register_callbacks(app):
         [Input(style, 'n_clicks') for style in STYLES],
         [State({'type': 'graph-with-slider', 'index': MATCH}, 'figure')]
     )
-    def update_layout(*args):
+    def update_styles(*args):
         """ Function updating map layout cartography """
         ctx = dash.callback_context
         figures = args[-1]
@@ -154,6 +151,25 @@ def register_callbacks(app):
         else:
             figures['layout']['mapbox']['style'] = 'carto-positron'
         return figures
+
+
+#     @app.callback(
+#         Output({'type': 'graph-with-slider', 'index': MATCH}, 'figure'),
+#         [Input('airports', 'n_clicks')],
+#         [State({'type': 'graph-with-slider', 'index': MATCH}, 'figure')]
+#     )
+#     def update_layers(n_click, figures):
+#         """ Function updating map layout cartography """
+#         ctx = dash.callback_context
+#         # figures = args[-1]
+# 
+#         if ctx.triggered:
+#             button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+#             # fig = get_figure()
+#             for fig in figures:
+#                 fig.add_trace({})  # get_obs1d(obs='airports')
+# 
+#         return figures
 
 
     # retrieve timeseries according to coordinates selected

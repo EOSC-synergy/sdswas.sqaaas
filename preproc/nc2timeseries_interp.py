@@ -66,7 +66,8 @@ def convert2timeseries(model, obs=None, fmt='feather', months=None):
 
     mod_paths = ["{}/{}*{}".format(os.path.dirname(mod_path), month, os.path.basename(mod_path)) for month in months]
 
-    obs_paths = ["{}".format(obs_path).format(month)
+    print(obs_path, months, obs)
+    obs_paths = [obs_path.format(OBS[obs]['obs_var'], month)
             if obs else ''
             for month in months]
 
@@ -107,11 +108,17 @@ def convert2timeseries(model, obs=None, fmt='feather', months=None):
             fname = "{}-{}-{}_interp".format(month, model, variable)
             if variable in mod_ds.variables:
                 if obs_ds:
+                    if 'longitude' in obs_ds.variables:
+                        obs_lon = 'longitude'
+                        obs_lat = 'latitude'
+                    else:
+                        obs_lon = 'lon'
+                        obs_lat = 'lat'
                     print('interpolating to observations ...')
-                    try:
-                        mod_interp = mod_ds[variable].interp(longitude=obs_ds['longitude'], latitude=obs_ds['latitude'])
-                    except:
-                        mod_interp = mod_ds[variable].interp(lon=obs_ds['longitude'], lat=obs_ds['latitude'])
+                    if 'longitude' in mod_ds.variables:
+                        mod_interp = mod_ds[variable].interp(longitude=obs_ds[obs_lon], latitude=obs_ds[obs_lat])
+                    else:
+                        mod_interp = mod_ds[variable].interp(lon=obs_ds[obs_lon], lat=obs_ds[obs_lat])
                     print('converting to df with name {} ...'.format(fname))
                 else:
                     mod_interp = mod_ds[variable]
@@ -142,6 +149,7 @@ if __name__ == "__main__":
         months = sys.argv[1].split(",")
         model = sys.argv[2]
         obs = sys.argv[3]
+        print(months, model, obs)
         convert2timeseries(model, obs, months=months)
     else:
         months = sys.argv[1].split(",")

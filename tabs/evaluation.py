@@ -77,8 +77,16 @@ def tab_evaluation(window='nrt'):
         html.Span(
             dcc.Dropdown(
                 id='obs-dropdown',
-                options=[{'label': 'Aeronet v3 lev15',
-                        'value': 'aeronet'}],
+                options=[
+                    {
+                        'label': 'Aeronet v3 lev15',
+                        'value': 'aeronet'
+                    },
+                    {
+                        'label': 'Modis',
+                        'value': 'modis'
+                    },
+                ],
                 placeholder='Select observation network',
                 # clearable=False,
                 searchable=False
