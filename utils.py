@@ -169,14 +169,15 @@ def get_animation_buttons():
     )
 
 
-def get_graph(index, figure, style={}):
+def get_graph(index, figure, style={'height': '90vh'}):
     """ Renders map graph """
 
     return dcc.Graph(
-        id={
-            'type': 'graph-with-slider',
-            'index': index,
-        },
-        figure=figure,
-        style=style
-    )
+            id={
+                'type': 'graph-with-slider',
+                'index': index,
+            },
+            className="graph-with-slider",
+            style=style,
+            figure=figure
+        )

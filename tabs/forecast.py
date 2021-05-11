@@ -157,31 +157,26 @@ was_time_slider = html.Div([
 
 
 def tab_forecast(window='models'):
-    models_children = [dbc.Spinner(
-        id='loading-models-graph-collection',
-        fullscreen=True,
-        fullscreen_style={'opacity': '0.5'},
-        children=[
-            html.Div(
-                dbc.Container(
-                    id='graph-collection',
-                    children=[],
-                    fluid=True,
-            )),
-            html.Div(
-                dcc.Interval(id='slider-interval',
-                    interval=1000,
-                    n_intervals=0,
-                    disabled=True
-            )),
-            html.Div([
-                time_slider,
-                layout_view,
-                layout_layers,
-                ],
-                id='layout-dropdown',
-            ),
-        ]),
+    models_children = [
+        html.Div(
+            dbc.Container(
+                id='graph-collection',
+                children=[],
+                fluid=True,
+        )),
+        html.Div(
+            dcc.Interval(id='slider-interval',
+                interval=1000,
+                n_intervals=0,
+                disabled=True
+        )),
+        html.Div([
+            time_slider,
+            layout_view,
+            layout_layers,
+            ],
+            id='layout-dropdown',
+        ),
         time_series,
     ]
 
@@ -249,7 +244,7 @@ def sidebar_forecast(variables, default_var, models, default_model):
             optionHeight=70,
         )],
         className="sidebar-first-item",
-        style={ 'background-color': '#F1B545' },
+        #style={ 'background-color': '#F1B545' },
     ),
     html.Div([
         dbc.Card([

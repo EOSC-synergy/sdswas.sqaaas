@@ -21,7 +21,7 @@ np.set_printoptions(precision=2)
 
 CURRENT_PATH = os.path.abspath(os.path.dirname(__file__))
 
-# VARS = json.load(open('../conf/vars.json'))
+VARS = json.load(open('../conf/vars.json'))
 VARS = ['SCONC_DUST',]
 BOUNDS = range(10, 110, 10)
 

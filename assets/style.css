@@ -18,16 +18,27 @@
     padding-bottom: 0.8rem !important;
     width: calc(100%/8) !important;
 }
-
 #graph-collection {
-    padding: 0px;
+    padding: 0;
+    margin: 0;
+    height: 85vh !important;
+}
+
+#prob-graph {
+    height: 85vh !important;
+}
+
+#was-graph {
     height: 85vh !important;
 }
 
 #graph-eval {
-    padding: 0px;
-    height: 80vh !important;
+    padding: 0;
+    margin: 0;
+    height: 70vh !important;
 }
+/*
+*/
 /*
 #graph-collection {
     display: grid;
@@ -143,10 +154,6 @@ div.SingleDatePickerInput {
     width: 30rem;
 }
 
-#prob-graph {
-    height: 90vh !important;
-}
-
 #btn-play {
     margin: 0.4rem 0;
     border: none;
@@ -244,10 +251,10 @@ div.SingleDatePickerInput {
 .dropdown-item:focus, .dropdown-item:hover {
     background-color: #2B383E;
 }
-
+/*
 .js-plotly-plot {
     height: 90vh !important;
-}
+}*/
 
 /*
 *[data-dash-is-loading="true"]{

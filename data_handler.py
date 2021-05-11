@@ -27,7 +27,19 @@ DEBUG =  True
 COLORS = ['#a1ede3', '#5ce3ba', '#fcd775', '#da7230',
           '#9e6226', '#714921', '#392511', '#1d1309']
 
+COLORS_PROB = [  #(1,1,1),                                            \
+                (225/255.0,225/255.0,225/255.0),                    \
+                (205/255.0,205/255.0,205/255.0),                    \
+                (190/255.0,255/255.0, 51/255.0),                    \
+                (162/255.0,220/255.0, 51/255.0),                    \
+                (255/255.0,255/255.0,155/255.0),                    \
+                (255/255.0,255/255.0, 75/255.0),                    \
+                (255/255.0,210/255.0, 64/255.0),                    \
+                (255/255.0,139/255.0, 90/255.0),                    \
+                (255/255.0,102/255.0, 51/255.0)  ]
+
 COLORMAP = ListedColormap(COLORS)
+COLORMAP_PROB = ListedColormap(COLORS_PROB)
 
 VARS = json.load(open(os.path.join(DIR_PATH, 'conf/vars.json')))
 MODELS = json.load(open(os.path.join(DIR_PATH, 'conf/models.json')))
@@ -209,8 +221,8 @@ class ObsTimeSeriesHandler(object):
                 sc_mode = 'lines+markers'
                 marker = {'size': 5}
                 visible = 'legendonly'
-                cur_lat = round(timeseries[lat_col][0], 4)
-                cur_lon = round(timeseries[lon_col][0], 4)
+                cur_lat = round(timeseries[lat_col][0], 2)
+                cur_lon = round(timeseries[lon_col][0], 2)
 
 
             fig.add_trace(dict(
@@ -294,7 +306,7 @@ class TimeSeriesHandler(object):
             self.fpaths.append(fpath)
 
         title = "{} @ lat = {} and lon = {}".format(
-            VARS[self.variable]['name'], round(lat, 4), round(lon, 4)
+            VARS[self.variable]['name'], round(lat, 2), round(lon, 2)
         )
         fig = go.Figure()
 
@@ -305,7 +317,7 @@ class TimeSeriesHandler(object):
             fig.add_trace(dict(
                     type='scatter',
                     name="{} ({}, {})".format(
-                        mod.upper(), ts_lat.round(4), ts_lon.round(4)),
+                        mod.upper(), ts_lat.round(2), ts_lon.round(2)),
                     x=ts_index,
                     y=ts_values,
                     mode='lines+markers',
@@ -449,7 +461,7 @@ class FigureHandler(object):
 
     def set_data(self, varname, tstep=0):
         """ Set time dependent data """
-        mul = 1  # VARS[varname]['mul']
+        mul = VARS[varname]['mul']
         var = self.input_file.variables[varname][tstep]*mul
         idx = np.where(var.ravel() >= VARS[varname]['bounds'][0])  # !=-9.e+33)
         xlon = self.xlon.ravel()[idx]
@@ -662,7 +674,7 @@ class ProbFigureHandler(object):
         netcdf_file = PROB[var]['netcdf_template']
 
         self.geojson = os.path.join(geojson_path, geojson_file).format(prob=prob, date=selected_date, var=var)
-        self.filepath = os.path.join(netcdf_path, netcdf_file).format(prob=prob, date=selected_date)
+        self.filepath = os.path.join(netcdf_path, netcdf_file).format(prob=prob, date=selected_date, var=var)
 
         if os.path.exists(self.filepath):
             self.input_file = nc_file(self.filepath)
@@ -683,16 +695,15 @@ class ProbFigureHandler(object):
             varlist = [var for var in self.input_file.variables if var in VARS]
             self.xlon, self.ylat = np.meshgrid(lon, lat)
 
-            self.colormaps = {
-                varname: get_colorscale(self.bounds, COLORMAP)
-                for varname in varlist
-            }
+        self.colormaps = {
+            self.varname: get_colorscale(self.bounds, COLORMAP_PROB)
+        }
 
-            if selected_date:
-                self.selected_date_plain = selected_date
+        if selected_date:
+            self.selected_date_plain = selected_date
 
-                self.selected_date = datetime.strptime(
-                    selected_date, "%Y%m%d").strftime("%Y-%m-%d")
+            self.selected_date = datetime.strptime(
+                selected_date, "%Y%m%d").strftime("%Y-%m-%d")
 
         self.fig = None
 
@@ -750,7 +761,7 @@ class ProbFigureHandler(object):
 
     def set_data(self, varname, tstep=0):
         """ Set time dependent data """
-        mul = VARS[varname]['mul']
+        mul = 1  # VARS[varname]['mul']
         var = self.input_file.variables[varname][tstep]*mul
         idx = np.where(var.ravel() >= VARS[varname]['bounds'][0])  # !=-9.e+33)
         xlon = self.xlon.ravel()[idx]
@@ -944,10 +955,11 @@ class ProbFigureHandler(object):
 class WasFigureHandler(object):
     """ Class to manage the figure creation """
 
-    def __init__(self, was=None, model='median', variable='SCONC_DUST', selected_date=None):
+    def __init__(self, was='burkinafaso', model='median', variable='SCONC_DUST', selected_date=None):
         """ Initialize WasFigureHandler with shapefile and netCDF data """
         self.model = model
         self.was = was
+        self.variable = variable
 
         if self.was:
             # read shapefile
@@ -1072,35 +1084,20 @@ class WasFigureHandler(object):
         return self.vardata[d_idx,:,:].max(axis=0)
 
     def get_regions_data(self, day=1):
+        input_dir = WAS[self.was]['path'].format(was=self.was, date=self.selected_date_plain)
+        input_file = WAS[self.was]['template'].format(date=self.selected_date_plain, var=self.variable)
+
+        input_path = os.path.join(input_dir, input_file)
+
+        df = pd.read_hdf(input_path, 'was_{}'.format(self.selected_date_plain)).set_index('day')
+
         names = []
         colors = []
         definitions = []
         if not hasattr(self, 'xlon'):
             return names, colors, definitions
 
-        flon = self.xlon.flatten()
-        print('SHAPE LON', flon.shape)
-        flat = self.ylat.flatten()
-        print('SHAPE LAT', flat.shape)
-        data = self.set_data(day=day).flatten()
-        print('SHAPE DATA', data.shape)
-
-        for idx in self.was_df.index.values:
-            name = self.was_df.iloc[idx]['NAME_1']
-            geom = self.was_df.iloc[idx]['geometry']
-            mask = np.array([geom.contains(geometry.Point(x, y)) for x, y in np.array([flon, flat]).T])
-            mdata = np.ma.masked_array(data, mask=~mask)
-            print(";;;;", mdata[~mdata.mask])
-            reg_var = mdata[~mdata.mask].max()
-            perc = WAS[self.was]['values'][name]
-            print("::::", name, reg_var, perc)
-            color = ((reg_var<perc[0]) and 'green') or \
-                (((reg_var>=perc[0]) and (reg_var<perc[1])) and 'gold') or \
-                (((reg_var>=perc[1]) and (reg_var<perc[2])) and 'darkorange') or 'red'
-            names.append(name)
-            colors.append(color)
-            definitions.append(WAS[self.was]['colors'][color])
-
+        names, colors, definitions = df.loc['Day{}'.format(day)].values.T
         print(names, colors, definitions)
         return names, colors, definitions
 
@@ -1128,7 +1125,7 @@ class WasFigureHandler(object):
                     "type": "FeatureCollection",
                     "features": []
                     }
-        colormap = list(WAS[self.was]['colors'].keys())
+        colormap =  ['green'] + list(WAS[self.was]['colors'].keys())
         names, colors, definitions = self.get_regions_data(day=day)
         loc_val = [
             (
@@ -1140,6 +1137,7 @@ class WasFigureHandler(object):
         ]
         locations, values = np.array(loc_val).T if loc_val else ([], [])
         print(locations, '--', values)
+        print(colormap)
         # if DEBUG: print(varname, self.colormaps[varname], values)
         return dict(
             type='choroplethmapbox',
@@ -1202,7 +1200,7 @@ class WasFigureHandler(object):
             autosize=True,
             hovermode="closest",        # highlight closest point on hover
             mapbox=self.get_mapbox(zoom=7-(0.5*aspect[0])),
-            height=800,
+            #height=800,
             margin={"r": 0, "t": 0, "l": 0, "b": 0},
         )
 

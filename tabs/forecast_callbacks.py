@@ -266,8 +266,10 @@ def register_callbacks(app):
             fig = get_figure(model, variable, date, tstep, static)
             figures.append(
                 dbc.Row([
-                    dbc.Col([
-                        get_graph(index='none', figure=fig)
+                    dbc.Col([dbc.Spinner(
+                        get_graph(index='none', figure=fig,
+                            style={'height': '90vh'}
+                            ))
                     ])
                 ])
             )
@@ -276,12 +278,13 @@ def register_callbacks(app):
         ncols, nrows = calc_matrix(len(model))
         for idx, mod in enumerate(model):
             figures.append(
+              dbc.Spinner(
                 get_graph(
                     index=mod,
                     figure=get_figure(mod, variable, date, tstep,
                                       static, (nrows, ncols)),
-                    style={'height': '{}vh'.format(int(85/nrows))}
-                )
+                    style={'height': '{}vh'.format(int(90/nrows))}
+                ))
             )
 
         res = [

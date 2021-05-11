@@ -4,6 +4,8 @@
             "shp": "/home/fbeninca/devel/interactive-forecast-viewer/conf/was/burkinafaso/shp/BFA_adm1.shp",
             "model": "median",
             "var": "SCONC_DUST",
+	    "path": "/data/interactive_test/was/{was}/h5/{date}",
+	    "template": "{date}_{var}.h5",
             "colors": {
                 "green"     : "Normal",
                 "gold"      : "High",
