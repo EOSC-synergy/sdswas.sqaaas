@@ -168,17 +168,16 @@ div.SingleDatePickerInput {
     background-color: #F1B545 !important;
 }
 
+#obs-dropdown {
+    min-width: 12rem;
+}
+
 .linetool {
     display: table-cell;
     vertical-align: bottom;
-    margin-top: 1rem;
-    margin-right: 1rem;
-    padding-top: 1rem;
-    padding-right: 1rem;
-    padding-bottom: 1rem;
+    padding: 1rem;
     /*
     */
-    width: calc(50%/2);
 }
 
 .timesliderline {

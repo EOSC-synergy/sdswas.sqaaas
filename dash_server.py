@@ -21,8 +21,8 @@ from data_handler import DEFAULT_MODEL
 from data_handler import VARS 
 from data_handler import MODELS
 from data_handler import DEBUG
+from data_handler import DATES
 
-import tabs
 from tabs.forecast import tab_forecast
 from tabs.forecast import sidebar_forecast
 from tabs.forecast_callbacks import register_callbacks as fcst_callbacks
@@ -39,12 +39,28 @@ TIMEOUT = 10
 srv = flask.Flask(__name__)
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP,
                                                 dbc.themes.GRID],
+                url_base_pathname='/dashboard/',
                 server=srv)
 app.css.config.serve_locally = True
 app.scripts.config.serve_locally = True
+app.config.update({
+    # as the proxy server will remove the prefix
+    'routes_pathname_prefix': '/',
+
+    # the front-end will prefix this string to the requests
+    # that are made to the proxy server
+    'requests_pathname_prefix': '/dashboard/'
+})
+app.config.suppress_callback_exceptions = True
 server = app.server
 
-app.config.suppress_callback_exceptions = True
+cache_config = {
+    "DEBUG": True,
+    "CACHE_TYPE": "FileSystemCache",
+    "CACHE_DIR": "/dev/shm",
+}
+
+cache = Cache(server, config=cache_config)
 
 if DEBUG: print('SERVER: start creating app layout')
 app.layout = html.Div(

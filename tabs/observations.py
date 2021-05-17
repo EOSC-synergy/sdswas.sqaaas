@@ -7,7 +7,6 @@ from data_handler import FREQ
 from data_handler import VARS
 from data_handler import MODELS
 from data_handler import STYLES
-from tools import get_figure
 
 from datetime import datetime as dt
 

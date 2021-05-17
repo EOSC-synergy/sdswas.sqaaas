@@ -8,13 +8,14 @@ from data_handler import FREQ
 from data_handler import VARS
 from data_handler import MODELS
 from data_handler import STYLES
-from tools import get_figure
+from data_handler import DATES
 
+from utils import get_graph
 from collections import OrderedDict
 from datetime import datetime as dt
 
-start_date = "20201001"
-end_date = "20201231"
+start_date = DATES['start_date']
+end_date = DATES['end_date']
 
 STATS = OrderedDict({ 'bias': 'BIAS', 'corr': 'CORR', 'rmse': 'RMSE', 'totn': 'CASES' })
 
@@ -63,18 +64,6 @@ def tab_evaluation(window='nrt'):
             className="description-body"
         ),
         html.Span(
-            dcc.DatePickerRange(
-                id='eval-date-picker',
-                min_date_allowed=dt.strptime(start_date, "%Y%m%d"),
-                max_date_allowed=dt.strptime(end_date, "%Y%m%d"),
-                initial_visible_month=dt.strptime(end_date, "%Y%m%d"),
-                display_format='DD MMM YYYY',
-                end_date=end_date,
-            ),
-            style={ 'width': '50%'},
-            className="linetool",
-        ),
-        html.Span(
             dcc.Dropdown(
                 id='obs-dropdown',
                 options=[
@@ -91,14 +80,27 @@ def tab_evaluation(window='nrt'):
                 # clearable=False,
                 searchable=False
             ),
-            style={ 'width': '50%'},
+            className="linetool",
+        ),
+        html.Span(
+            id='eval-date',
+            children=[],
+            className="linetool",
+        ),
+        html.Span(
+            dcc.Dropdown(
+                id='obs-mod-dropdown',
+                options=[{'label': MODELS[model]['name'],
+                          'value': model} for model in MODELS],
+                placeholder='Select model',
+                # clearable=False,
+                searchable=False,
+            ),
             className="linetool",
         ),
         html.Div(
-            dcc.Graph(
-                id='graph-eval',
-                figure=get_figure(),
-            ),
+            id='eval-graph',
+            children=[],
         ),
         eval_time_series,
     ]
@@ -131,7 +133,7 @@ def tab_evaluation(window='nrt'):
                 searchable=False,
                 multi=True,
             ),
-            style={ 'width': '12rem'},
+            style={ 'width': '12rem' },
             className="linetool",
         ),
         html.Span(
@@ -157,7 +159,7 @@ def tab_evaluation(window='nrt'):
                 # clearable=False,
                 searchable=False
             ),
-            style={ 'width': '10rem'},
+            style={ 'width': '10rem' },
             className="linetool",
         ),
         html.Span(
@@ -170,7 +172,7 @@ def tab_evaluation(window='nrt'):
                 # clearable=False,
                 searchable=False
             ),
-            style={ 'width': '10rem'},
+            style={ 'width': '10rem' },
             className="linetool",
         ),
         html.Span(

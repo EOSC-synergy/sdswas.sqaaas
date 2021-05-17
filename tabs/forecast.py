@@ -9,8 +9,10 @@ import dash_html_components as html
 from datetime import datetime as dt
 
 from data_handler import STYLES
-from tools import start_date
-from tools import end_date
+from data_handler import DATES
+
+start_date = DATES['start_date']
+end_date = DATES['end_date']
 
 
 time_series = dbc.Spinner(
@@ -180,40 +182,30 @@ def tab_forecast(window='models'):
         time_series,
     ]
 
-    was_children = [dbc.Spinner(
-        id='loading-was-graph',
-        fullscreen=True,
-        fullscreen_style={'opacity': '0.5'},
-        children=[
-            html.Div(
-                id='was-graph',
-                children=[],
-            ),
-            html.Div([
-                was_time_slider,
-                layout_view,
-                ],
-                id='layout-dropdown',
-            ),
-        ]),
+    was_children = [
+        html.Div(
+            id='was-graph',
+            children=[],
+        ),
+        html.Div([
+            was_time_slider,
+            layout_view,
+            ],
+            id='layout-dropdown',
+        ),
     ]
 
-    prob_children = [dbc.Spinner(
-        id='loading-prob-graph',
-        fullscreen=True,
-        fullscreen_style={'opacity': '0.5'},
-        children=[
-            html.Div(
-                id='prob-graph',
-                children=[],
-            ),
-            html.Div([
-                prob_time_slider,
-                layout_view,
-                ],
-                id='layout-dropdown',
-            ),
-        ]),
+    prob_children = [
+        html.Div(
+            id='prob-graph',
+            children=[],
+        ),
+        html.Div([
+            prob_time_slider,
+            layout_view,
+            ],
+            id='layout-dropdown',
+        ),
     ]
 
     windows = {

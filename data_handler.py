@@ -46,6 +46,7 @@ MODELS = json.load(open(os.path.join(DIR_PATH, 'conf/models.json')))
 OBS = json.load(open(os.path.join(DIR_PATH, 'conf/obs.json')))
 WAS = json.load(open(os.path.join(DIR_PATH, 'conf/was.json')))
 PROB = json.load(open(os.path.join(DIR_PATH, 'conf/prob.json')))
+DATES = json.load(open(os.path.join(DIR_PATH, 'conf/dates.json')))
 
 # Frequency = 3 Hourly
 FREQ = 3
@@ -311,7 +312,7 @@ class TimeSeriesHandler(object):
         fig = go.Figure()
 
         for mod, fpath in zip(model, self.fpaths):
-            print(mod, fpath)
+            # print(mod, fpath)
             ts_lat, ts_lon, ts_index, ts_values = retrieve_timeseries(fpath, lat, lon, self.variable, method=method)
 
             fig.add_trace(dict(
@@ -424,7 +425,7 @@ class FigureHandler(object):
                 varname: get_colorscale(self.bounds[varname], COLORMAP)
                 for varname in varlist
             }
-            print(varlist, self.confvars, self.filevars, self.bounds, self.colormaps)
+            # print(varlist, self.confvars, self.filevars, self.bounds, self.colormaps)
 
         if selected_date:
             self.selected_date_plain = selected_date
@@ -532,7 +533,7 @@ class FigureHandler(object):
             name = VARS[OBS[self.model]['mod_var']]['name']
         else:
             name = VARS[varname]['name']
-        print(self.bounds)
+        # if DEBUG: print(self.bounds)
         bounds = self.bounds[varname]
         loc_val = [
             (

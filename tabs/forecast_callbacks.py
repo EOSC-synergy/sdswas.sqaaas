@@ -16,13 +16,9 @@ from data_handler import MODELS
 from data_handler import STYLES
 from data_handler import FREQ
 from data_handler import DEBUG
+from data_handler import DATES
 from data_handler import PROB 
 
-from tools import get_timeseries
-from tools import get_was_figure
-from tools import get_prob_figure
-from tools import get_figure
-from tools import end_date
 from utils import calc_matrix
 from utils import get_graph
 
@@ -30,6 +26,9 @@ from tabs.forecast import tab_forecast
 
 from datetime import datetime as dt
 import math
+
+start_date = DATES['start_date']
+end_date = DATES['end_date']
 
 
 def register_callbacks(app):
@@ -76,6 +75,7 @@ def register_callbacks(app):
     )
     def update_was_figure(date, day, was):
         """ Update Warning Advisory Systems maps """
+        from tools import get_was_figure
         print('WAS', was)
         if date is not None:
             date = date.split(' ')[0]
@@ -104,6 +104,7 @@ def register_callbacks(app):
     )
     def update_prob_figure(date, day, var, prob):
         """ Update Warning Advisory Systems maps """
+        from tools import get_prob_figure
         print('PROB', date, day, var, prob)
         if date is not None:
             date = date.split(' ')[0]
@@ -118,9 +119,9 @@ def register_callbacks(app):
 
         if prob:
             prob = prob.replace('prob_', '')
-            return get_graph(index=prob, figure=get_prob_figure(var, prob, day, selected_date=date))
+            return dbc.Spinner(get_graph(index=prob, figure=get_prob_figure(var, prob, day, selected_date=date)))
         print("PROB figure " + date, prob, day)
-        return get_graph(index='none', figure=get_prob_figure(var, selected_date=date))
+        return dbc.Spinner(get_graph(index='none', figure=get_prob_figure(var, selected_date=date)))
 
 
     @app.callback(
@@ -182,9 +183,11 @@ def register_callbacks(app):
          Input({'type': 'graph-with-slider', 'index': ALL}, 'id')],
         [State('model-dropdown', 'value'),
          State('variable-dropdown-forecast', 'value')],
+        prevent_initial_call=True
     )
     def show_timeseries(date, cdata, element, model, variable):
         """ Renders model comparison timeseries """
+        from tools import get_timeseries
         lat = lon = None
         for click, elem in zip(cdata, element):
             if elem['index'] in model and click:
@@ -247,6 +250,7 @@ def register_callbacks(app):
          State('slider-interval', 'disabled')])
     def update_models_figure(date, model, variable, tstep, graphs, static):
         """ Update mosaic of maps figures according to all parameters """
+        from tools import get_figure
         if DEBUG: print('SERVER: calling figure from picker callback')
         # if DEBUG: print('SERVER: interval ' + str(n))
         if DEBUG: print('SERVER: tstep ' + str(tstep))

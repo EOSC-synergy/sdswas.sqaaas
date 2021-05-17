@@ -9,12 +9,14 @@ from data_handler import TimeSeriesHandler
 from data_handler import ObsTimeSeriesHandler
 from data_handler import Observations1dHandler
 from data_handler import DEBUG
+from data_handler import DATES
+from dash_server import cache
+#from dash_server import srv as app
 
 from datetime import datetime as dt
 
-
-start_date = "20201001"
-end_date = "20201231"
+start_date = DATES['start_date']
+end_date = DATES['end_date']
 
 
 def get_eval_timeseries(obs, start_date, end_date, var, idx, name):
@@ -74,7 +76,8 @@ def get_was_figure(was=None, day=1, selected_date=end_date):
     if DEBUG: print('SERVER: NO WAS Figure')
     return WasFigureHandler().retrieve_var_tstep()
 
-
+#@app.app_context
+#@cache.cached(timeout=60, key_prefix='figure')
 def get_figure(model=None, var=None, selected_date=end_date, tstep=0,
                static=True, aspect=(1, 1)):
     """ Retrieve figure """
@@ -91,5 +94,3 @@ def get_figure(model=None, var=None, selected_date=end_date, tstep=0,
         return fh.retrieve_var_tstep(var, tstep, static, aspect)
     if DEBUG: print('SERVER: No Figure')
     return FigureHandler().retrieve_var_tstep()
-
-

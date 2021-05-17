@@ -15,14 +15,8 @@ from data_handler import VARS
 from data_handler import MODELS
 from data_handler import OBS
 from data_handler import DEBUG
+from data_handler import DATES
 
-from tools import get_eval_timeseries
-from tools import get_timeseries
-from tools import get_was_figure
-from tools import get_figure
-from tools import get_obs1d
-from tools import start_date
-from tools import end_date
 from utils import calc_matrix
 from utils import get_graph
 
@@ -35,6 +29,8 @@ import os.path
 
 
 SCORES = list(STATS.keys())
+start_date = DATES['start_date']
+end_date = DATES['end_date']
 
 
 def extend_l(l):
@@ -107,7 +103,7 @@ def register_callbacks(app):
 
         models = ['station'] + models
 
-        print("@@@@@@@@@@@", models, stat, network, timescale, selection, n)
+        if DEBUG: print("@@@@@@@@@@@", models, stat, network, timescale, selection, n)
         filedir = OBS[network]['path']
 
         stat_idxs = [SCORES.index(st) for st in stat]
@@ -172,15 +168,16 @@ def register_callbacks(app):
     @app.callback(
         [Output('ts-eval-modal', 'children'),
          Output('ts-eval-modal', 'is_open')],
-        [Input('eval-date-picker', 'start_date'),
-         Input('eval-date-picker', 'end_date'),
-         Input('obs-dropdown', 'value'),
-         Input('graph-eval', 'clickData'),
-         Input('graph-eval', 'id')],
+        [Input('graph-eval-aeronet', 'clickData')],
+        [State('eval-date-picker', 'start_date'),
+         State('eval-date-picker', 'end_date'),
+         State('obs-dropdown', 'value')],
+        prevent_initial_call=True
     )
-    def show_eval_timeseries(start_date, end_date, obs, cdata, element):
+    def show_eval_timeseries(cdata, start_date, end_date, obs):
         """ Retrieve evaluation timeseries according to station selected """
-        print(start_date, end_date, obs, cdata, element)
+        from tools import get_eval_timeseries
+        print(start_date, end_date, obs, cdata)
         if cdata:
             idx = cdata['points'][0]['pointIndex']
             if idx != 0:
@@ -198,15 +195,18 @@ def register_callbacks(app):
 
 
     @app.callback(
-        Output('graph-eval', 'figure'),
+        Output('graph-eval-aeronet', 'figure'),
         [Input('eval-date-picker', 'start_date'),
-         Input('eval-date-picker', 'end_date'),
-         Input('obs-dropdown', 'value')],
-        [State('graph-eval', 'relayoutData')])
-    def update_eval(sdate, edate, obs, relayoutdata):
-        """ Update evaluation figure according to all parameters """
+         Input('eval-date-picker', 'end_date')],
+        [State('obs-dropdown', 'value'),
+         State('graph-eval-aeronet', 'relayoutData')],
+        prevent_initial_call=True)
+    def update_eval_aeronet(sdate, edate, obs, relayoutdata):
+        """ Update AERONET evaluation figure according to all parameters """
+        from tools import get_figure
+        from tools import get_obs1d
         if DEBUG: print('SERVER: calling figure from EVAL picker callback')
-        # if DEBUG: print('SERVER: interval ' + str(n))
+        if DEBUG: print('SERVER: SDATE' + str(sdate))
 
         if sdate is not None:
             sdate = sdate.split()[0]
@@ -231,10 +231,7 @@ def register_callbacks(app):
             edate = end_date
 
         fig = get_figure(model=None, var=DEFAULT_VAR)
-        if obs == 'aeronet':
-            fig.add_trace(get_obs1d(sdate, edate, obs, DEFAULT_VAR))
-        elif obs == 'modis':
-            fig = get_figure(model=obs, var=DEFAULT_VAR, selected_date=sdate)
+        fig.add_trace(get_obs1d(sdate, edate, obs, DEFAULT_VAR))
 
         if fig and relayoutdata:
             relayoutdata = {k: relayoutdata[k]
@@ -243,3 +240,104 @@ def register_callbacks(app):
             fig.layout.update(relayoutdata)
 
         return fig
+
+
+    @app.callback(
+       [Output('graph-eval-modis-obs', 'figure'),
+        Output('graph-eval-modis-mod', 'figure')],
+       [Input('eval-date-picker', 'date')],
+       [State('obs-dropdown', 'value'),
+        State('obs-mod-dropdown', 'value'),
+        State('graph-eval-modis-obs', 'relayoutData'),
+        State('graph-eval-modis-mod', 'relayoutData')],
+        prevent_initial_call=True)
+    def update_eval_modis(date, obs, mod, relayoutdata_obs, relayoutdata_mod):
+        """ Update AERONET evaluation figure according to all parameters """
+        from tools import get_figure
+        from tools import get_obs1d
+        if DEBUG: print('SERVER: calling figure from EVAL picker callback')
+        # if DEBUG: print('SERVER: interval ' + str(n))
+
+        if date is not None:
+            date = date.split()[0]
+            try:
+                date = dt.strptime(
+                    date, "%Y-%m-%d").strftime("%Y%m%d")
+            except:
+                pass
+            if DEBUG: print('SERVER: callback date {}'.format(date))
+        else:
+            date = end_date
+
+        fig_obs = get_figure(model=obs, var=DEFAULT_VAR, selected_date=date, tstep=3)
+        fig_mod = get_figure(model=mod, var=DEFAULT_VAR, selected_date=date, tstep=6)
+
+        if fig_obs and relayoutdata_obs:
+            relayoutdata_obs = {k: relayoutdata_obs[k]
+                            for k in relayoutdata_obs
+                            if k not in ('mapbox._derived',)}
+            fig_obs.layout.update(relayoutdata_obs)
+
+        if fig_mod and relayoutdata_mod:
+            relayoutdata_mod = {k: relayoutdata_mod[k]
+                            for k in relayoutdata_mod
+                            if k not in ('mapbox._derived',)}
+            fig_mod.layout.update(relayoutdata_mod)
+
+        return [dbc.Row([dbc.Col(fig_obs, width=6),
+                dbc.Col(fig_mod, width=6)],
+                align='start',
+                no_gutters=True
+                )]
+
+    @app.callback(
+        [Output('eval-date', 'children'),
+         Output('eval-graph', 'children'),
+         Output('obs-dropdown', 'value')],
+        [Input('obs-dropdown', 'value')],
+         prevent_initial_call=True)
+    def update_eval(obs):
+        """ Update evaluation figure according to all parameters """
+        from tools import get_figure
+        # from tools import get_obs1d
+        if DEBUG: print('SERVER: calling figure from EVAL picker callback')
+        # if DEBUG: print('SERVER: interval ' + str(n))
+
+        if obs == 'aeronet':
+
+            eval_date = [dcc.DatePickerRange(
+                id='eval-date-picker',
+                min_date_allowed=dt.strptime(start_date, "%Y%m%d"),
+                max_date_allowed=dt.strptime(end_date, "%Y%m%d"),
+                initial_visible_month=dt.strptime(end_date, "%Y%m%d"),
+                display_format='DD MMM YYYY',
+                end_date=end_date,
+                updatemode='bothdates',
+            )]
+
+            eval_graph = [get_graph(gid='graph-eval-aeronet', figure=get_figure())]
+
+        elif obs == 'modis':
+
+            eval_date = [dcc.DatePickerSingle(
+                id='eval-date-picker',
+                min_date_allowed=dt.strptime(start_date, "%Y%m%d"),
+                max_date_allowed=dt.strptime(end_date, "%Y%m%d"),
+                initial_visible_month=dt.strptime(end_date, "%Y%m%d"),
+                display_format='DD MMM YYYY',
+                date=end_date,
+                # with_portal=True,
+            )]
+
+            fig_obs, fig_mod = [get_graph(gid='graph-eval-modis-obs', figure=get_figure()),
+                    get_graph(gid='graph-eval-modis-mod', figure=get_figure())]
+            eval_graph = [dbc.Row([dbc.Col(fig_obs, width=6),
+                dbc.Col(fig_mod, width=6)],
+                align='start',
+                no_gutters=True
+                )]
+
+        else:
+            raise PreventUpdate
+
+        return eval_date, eval_graph, obs
