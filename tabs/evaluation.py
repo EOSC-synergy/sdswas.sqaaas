@@ -7,10 +7,10 @@ from data_handler import DEFAULT_MODEL
 from data_handler import FREQ
 from data_handler import VARS
 from data_handler import MODELS
+from data_handler import OBS
 from data_handler import STYLES
 from data_handler import DATES
 
-from utils import get_graph
 from collections import OrderedDict
 from datetime import datetime as dt
 
@@ -66,25 +66,12 @@ def tab_evaluation(window='nrt'):
         html.Span(
             dcc.Dropdown(
                 id='obs-dropdown',
-                options=[
-                    {
-                        'label': 'Aeronet v3 lev15',
-                        'value': 'aeronet'
-                    },
-                    {
-                        'label': 'Modis',
-                        'value': 'modis'
-                    },
-                ],
+                options=[{'label': OBS[obs]['name'],
+                          'value': obs} for obs in OBS],
                 placeholder='Select observation network',
                 # clearable=False,
                 searchable=False
             ),
-            className="linetool",
-        ),
-        html.Span(
-            id='eval-date',
-            children=[],
             className="linetool",
         ),
         html.Span(
@@ -95,7 +82,14 @@ def tab_evaluation(window='nrt'):
                 placeholder='Select model',
                 # clearable=False,
                 searchable=False,
+                value='median',
+                style={ 'display': 'none' },
             ),
+            className="linetool",
+        ),
+        html.Span(
+            id='eval-date',
+            children=[],
             className="linetool",
         ),
         html.Div(

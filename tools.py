@@ -78,10 +78,9 @@ def get_was_figure(was=None, day=1, selected_date=end_date):
 
 #@app.app_context
 #@cache.cached(timeout=60, key_prefix='figure')
-def get_figure(model=None, var=None, selected_date=end_date, tstep=0,
-               static=True, aspect=(1, 1)):
+def get_figure(model=None, var=None, selected_date=end_date, tstep=0,hour=None, static=True, aspect=(1, 1), center=None):
     """ Retrieve figure """
-    # if DEBUG: print(var, selected_date, tstep)
+    #if DEBUG: print("***", model, var, selected_date, tstep, hour, "***")
     try:
         selected_date = dt.strptime(
             selected_date, "%Y-%m-%d %H:%M:%S").strftime("%Y%m%d")
@@ -91,6 +90,6 @@ def get_figure(model=None, var=None, selected_date=end_date, tstep=0,
         if DEBUG: print('SERVER: Figure init ... ')
         fh = FigureHandler(model, selected_date)
         if DEBUG: print('SERVER: Figure generation ... ')
-        return fh.retrieve_var_tstep(var, tstep, static, aspect)
+        return fh.retrieve_var_tstep(var, tstep, hour, static, aspect, center)
     if DEBUG: print('SERVER: No Figure')
     return FigureHandler().retrieve_var_tstep()

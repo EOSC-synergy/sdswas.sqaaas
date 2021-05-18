@@ -449,15 +449,17 @@ class FigureHandler(object):
             yanchor="top",
         )
 
-    def get_mapbox(self, style='carto-positron', relayout=False, zoom=3):
+    def get_mapbox(self, style='carto-positron', relayout=False, zoom=3, center=None):
         """ Returns mapbox layout """
-        if hasattr(self, 'ylat'):
+        if center is None and hasattr(self, 'ylat'):
             center = go.layout.mapbox.Center(
                 lat=(self.ylat.max()-self.ylat.min())/2 +
                 self.ylat.min(),
                 lon=(self.xlon.max()-self.xlon.min())/2 +
                 self.xlon.min(),
             )
+        elif center is not None:
+            center = go.layout.mapbox.Center(center)
         else:
             center = go.layout.mapbox.Center({'lat': 30, 'lon': 15})
         mapbox_dict = dict(
@@ -502,8 +504,9 @@ class FigureHandler(object):
         return xlon, ylat, var
 
     def retrieve_cdatetime(self, tstep=0):
-        tim = int(self.tim[tstep])
         """ Retrieve data from NetCDF file """
+        tstep = int(tstep)
+        tim = int(self.tim[tstep])
         if self.what == 'days':
             cdatetime = self.rdatetime + relativedelta(days=tim)
         elif self.what == 'hours':
@@ -523,7 +526,7 @@ class FigureHandler(object):
         if os.path.exists(geojson_file):
             geojson = json.load(open(geojson_file))
         else:
-            print('ERROR', geojson_file, 'not available')
+            if DEBUG: print('ERROR', geojson_file, 'not available')
             geojson = {
                     "type": "FeatureCollection",
                     "features": []
@@ -544,7 +547,7 @@ class FigureHandler(object):
             if feature['geometry']['coordinates']
         ]
         locations, values = np.array(loc_val).T if loc_val else ([], [])
-        # if DEBUG: print(varname, self.colormaps[varname], values)
+        if DEBUG: print(varname, self.colormaps[varname], values)
         return dict(
             type='choroplethmapbox',
             name=name+'_contours',
@@ -643,13 +646,30 @@ class FigureHandler(object):
             'step':   "{:02d}".format(tstep*FREQ),
         })
 
-    def retrieve_var_tstep(self, varname=None, tstep=0, static=True, aspect=(1,1)):
+    def hour_to_step(self, hour):
+        """ Convert hour to relative tstep """
+        cdatetime = self.rdatetime.date() + relativedelta(hours=hour)
+
+        for step in range(self.tim.size):
+            if self.retrieve_cdatetime(step) == cdatetime:
+                return step
+
+        return 0
+
+    def retrieve_var_tstep(self, varname=None, tstep=0, hour=None, static=True, aspect=(1,1), center=None):
         """ run plot """
-        self.fig = go.Figure()
-        tstep = int(tstep)
+
+        if hour is not None:
+            tstep = int(self.hour_to_step(hour))
+        else:
+            tstep = int(tstep)
+
         if varname is not None and self.model in OBS:
             varname = OBS[self.model]['obs_var']
 
+        if DEBUG: print('VARNAME', varname)
+
+        self.fig = go.Figure()
         if varname:
             if DEBUG: print('Adding contours ...')
             self.fig.add_trace(self.generate_contour_tstep_trace(varname, tstep))
@@ -681,7 +701,7 @@ class FigureHandler(object):
             uirevision=True,
             autosize=True,
             hovermode="closest",        # highlight closest point on hover
-            mapbox=self.get_mapbox(zoom=3-(0.5*aspect[0])),
+            mapbox=self.get_mapbox(zoom=3-(0.5*aspect[0]), center=center),
             # width="100%",
             updatemenus=[
                 # get_animation_buttons(),

@@ -283,7 +283,7 @@ def register_callbacks(app):
 
         figures = []
         if not model:
-            fig = get_figure(model, variable, date, tstep, static)
+            fig = get_figure(model, variable, date, tstep, static=static)
             figures.append(
                 dbc.Row([
                     dbc.Col([dbc.Spinner(
@@ -302,7 +302,7 @@ def register_callbacks(app):
                 get_graph(
                     index=mod,
                     figure=get_figure(mod, variable, date, tstep,
-                                      static, (nrows, ncols)),
+                        static=static, aspect=(nrows, ncols)),
                     style={'height': '{}vh'.format(int(90/nrows))}
                 ))
             )

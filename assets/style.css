@@ -32,13 +32,12 @@
     height: 85vh !important;
 }
 
-#graph-eval {
+#graph-eval-aeronet, #graph-eval-modis-obs, #graph-eval-modis-mod {
     padding: 0;
     margin: 0;
     height: 70vh !important;
 }
-/*
-*/
+
 /*
 #graph-collection {
     display: grid;
@@ -168,7 +167,7 @@ div.SingleDatePickerInput {
     background-color: #F1B545 !important;
 }
 
-#obs-dropdown {
+#obs-dropdown, #obs-mod-dropdown {
     min-width: 12rem;
 }
 

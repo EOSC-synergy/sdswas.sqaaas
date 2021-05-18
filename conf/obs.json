@@ -5,14 +5,15 @@
 	"mod_var": "OD550_DUST",
 	"template" : "{}_{}",
 	"sites": "./aeronet_sites.txt",
-	"path" : "/data/interactive_test/obs/aeronet/"
+	"path" : "/data/interactive_test/obs/aeronet/",
+	"name": "Aeronet v3 lev1.5"
     },
     "modis": {
 	"obs_var": "od550aero",
 	"mod_var": "OD550_DUST",
 	"template" : "{}_{}",
 	"path" : "/data/interactive_test/obs/modis/",
-	"name": "MODIS TerraAqua",
-	"title": "Observation for %(shour)s %(sday)s %(smonth)s %(syear)s"
+	"name": "MODIS DeepBlue",
+	"title": "Optical Depth (550nm)<br>for %(shour)sh %(sday)s %(smonth)s %(syear)s"
     }
 }

@@ -245,16 +245,15 @@ def register_callbacks(app):
     @app.callback(
        [Output('graph-eval-modis-obs', 'figure'),
         Output('graph-eval-modis-mod', 'figure')],
-       [Input('eval-date-picker', 'date')],
+       [Input('eval-date-picker', 'date'),
+        Input('obs-mod-dropdown', 'value')],
        [State('obs-dropdown', 'value'),
-        State('obs-mod-dropdown', 'value'),
         State('graph-eval-modis-obs', 'relayoutData'),
         State('graph-eval-modis-mod', 'relayoutData')],
         prevent_initial_call=True)
-    def update_eval_modis(date, obs, mod, relayoutdata_obs, relayoutdata_mod):
-        """ Update AERONET evaluation figure according to all parameters """
+    def update_eval_modis(date, mod, obs, relayoutdata_obs, relayoutdata_mod):
+        """ Update MODIS evaluation figure according to all parameters """
         from tools import get_figure
-        from tools import get_obs1d
         if DEBUG: print('SERVER: calling figure from EVAL picker callback')
         # if DEBUG: print('SERVER: interval ' + str(n))
 
@@ -269,8 +268,9 @@ def register_callbacks(app):
         else:
             date = end_date
 
-        fig_obs = get_figure(model=obs, var=DEFAULT_VAR, selected_date=date, tstep=3)
-        fig_mod = get_figure(model=mod, var=DEFAULT_VAR, selected_date=date, tstep=6)
+        fig_mod = get_figure(model=mod, var=DEFAULT_VAR, selected_date=date, tstep=0, hour=12)
+        center = fig_mod['layout']['mapbox']['center']
+        fig_obs = get_figure(model=obs, var=DEFAULT_VAR, selected_date=date, tstep=2, center=center)
 
         if fig_obs and relayoutdata_obs:
             relayoutdata_obs = {k: relayoutdata_obs[k]
@@ -284,16 +284,14 @@ def register_callbacks(app):
                             if k not in ('mapbox._derived',)}
             fig_mod.layout.update(relayoutdata_mod)
 
-        return [dbc.Row([dbc.Col(fig_obs, width=6),
-                dbc.Col(fig_mod, width=6)],
-                align='start',
-                no_gutters=True
-                )]
+        return fig_obs, fig_mod
+
 
     @app.callback(
         [Output('eval-date', 'children'),
          Output('eval-graph', 'children'),
-         Output('obs-dropdown', 'value')],
+         Output('obs-dropdown', 'value'),
+         Output('obs-mod-dropdown', 'style')],
         [Input('obs-dropdown', 'value')],
          prevent_initial_call=True)
     def update_eval(obs):
@@ -315,7 +313,9 @@ def register_callbacks(app):
                 updatemode='bothdates',
             )]
 
-            eval_graph = [get_graph(gid='graph-eval-aeronet', figure=get_figure())]
+            eval_graph = [dbc.Spinner(get_graph(gid='graph-eval-aeronet', figure=get_figure()))]
+
+            style = { 'display': 'none' }
 
         elif obs == 'modis':
 
@@ -329,15 +329,25 @@ def register_callbacks(app):
                 # with_portal=True,
             )]
 
-            fig_obs, fig_mod = [get_graph(gid='graph-eval-modis-obs', figure=get_figure()),
-                    get_graph(gid='graph-eval-modis-mod', figure=get_figure())]
-            eval_graph = [dbc.Row([dbc.Col(fig_obs, width=6),
-                dbc.Col(fig_mod, width=6)],
+            fig_mod = get_figure(model='median', var=DEFAULT_VAR,
+                    selected_date=end_date, tstep=0)
+            center = fig_mod['layout']['mapbox']['center']
+            fig_obs = get_figure(model=obs, var=DEFAULT_VAR,
+                    selected_date=end_date, tstep=2, center=center)
+            graph_obs, graph_mod = [
+                    dbc.Spinner(get_graph(gid='graph-eval-modis-obs', figure=fig_obs)),
+                    dbc.Spinner(get_graph(gid='graph-eval-modis-mod', figure=fig_mod))]
+            eval_graph = [dbc.Row([
+                    dbc.Col(graph_obs, width=6),
+                    dbc.Col(graph_mod, width=6)
+                ],
                 align='start',
                 no_gutters=True
                 )]
 
+            style = { 'display': 'block' }
+
         else:
             raise PreventUpdate
 
-        return eval_date, eval_graph, obs
+        return eval_date, eval_graph, obs, style
