@@ -297,28 +297,43 @@ class TimeSeriesHandler(object):
             model = self.model
 
         for mod in model:
+            if mod not in MODELS and mod in OBS:
+                filedir = OBS[mod]['path']
+                path_tpl = '{}-{}-{}_interp.ft'  # 202010-median-OD550_DUST_interp.ft
+            else:   # if mod in MODELS:
+                filedir = MODELS[mod]['path']
+                path_tpl = '{}-{}-{}.ft'  # 202010-median-OD550_DUST_interp.ft
+
             if method == 'feather':
-                path_template = '{}-{}-{}.ft'.format(self.month, mod, self.variable)
+                path_template = path_tpl.format(self.month, mod, self.variable)
             elif method == 'netcdf':
                 path_template = '{}*{}.nc'.format(self.month, MODELS[mod]['template'], self.variable)
-            fpath = os.path.join(MODELS[mod]['path'],
-                                    method,
-                                    path_template)
+
+            fpath = os.path.join(filedir,
+                                 method,
+                                 path_template)
+
             self.fpaths.append(fpath)
 
         title = "{} @ lat = {} and lon = {}".format(
             VARS[self.variable]['name'], round(lat, 2), round(lon, 2)
         )
+
         fig = go.Figure()
 
         for mod, fpath in zip(model, self.fpaths):
             # print(mod, fpath)
-            ts_lat, ts_lon, ts_index, ts_values = retrieve_timeseries(fpath, lat, lon, self.variable, method=method)
+            if mod not in MODELS and mod in OBS:
+                variable = OBS[mod]['obs_var']
+            else:
+                variable = self.variable
+            ts_lat, ts_lon, ts_index, ts_values = retrieve_timeseries(fpath, lat, lon, variable, method=method)
 
             fig.add_trace(dict(
                     type='scatter',
                     name="{} ({}, {})".format(
-                        mod.upper(), ts_lat.round(2), ts_lon.round(2)),
+                        mod.upper(), round(ts_lat, 2), round(ts_lon, 2)),
+                        # mod.upper(), ts_lat.round(2), ts_lon.round(2)),
                     x=ts_index,
                     y=ts_values,
                     mode='lines+markers',

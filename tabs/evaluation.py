@@ -37,10 +37,22 @@ eval_time_series = dbc.Spinner(
                 id='ts-eval-modal',
                 size='xl',
                 centered=True,
+                is_open=False,
+            ),
+            dbc.Modal([
+                dbc.ModalBody(
+                    dcc.Graph(
+                        id='timeseries-eval-modis-modal',
+                        figure={},
+                    )
+                )],
+                id='ts-eval-modis-modal',
+                size='xl',
+                centered=True,
+                is_open=False,
             )
-        ],
-        style={'display': 'none'},
-    )],
+        ],),
+    ],
 )
 
 

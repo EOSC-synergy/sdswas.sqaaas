@@ -164,6 +164,33 @@ def register_callbacks(app):
         # print(columns, data)
         return tables
 
+    @app.callback(
+        [Output('ts-eval-modis-modal', 'children'),
+         Output('ts-eval-modis-modal', 'is_open')],
+        [Input('graph-eval-modis-obs', 'clickData')],
+        [State('eval-date-picker', 'date'),
+         State('obs-dropdown', 'value')],
+        prevent_initial_call=True
+    )
+    def show_eval_modis_timeseries(obs_cdata, date, obs):
+        """ Retrieve MODIS evaluation timeseries according to station selected """
+        from tools import get_timeseries
+        lat = lon = None
+        print(obs_cdata, date)
+        if obs_cdata:
+            lat = obs_cdata['points'][0]['lat']
+            lon = obs_cdata['points'][0]['lon']
+
+            models = [obs] + [model for model in MODELS]
+            if DEBUG: print('SHOW MODIS EVAL TS"""""', obs_cdata, lat, lon)
+            return dbc.ModalBody(
+                dcc.Graph(
+                    id='timeseries-eval-modal',
+                    figure=get_timeseries(models, date, DEFAULT_VAR, lat, lon),
+                )
+            ), True
+ 
+        return dash.no_update, False  # PreventUpdate
 
     @app.callback(
         [Output('ts-eval-modal', 'children'),
@@ -174,8 +201,8 @@ def register_callbacks(app):
          State('obs-dropdown', 'value')],
         prevent_initial_call=True
     )
-    def show_eval_timeseries(cdata, start_date, end_date, obs):
-        """ Retrieve evaluation timeseries according to station selected """
+    def show_eval_aeronet_timeseries(cdata, start_date, end_date, obs):
+        """ Retrieve AERONET evaluation timeseries according to station selected """
         from tools import get_eval_timeseries
         print(start_date, end_date, obs, cdata)
         if cdata:
@@ -183,7 +210,7 @@ def register_callbacks(app):
             if idx != 0:
                 name = cdata['points'][0]['customdata']
 
-                if DEBUG: print('SHOW EVAL TS"""""', obs, idx, name)
+                if DEBUG: print('SHOW AERONET EVAL TS"""""', obs, idx, name)
                 return dbc.ModalBody(
                     dcc.Graph(
                         id='timeseries-eval-modal',

@@ -55,8 +55,12 @@ def retrieve_timeseries(fname, lat, lon, variable, method='netcdf'):
         else:
             lat_col = 'latitude'
             lon_col = 'longitude'
-        n_lon = find_nearest(df[lon_col].values, lon)
-        n_lat = find_nearest(df[lat_col].values, lat)
+
+        print("LAT LON", lat, lon)
+        n_lon = np.isin(lon, df[lon_col].values) and lon or find_nearest(df[lon_col].values, lon)
+        n_lat = np.isin(lat, df[lat_col].values) and lat or find_nearest(df[lat_col].values, lat)
+        print("NLAT", df[lat_col] == n_lat)
+        print("NLON", df[lon_col] == n_lon)
         ts = df.loc[(df[lat_col] == n_lat) &
                     (df[lon_col] == n_lon), 
                     ('time', variable)].set_index('time')
@@ -75,7 +79,12 @@ def retrieve_timeseries(fname, lat, lon, variable, method='netcdf'):
 
 
 def find_nearest(array, value):
-    """ Find the nearest values of a couple of coordinates """
+    """ Find the nearest value of a couple of coordinates """
+    return array[np.abs(array-value).argmin()]
+
+
+def find_nearest2(array, value):
+    """ Find the nearest value of a couple of coordinates """
     idx = np.searchsorted(array, value, side="left")
     if idx > 0 and (idx == len(array) or math.fabs(value - array[idx-1]) <
                     math.fabs(value - array[idx])):
