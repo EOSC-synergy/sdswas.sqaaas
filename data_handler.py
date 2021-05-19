@@ -296,9 +296,11 @@ class TimeSeriesHandler(object):
         if not model:
             model = self.model
 
+        obs_eval = model[0] not in MODELS and model[0] in OBS 
+
         for mod in model:
-            if mod not in MODELS and mod in OBS:
-                filedir = OBS[mod]['path']
+            if obs_eval:
+                filedir = OBS[model[0]]['path']
                 path_tpl = '{}-{}-{}_interp.ft'  # 202010-median-OD550_DUST_interp.ft
             else:   # if mod in MODELS:
                 filedir = MODELS[mod]['path']
@@ -329,14 +331,31 @@ class TimeSeriesHandler(object):
                 variable = self.variable
             ts_lat, ts_lon, ts_index, ts_values = retrieve_timeseries(fpath, lat, lon, variable, method=method)
 
+            if obs_eval and mod == model[0]:
+                sc_mode = 'markers'
+                marker = {'size': 10, 'symbol': "triangle-up-dot"}
+                visible = True
+                name = "{}".format(mod.upper())
+            elif obs_eval:
+                sc_mode = 'lines+markers'
+                marker = {'size': 5}
+                visible = 'legendonly'
+                name = "{}".format(mod.upper())
+            else:
+                sc_mode = 'lines+markers'
+                marker = {'size': 5}
+                visible = True 
+                name = "{} ({}, {})".format(
+                        mod.upper(), round(ts_lat, 2), round(ts_lon, 2))
+
             fig.add_trace(dict(
                     type='scatter',
-                    name="{} ({}, {})".format(
-                        mod.upper(), round(ts_lat, 2), round(ts_lon, 2)),
-                        # mod.upper(), ts_lat.round(2), ts_lon.round(2)),
+                    name=name,
                     x=ts_index,
                     y=ts_values,
-                    mode='lines+markers',
+                    mode=sc_mode,
+                    marker=marker,
+                    visible=visible,
                 )
             )
         fig.update_layout(
