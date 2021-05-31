@@ -12,6 +12,7 @@ from shapely import geometry
 import json
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
+from collections import OrderedDict
 import calendar
 import os
 
@@ -47,6 +48,8 @@ OBS = json.load(open(os.path.join(DIR_PATH, 'conf/obs.json')))
 WAS = json.load(open(os.path.join(DIR_PATH, 'conf/was.json')))
 PROB = json.load(open(os.path.join(DIR_PATH, 'conf/prob.json')))
 DATES = json.load(open(os.path.join(DIR_PATH, 'conf/dates.json')))
+
+STATS = OrderedDict({ 'bias': 'BIAS', 'corr': 'CORR', 'rmse': 'RMSE', 'frge': 'FRGE', 'totn': 'CASES' })
 
 # Frequency = 3 Hourly
 FREQ = 3

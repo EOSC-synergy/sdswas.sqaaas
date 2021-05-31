@@ -10,14 +10,12 @@ from data_handler import MODELS
 from data_handler import OBS
 from data_handler import STYLES
 from data_handler import DATES
+from data_handler import STATS
 
-from collections import OrderedDict
 from datetime import datetime as dt
 
 start_date = DATES['start_date']
 end_date = DATES['end_date']
-
-STATS = OrderedDict({ 'bias': 'BIAS', 'corr': 'CORR', 'rmse': 'RMSE', 'totn': 'CASES' })
 
 eval_time_series = dbc.Spinner(
     id='loading-ts-eval-modal',
@@ -131,6 +129,18 @@ def tab_evaluation(window='nrt'):
         ),
         html.Span(
             dcc.Dropdown(
+                id='obs-network-dropdown',
+                options=[{'label': OBS[obs]['name'],
+                          'value': obs} for obs in OBS],
+                placeholder='Select observation network',
+                # clearable=False,
+                searchable=False
+            ),
+            style={ 'width': '12rem' },
+            className="linetool",
+        ),
+        html.Span(
+            dcc.Dropdown(
                 id='obs-models-dropdown',
                 options=[{'label': MODELS[model]['name'],
                           'value': model} for model in MODELS],
@@ -158,22 +168,13 @@ def tab_evaluation(window='nrt'):
         ),
         html.Span(
             dcc.Dropdown(
-                id='obs-network-dropdown',
-                options=[{'label': 'Aeronet v3 lev15',
-                        'value': 'aeronet'}],
-                placeholder='Select observation network',
-                # clearable=False,
-                searchable=False
-            ),
-            style={ 'width': '10rem' },
-            className="linetool",
-        ),
-        html.Span(
-            dcc.Dropdown(
                 id='obs-timescale-dropdown',
-                options=[{'label': 'Monthly',
-                        'value': 'monthly'}],
-                placeholder='Select observation network',
+                options=[
+                    {'label': 'Monthly', 'value': 'monthly'},
+                    {'label': 'Seasonal', 'value': 'seasonal'},
+                    {'label': 'Annual', 'value': 'annual'},
+                ],
+                placeholder='Select timescale',
                 value='montly',
                 # clearable=False,
                 searchable=False
@@ -185,12 +186,12 @@ def tab_evaluation(window='nrt'):
             dcc.Dropdown(
                 id='obs-selection-dropdown',
                 options=[
-                    {'label': '{}'.format(dt.strftime(dt.strptime(month, "%Y%m"), "%B %Y")),
-                     'value': '{}'.format(month)}
-                     for month in ['202010', '202011', '202012']
-                     ],
-                placeholder='Select observation network',
-                value='montly',
+#                     {'label': '{}'.format(dt.strftime(dt.strptime(month, "%Y%m"), "%B %Y")),
+#                      'value': '{}'.format(month)}
+#                      for month in ['202010', '202011', '202012']
+                ],
+                placeholder='Select month',
+                # value='montly',
                 # clearable=False,
                 searchable=False
             ),
@@ -203,7 +204,59 @@ def tab_evaluation(window='nrt'):
         ),
         html.Div([
             dash_table.DataTable(
-                id='scores-table-{}'.format(score),
+                id='modis-scores-table',
+                columns=[],
+                data=[],
+                style_cell={
+                    'whiteSpace': 'normal',
+                    'height': 'auto',
+                    'textAlign': 'center',
+                    'font-family': '"Roboto", sans-serif',
+                },
+#                 style_data_conditional=[
+#                     {
+#                         'if': {'column_id': 'station'},
+#                         'textAlign': 'left',
+#                         'padding': '0.1rem 1rem',
+#                     },
+#                     {
+#                         "if": {
+#                             "state": "selected"
+#                             },
+#                         "backgroundColor": "inherit !important",
+#                         "border": "inherit !important",
+#                     },
+#                     {
+#                         "if": {
+#                             'filter_query': '{station} = "Mediterranean" || {station} = "Middle_East" || {station} = "Sahel/Sahara" || {station} = "Total"',
+#                             },
+#                         "fontWeight": "bold",
+#                         'padding': '1rem',
+#                     },
+#                     {
+#                         "if": {
+#                             'filter_query': '{station} = "Total"',
+#                             },
+#                         "backgroundColor": "#F0F1F2",
+#                     }
+#                 ],
+                style_header={
+                    'backgroundColor': '#2B383E',
+                    'fontWeight': 'bold',
+                    'color': '#FFFFFF',
+                    'textAlign': 'center',
+                },
+                style_header_conditional=[
+                    {
+                        'if': {'header_index': 0},
+                        'backgroundColor': '#F1B545',
+                        'color': '#2B383E',
+                    },
+                ],
+                merge_duplicate_headers=True,
+            )] + [
+            dash_table.DataTable(
+                id='aeronet-scores-table-{}'.format(score),
                 columns=[],  #get_scores_table(),
                 data=[],
                 style_cell={

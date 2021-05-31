@@ -67,30 +67,114 @@ def register_callbacks(app):
 
         raise PreventUpdate
 
+    @app.callback(
+        [Output('obs-selection-dropdown','options')],
+        [Input('obs-timescale-dropdown', 'value')],
+        prevent_initial_call=True
+    )
+    def update_time_selection(timescale):
+
+        if timescale is None:
+            raise PreventUpdate
+
+        seasons = {
+               '03': 'Spring',
+               '06': 'Summer',
+               '09': 'Autumn',
+               '12': 'Winter'
+                }
+
+        if timescale == 'seasonal':
+            ret = [{
+                'label' : '{} {}'.format(seasons[mon.strftime('%m')],
+                    mon.strftime('%Y')),
+                'value' : '{}{}'.format(seasons[mon.strftime('%m')],
+                    mon.strftime('%Y'))
+                }
+                for mon in pd.date_range(start_date, end_date, freq='Q')]
+        elif timescale == 'annual':
+            ret = [{
+                'label': mon.strftime('%Y'),
+                'value': mon.strftime('%Y'),
+                } for mon in 
+                pd.date_range(start_date, end_date, freq='A')]
+        else:   # timescale == 'monthly':
+            ret = [{
+                'label': mon.strftime('%B %Y'),
+                'value': mon.strftime('%Y%m'),
+                } for mon in 
+                pd.date_range(start_date, end_date, freq='M')]
+    
+        return [ret]
 
     @app.callback(
-        extend_l([[Output('scores-table-{}'.format(score), 'columns'),
-           Output('scores-table-{}'.format(score), 'data')]
-            for score in SCORES]),
+        [Output('modis-scores-table', 'columns'),
+         Output('modis-scores-table', 'data')] +
+        [Output('aeronet-scores-table-{}'.format(score), 'style')
+            for score in SCORES],
+        [Input('obs-models-dropdown', 'value'),
+         Input('obs-statistics-dropdown', 'value'),
+         Input('obs-network-dropdown', 'value'),
+         Input('obs-timescale-dropdown', 'value'),
+         Input('obs-selection-dropdown', 'value'),
+         Input('scores-apply', 'n_clicks')],
+        prevent_initial_call=True
+    )
+    def modis_scores_tables_retrieve(models, stat, network, timescale, selection, n):
+        """ Read scores tables and show data """
+
+        if not n or network != 'modis':
+            raise PreventUpdate
+
+        if isinstance(models, str):
+            models = [models]
+
+        if isinstance(stat, str):
+            stat = [stat]
+
+        stat = ['model'] + stat
+
+        if DEBUG: print("###########", models, stat, network, timescale, selection, n)
+        filedir = OBS[network]['path']
+        filename = "{}_scores.h5".format(selection)
+        tab_name = "total_{}".format(selection)
+        filepath = os.path.join(filedir, "h5", filename)
+        df = pd.read_hdf(filepath, tab_name)
+        ret = df.loc[df['model'].isin(models), stat]
+        ret['model'] = ret['model'].map({k:MODELS[k]['name'] for k in MODELS})
+        if DEBUG: print('---', ret.columns)
+        if DEBUG: print('---', ret.to_dict('records'))
+        columns = [{'name': i in SCORES and
+            STATS[i] or '', 'id': i} for
+            i in stat]
+        if DEBUG: print([ { 'display': 'none' } for score in SCORES ])
+        return [columns, ret.to_dict('records')] + [ { 'display': 'none' } for score in SCORES ]
+
+    @app.callback(
+        extend_l([[Output('aeronet-scores-table-{}'.format(score), 'columns'),
+           Output('aeronet-scores-table-{}'.format(score), 'data')]
+            for score in SCORES]) +
+        [Output('modis-scores-table', 'style')],
         [Input('obs-models-dropdown', 'value'),
          Input('obs-statistics-dropdown', 'value'),
          Input('obs-network-dropdown', 'value'),
          Input('obs-timescale-dropdown', 'value'),
          Input('obs-selection-dropdown', 'value'),
          Input('scores-apply', 'n_clicks'),
-        *[Input('scores-table-{}'.format(score), 'active_cell')
+        *[Input('aeronet-scores-table-{}'.format(score), 'active_cell')
             for score in SCORES]],
-        extend_l([[State('scores-table-{}'.format(score), 'columns'),
-           State('scores-table-{}'.format(score), 'data')]
+        extend_l([[State('aeronet-scores-table-{}'.format(score), 'columns'),
+           State('aeronet-scores-table-{}'.format(score), 'data')]
             for score in SCORES]),
+        prevent_initial_call=True
     )
-    def scores_tables_retrieve(models, stat, network, timescale, selection, n, *tables):
+    def aeronet_scores_tables_retrieve(models, stat, network, timescale, selection, n, *tables):
         """ Read scores tables and show data """
 
-        areas = ['Mediterranean', 'Middle_East', 'Sahel/Sahara', 'Total']
-
-        if not n:
+        if not n or network != 'aeronet':
             raise PreventUpdate
+
+        areas = ['Mediterranean', 'Middle_East', 'Sahel/Sahara', 'Total']
 
         active_cells = list(tables[:len(SCORES)])
         tables = list(tables[len(SCORES):])
@@ -162,7 +246,7 @@ def register_callbacks(app):
                 tables[obj_idx+1] = []
 
         # print(columns, data)
-        return tables
+        return tables + [{ 'display': 'none' }]
 
     @app.callback(
         [Output('ts-eval-modis-modal', 'children'),
