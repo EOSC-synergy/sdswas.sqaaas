@@ -207,6 +207,7 @@ def tab_evaluation(window='nrt'):
                 id='modis-scores-table',
                 columns=[],
                 data=[],
+                # style_table={ 'display': 'none' },
                 style_cell={
                     'whiteSpace': 'normal',
                     'height': 'auto',
@@ -259,6 +260,7 @@ def tab_evaluation(window='nrt'):
                 id='aeronet-scores-table-{}'.format(score),
                 columns=[],  #get_scores_table(),
                 data=[],
+                # style_table={ 'display': 'none' },
                 style_cell={
                     'whiteSpace': 'normal',
                     'height': 'auto',

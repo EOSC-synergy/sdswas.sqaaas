@@ -31,6 +31,7 @@ from tabs.evaluation import sidebar_evaluation
 from tabs.evaluation_callbacks import register_callbacks as eval_callbacks
 from tabs.observations import tab_observations
 from tabs.observations import sidebar_observations
+from tabs.observations_callbacks import register_callbacks as obs_callbacks
 
 
 TIMEOUT = 10
@@ -73,7 +74,7 @@ app.layout = html.Div(
         dcc.Tabs(id='app-tabs', value='forecast-tab', children=[
             tab_forecast(),
             tab_evaluation(),
-            tab_observations,
+            tab_observations(),
         ]),
     ],
     className="content",
@@ -111,6 +112,7 @@ def render_sidebar(tab):
 
 fcst_callbacks(app)
 eval_callbacks(app)
+obs_callbacks(app)
 
 
 if __name__ == '__main__':

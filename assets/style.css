@@ -126,6 +126,28 @@
     margin-right: 0;
 }
 
+#obs-date-picker #date {
+    color: #F1B545 !important;
+    background-color: #2B383E !important;
+    border: none !important;
+    font-family: "Roboto", sans-serif !important;
+    font-size: small !important;
+    text-transform: uppercase;
+    padding: 0.9rem;
+    margin-right: 0;
+}
+
+#obs-aod-date-picker #date {
+    color: #F1B545 !important;
+    background-color: #2B383E !important;
+    border: none !important;
+    font-family: "Roboto", sans-serif !important;
+    font-size: small !important;
+    text-transform: uppercase;
+    padding: 0.9rem;
+    margin-right: 0;
+}
+
 .DateInput_input {
     padding: 0;
     margin: 0;
@@ -153,6 +175,22 @@ div.SingleDatePickerInput {
     width: 30rem;
 }
 
+#obs-slider-graph {
+    width: 30rem;
+}
+
+#obs-aod-slider-graph {
+    width: 30rem;
+}
+
+#rgb-image {
+    height: 35rem;
+}
+
+#aod-image {
+    height: 35rem;
+}
+
 #btn-play {
     margin: 0.4rem 0;
     border: none;
@@ -167,8 +205,72 @@ div.SingleDatePickerInput {
     background-color: #F1B545 !important;
 }
 
+#btn-obs-play {
+    margin: 0.4rem 0;
+    border: none;
+    padding: 0.2rem 0.6rem;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    border-radius: 50%;
+}
+
+#btn-obs-play:hover {
+    background-color: #F1B545 !important;
+}
+
+#btn-obs-aod-play {
+    margin: 0.4rem 0;
+    border: none;
+    padding: 0.2rem 0.6rem;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    border-radius: 50%;
+}
+
+#btn-obs-aod-play:hover {
+    background-color: #F1B545 !important;
+}
+
+#btn-obs-aod-play:active {
+    background-color: #F1B545 !important;
+    border: 0 !important;
+}
+
+#btn-obs-aod-play:focus {
+    background-color: #F1B545 !important;
+    border: 0 !important;
+}
+
 #obs-dropdown, #obs-mod-dropdown {
     min-width: 12rem;
+}
+
+#rgb-buttons {
+    display: block;
+    float: left;
+    margin: 1rem;
+}
+
+#rgb-buttons .btn {
+    display: block;
+    width: 8rem;
+    margin: 0.5rem;
+    border-radius: 0;
+    border: solid 3px #2B383E !important;
+    background-color: #FFFFFF !important;
+    color: #2B383E !important;
+}
+
+#rgb-buttons .btn:hover {
+    background-color: #2B383E !important;
+    color: #FFFFFF !important;
+}
+
+#rgb-buttons .active {
+    background-color: #2B383E !important;
+    color: #FFFFFF !important;
 }
 
 .linetool {

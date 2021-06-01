@@ -109,9 +109,8 @@ def register_callbacks(app):
 
     @app.callback(
         [Output('modis-scores-table', 'columns'),
-         Output('modis-scores-table', 'data')] +
-        [Output('aeronet-scores-table-{}'.format(score), 'style')
-            for score in SCORES],
+         Output('modis-scores-table', 'data'),
+         Output('modis-scores-table', 'style_table')],
         [Input('obs-models-dropdown', 'value'),
          Input('obs-statistics-dropdown', 'value'),
          Input('obs-network-dropdown', 'value'),
@@ -124,7 +123,7 @@ def register_callbacks(app):
         """ Read scores tables and show data """
 
         if not n or network != 'modis':
-            raise PreventUpdate
+            return dash.no_update, dash.no_update, { 'display': 'none' }
 
         if isinstance(models, str):
             models = [models]
@@ -147,14 +146,13 @@ def register_callbacks(app):
         columns = [{'name': i in SCORES and
             STATS[i] or '', 'id': i} for
             i in stat]
-        if DEBUG: print([ { 'display': 'none' } for score in SCORES ])
-        return [columns, ret.to_dict('records')] + [ { 'display': 'none' } for score in SCORES ]
+        return columns, ret.to_dict('records'), { 'display': 'block' }
 
     @app.callback(
         extend_l([[Output('aeronet-scores-table-{}'.format(score), 'columns'),
-           Output('aeronet-scores-table-{}'.format(score), 'data')]
-            for score in SCORES]) +
-        [Output('modis-scores-table', 'style')],
+           Output('aeronet-scores-table-{}'.format(score), 'data'),
+           Output('aeronet-scores-table-{}'.format(score), 'style_table')]
+            for score in SCORES]),
         [Input('obs-models-dropdown', 'value'),
          Input('obs-statistics-dropdown', 'value'),
          Input('obs-network-dropdown', 'value'),
@@ -164,7 +162,8 @@ def register_callbacks(app):
         *[Input('aeronet-scores-table-{}'.format(score), 'active_cell')
             for score in SCORES]],
         extend_l([[State('aeronet-scores-table-{}'.format(score), 'columns'),
-           State('aeronet-scores-table-{}'.format(score), 'data')]
+           State('aeronet-scores-table-{}'.format(score), 'data'),
+           State('aeronet-scores-table-{}'.format(score), 'style_table')]
             for score in SCORES]),
         prevent_initial_call=True
     )
@@ -172,7 +171,7 @@ def register_callbacks(app):
         """ Read scores tables and show data """
 
         if not n or network != 'aeronet':
-            raise PreventUpdate
+            return extend_l([[dash.no_update, dash.no_update, { 'display': 'none' }] for score in SCORES])
 
         areas = ['Mediterranean', 'Middle_East', 'Sahel/Sahara', 'Total']
 
@@ -187,13 +186,13 @@ def register_callbacks(app):
 
         models = ['station'] + models
 
-        if DEBUG: print("@@@@@@@@@@@", models, stat, network, timescale, selection, n)
+        if DEBUG: print("@@@@@@@@@@@", models, stat, network, timescale, selection, n, len(tables))
         filedir = OBS[network]['path']
 
         stat_idxs = [SCORES.index(st) for st in stat]
 
-        for table_idx in range(int(len(tables)/2)):
-            obj_idx = table_idx * 2
+        for table_idx in range(int(len(tables)/3)):
+            obj_idx = table_idx * 3
             curr_columns = tables[obj_idx]
             curr_data = tables[obj_idx+1]
             if active_cells[table_idx] is not None and \
@@ -245,8 +244,10 @@ def register_callbacks(app):
                 tables[obj_idx] = []
                 tables[obj_idx+1] = []
 
-        # print(columns, data)
-        return tables + [{ 'display': 'none' }]
+            tables[obj_idx+2] = { 'display': 'block' }
+
+        print('LEN', len(tables))
+        return tables
 
     @app.callback(
         [Output('ts-eval-modis-modal', 'children'),

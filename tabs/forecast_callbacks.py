@@ -188,6 +188,9 @@ def register_callbacks(app):
     def show_timeseries(date, cdata, element, model, variable):
         """ Renders model comparison timeseries """
         from tools import get_timeseries
+        if cdata is None:
+            raise PreventUpdate
+
         lat = lon = None
         for click, elem in zip(cdata, element):
             if elem['index'] in model and click:
@@ -204,7 +207,7 @@ def register_callbacks(app):
                 )
             ), True
 
-        raise PreventUpdate
+        return dash.no_update, False
 
     # start/stop animation
     @app.callback(
