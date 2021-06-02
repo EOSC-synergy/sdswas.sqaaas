@@ -9,6 +9,6 @@
         "name": "Dust Surface Concentration (µg/m³)",
         "bounds": [5, 20, 50, 200, 500, 2000, 5000, 20000, 100000],
         "mul": 1e9,
-        "title": "Dust Surface Conc. (µg/m³)<br>Run: %(rhour)sh %(rday)s %(rmonth)s %(ryear)s<br>Valid: %(shour)sh %(sday)s %(smonth)s %(syear)s (H+%(step)s)"
+        "title": "Dust Surface Concentration (µg/m³)<br>Run: %(rhour)sh %(rday)s %(rmonth)s %(ryear)s<br>Valid: %(shour)sh %(sday)s %(smonth)s %(syear)s (H+%(step)s)"
     }
 }

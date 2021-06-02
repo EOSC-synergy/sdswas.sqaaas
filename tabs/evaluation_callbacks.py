@@ -207,8 +207,8 @@ def register_callbacks(app):
                 df = pd.read_hdf(filepath, tab_name)  # .round(decimals=2).fillna('-')
                 # replace "tables" columns
                 tables[obj_idx] = [{'name': i in MODELS and
-                    [SCORES[table_idx].upper(), MODELS[i]['name']] or
-                    [SCORES[table_idx].upper(), ''], 'id': i} for
+                    [STATS[SCORES[table_idx]], MODELS[i]['name']] or
+                    [STATS[SCORES[table_idx]], ''], 'id': i} for
                     i in models]
                 # replace "tables" data
                 if curr_active_cell is not None:

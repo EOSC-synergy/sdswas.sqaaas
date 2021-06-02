@@ -96,7 +96,7 @@ def get_vis_figure(tstep=0, selected_date=end_date):
 
 #@app.app_context
 #@cache.cached(timeout=60, key_prefix='figure')
-def get_figure(model=None, var=None, selected_date=end_date, tstep=0,hour=None, static=True, aspect=(1, 1), center=None):
+def get_figure(model=None, var=None, selected_date=end_date, tstep=0, hour=None, static=True, aspect=(1, 1), center=None):
     """ Retrieve figure """
     #if DEBUG: print("***", model, var, selected_date, tstep, hour, "***")
     try:

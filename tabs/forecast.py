@@ -178,6 +178,7 @@ def tab_forecast(window='models'):
             layout_layers,
             ],
             id='layout-dropdown',
+            className="layout-dropdown",
         ),
         time_series,
     ]
@@ -194,6 +195,7 @@ def tab_forecast(window='models'):
             layout_view,
             ],
             id='layout-dropdown',
+            className="layout-dropdown",
         ),
     ]
 
@@ -209,6 +211,7 @@ def tab_forecast(window='models'):
             layout_view,
             ],
             id='layout-dropdown',
+            className="layout-dropdown",
         ),
     ]
 
@@ -305,6 +308,28 @@ def sidebar_forecast(variables, default_var, models, default_model):
         ),
     ],
     className="accordion"
+    ),
+    html.Div([
+        dbc.Button(
+            "Info",
+            id="info-button",
+            className="mr-1",
+        ),
+        dbc.Button(
+            "Download",
+            id="download-button",
+            className="mr-1",
+        ),
+        dbc.Collapse(
+            dbc.Card(dbc.CardBody("This INFO content is hidden in the collapse")),
+            id="info-collapse",
+        ),
+        dbc.Collapse(
+            dbc.Card(dbc.CardBody("This DOWNLOAD content is hidden in the collapse")),
+            id="download-collapse",
+        ),
+    ],
+    className="sidebar-bottom",
     )
 ]
 

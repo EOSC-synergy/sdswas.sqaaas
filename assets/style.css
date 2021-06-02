@@ -18,6 +18,11 @@
     padding-bottom: 0.8rem !important;
     width: calc(100%/8) !important;
 }
+
+.graph-with-slider {
+    height: 90vh !important;
+}
+
 #graph-collection {
     padding: 0;
     margin: 0;
@@ -28,10 +33,23 @@
     height: 85vh !important;
 }
 
+#obs-vis-graph {
+    height: 70vh !important;
+}
+
+#obs-vis-graph .graph-with-slider {
+    height: 75vh !important;
+}
+
 #graph-eval-aeronet, #graph-eval-modis-obs, #graph-eval-modis-mod {
     padding: 0;
     margin: 0;
     height: 70vh !important;
+}
+
+#eval-tables {
+    height: 60vh !important;
+    overflow: auto;
 }
 
 /*
@@ -125,8 +143,8 @@ div.SingleDatePickerInput {
     width: 30rem;
 }
 
-#rgb-image, #aod-image, #vis-graph {
-    height: 35rem;
+#rgb-image, #aod-image {
+    height: 68vh;
 }
 
 .timesliderline>button {
@@ -202,13 +220,13 @@ div.SingleDatePickerInput {
     background-color: #2B383E !important;
 }
 
-#layout-dropdown {
+.layout-dropdown {
     display: inline-flex;
     float: left;
     margin-left: 1rem;
 }
 
-#layout-dropdown #map-view-dropdown>button {
+.layout-dropdown #map-view-dropdown>button {
     margin-left: 1rem;
     width: 8rem;
     border-radius: 0 !important;
@@ -220,14 +238,14 @@ div.SingleDatePickerInput {
     border: 0 !important;
 }
 
-#layout-dropdown #map-layers-dropdown>button {
+.layout-dropdown #map-layers-dropdown>button {
     margin-left: 1rem;
     width: 8rem;
     border-radius: 0 !important;
     background-color: #2B383E !important;
 }
 
-#layout-dropdown .dropdown-menu {
+.layout-dropdown .dropdown-menu {
     min-width: 8rem;
     width: 8rem;
     border-radius: 0 !important;
@@ -236,7 +254,7 @@ div.SingleDatePickerInput {
     margin-top: 0;
 }
 
-#layout-dropdown .dropdown-item {
+.layout-dropdown .dropdown-item {
     text-align: center;
     text-transform: uppercase;
     font-size: smaller;

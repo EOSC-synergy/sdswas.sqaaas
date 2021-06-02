@@ -49,7 +49,7 @@ WAS = json.load(open(os.path.join(DIR_PATH, 'conf/was.json')))
 PROB = json.load(open(os.path.join(DIR_PATH, 'conf/prob.json')))
 DATES = json.load(open(os.path.join(DIR_PATH, 'conf/dates.json')))
 
-STATS = OrderedDict({ 'bias': 'BIAS', 'corr': 'CORR', 'rmse': 'RMSE', 'frge': 'FRGE', 'totn': 'CASES' })
+STATS = OrderedDict({ 'bias': 'BIAS', 'corr': 'CORRELATION', 'rmse': 'ROOT MEAN SQUARED ERR', 'frge': 'FRACTIONAL GROSS ERR', 'totn': 'TOTAL CASES' })
 
 # Frequency = 3 Hourly
 FREQ = 3
@@ -247,7 +247,7 @@ class ObsTimeSeriesHandler(object):
 
         fig.update_layout(
             title=dict(text=title, x=0.45, y=1.),
-            uirevision=True,
+            # uirevision=True,
             autosize=True,
             showlegend=True,
             hovermode="x",        # highlight closest point on hover
@@ -363,7 +363,7 @@ class TimeSeriesHandler(object):
             )
         fig.update_layout(
             title=dict(text=title, x=0.45, y=1.),
-            uirevision=True,
+            # uirevision=True,
             autosize=True,
             showlegend=True,
             # hovermode="closest",        # highlight closest point on hover
@@ -500,7 +500,7 @@ class FigureHandler(object):
         else:
             center = go.layout.mapbox.Center({'lat': 30, 'lon': 15})
         mapbox_dict = dict(
-            uirevision=True,
+            uirevision='forecast-multimodel',  # True,
             style=style,
             bearing=0,
             center=center,
@@ -735,7 +735,7 @@ class FigureHandler(object):
             fig_title={}
         self.fig.update_layout(
             title=fig_title,
-            uirevision=True,
+            uirevision='forecast-multimodel',  # True,
             autosize=True,
             hovermode="closest",        # highlight closest point on hover
             mapbox=self.get_mapbox(zoom=3-(0.5*aspect[0]), center=center),
@@ -834,8 +834,8 @@ class VisFigureHandler(object):
 
     def set_data(self, tstep=0):
         """ Set time dependent data """
-        tstep0 = tstep*self.freq
-        tstep1 = (tstep+1)*self.freq
+        tstep0 = tstep
+        tstep1 = tstep + self.freq
 
         year = datetime.strptime(self.selected_date_plain, '%Y%m%d').strftime('%Y')
         month = datetime.strptime(self.selected_date_plain, '%Y%m%d').strftime('%m')
@@ -843,49 +843,35 @@ class VisFigureHandler(object):
 
         data = pd.read_table(self.path_tpl.format(year=year, month=month, day=day, tstep0=tstep0, tstep1=tstep1))
 
-        # colors
+        # uncertain
         cx = np.where((data['WW'].astype(str) == "HZ") | (data['WW'].astype(str) == "5")| (data['WW'].astype(str) == "05"))
 
+        # vis <= 1km
         c0t = np.where((data['VV'] <= 1000))[0]
         c0x = np.where([c0t == i for i in cx[0]])[-1]
         c0 = (np.delete(c0t, c0x),)
 
+        # vis 1km <= 2km
         c1t = np.where((data['VV'] > 1000) & (data['VV'] <= 2000))[0]
         c1x = np.where([c1t == i for i in cx[0]])[-1]
         c1 = (np.delete(c1t, c1x),)
 
+        # vis 2km <= 5km
         c2t = np.where((data['VV'] > 2000) & (data['VV'] <= 5000))[0]
         c2x = np.where([c2t == i for i in cx[0]])[-1]
         c2 = (np.delete(c2t, c2x),)
 
         xlon = data['LON'].values
         ylat = data['LAT'].values
+        stats = data['STATION'].values
 
-#         if c0[0].size > 0:
-#             mp.scatter(x[c0], y[c0], s=SZ, c=COLORS[0], marker='o', label=label0, edgecolor=EC, alpha=AL)
-#         else:
-#             mp.scatter([-1], [-1], s=SZ, c=COLORS[0], marker='o', label=label0, edgecolor=EC, alpha=AL)
-#         if c1[0].size > 0:
-#             mp.scatter(x[c1], y[c1], s=SZ, c=COLORS[1], marker='o', label=label1, edgecolor=EC, alpha=AL)
-#         else:
-#             mp.scatter([-1], [-1], s=SZ, c=COLORS[1], marker='o', label=label1, edgecolor=EC, alpha=AL)
-#         if c2[0].size > 0:
-#             mp.scatter(x[c2], y[c2], s=SZ, c=COLORS[2], marker='o', label=label2, edgecolor=EC, alpha=AL)
-#         else:
-#             mp.scatter([-1], [-1], s=SZ, c=COLORS[2], marker='o', label=label2, edgecolor=EC, alpha=AL)
-#         if cx[0].size > 0:
-#             mp.scatter(x[cx], y[cx], s=SZ+10, c=COLORS[3], marker='^', label=labelx, edgecolor=EC, alpha=AL)
-#         else:
-#             mp.scatter([-1], [-1], s=SZ, c=COLORS[3], marker='o', label=labelx, edgecolor=EC, alpha=AL)
+        return xlon, ylat, stats, (c0, c1, c2, cx)
 
-        return xlon, ylat, (c0, c1, c2, cx)
-
-    def generate_var_tstep_trace(self, xlon, ylat, value, color, label, marker, tstep=0):
+    def generate_var_tstep_trace(self, xlon, ylat, stats, value, color, label, marker, tstep=0):
         """ Generate trace to be added to data, per variable and timestep """
         if tstep is None:
             return dict(
                 type='scattermapbox',
-                below='',
                 lon=[15],
                 lat=[30],
                 hoverinfo='none',
@@ -898,47 +884,52 @@ class VisFigureHandler(object):
                 ),
             )
         name = 'visibility {}'.format(label)
-        if DEBUG: print('VIS ___', xlon[value], ylat[value])
+        if value[0].size == 0:
+            xlon_val = [-180]
+            ylat_val = [-90]
+            stat_val = 'none'
+        else:
+            xlon_val = xlon[value]
+            ylat_val = ylat[value]
+            stat_val = stats[value]
+        if DEBUG: print('VIS ___', xlon_val, ylat_val)
         return dict(
             type='scattermapbox',
-            below='',
-            lon=xlon[value],
-            lat=ylat[value],
-            text=label,
+            lon=xlon_val,
+            lat=ylat_val,
+            text=stat_val,
             name=name,
-            hovertemplate="lon: %{lon:.4f}<br>lat: %{lat:.4f}<br>",
+            hovertemplate="lon: %{lon:.4f}<br>lat: %{lat:.4f}<br>station: %{text}",
             opacity=0.7,
             mode='markers',
             showlegend=True,
             marker=dict(
                 showscale=False,
                 color=color,
-                size=50,
+                size=30,
                 colorbar=None,
+                #symbol='triangle',
             ),
         )
 
     def get_title(self, tstep=0):
         """ return title according to the date """
         tstep0 = tstep
-        tstep1 = (tstep+1)*self.freq
+        tstep1 = tstep + self.freq
         fdate = datetime.strptime(self.selected_date_plain, '%Y%m%d').strftime('%d %B %Y')
         return self.title.format(date=fdate, tstep0=tstep0, tstep1=tstep1)
 
     def retrieve_var_tstep(self, tstep=0, hour=None, static=True, aspect=(1,1), center=None):
         """ run plot """
 
-        if hour is None:
-            tstep *= self.freq
-        else:
-            tstep = int(hour)
+        tstep = int(tstep)
 
-        xlon, ylat, vals = self.set_data(tstep)
+        xlon, ylat, stats, vals = self.set_data(tstep)
         self.fig = go.Figure()
         if tstep is not None:
             for value, color, label, marker in zip(vals, self.colors, self.labels, self.markers):
                 if DEBUG: print('Adding VIS points ...', xlon, ylat, value, color, label, marker, tstep)
-                self.fig.add_trace(self.generate_var_tstep_trace(xlon, ylat, value, color, label, marker, tstep))
+                self.fig.add_trace(self.generate_var_tstep_trace(xlon, ylat, stats, value, color, label, marker, tstep))
         else:
             if DEBUG: print('Adding one point ...')
             self.fig.add_trace(self.generate_var_tstep_trace())
@@ -951,7 +942,7 @@ class VisFigureHandler(object):
         #     showticklabels=False,
         # )
 
-        if DEBUG: print('Update layout ...')
+        if DEBUG: print('Update layout ...', self.get_title(tstep))
         if tstep is not None:
             fig_title=dict(text='<b>{}</b>'.format(self.get_title(tstep)),
                            xanchor='left',
@@ -966,6 +957,11 @@ class VisFigureHandler(object):
             hovermode="closest",        # highlight closest point on hover
             mapbox=self.get_mapbox(zoom=3-(0.5*aspect[0]), center=center),
             # width="100%",
+            legend=dict(
+                x=0.01,
+                y=0.9,
+                bgcolor="rgba(0,0,0,0)"
+            ),
             updatemenus=[
                 # get_animation_buttons(),
                 # self.get_mapbox_style_buttons(),

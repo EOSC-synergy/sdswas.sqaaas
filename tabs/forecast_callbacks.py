@@ -68,6 +68,22 @@ def register_callbacks(app):
 
 
     @app.callback(
+        [Output('info-collapse', 'is_open'),
+         Output('download-collapse', 'is_open')],
+        [Input('info-button', 'n_clicks'),
+         Input('download-button', 'n_clicks')],
+        [State('info-collapse', 'is_open'),
+         State('download-collapse', 'is_open')]
+    )
+    def sidebar_bottom(n_info, n_download, open_info, open_download):
+        if n_info:
+            return not open_info, open_info
+        if n_download:
+            return not open_download, open_download
+
+        return False, False
+
+    @app.callback(
         Output('was-graph', 'children'),
         [Input('was-date-picker', 'date'),
          Input('was-slider-graph', 'value'),
@@ -90,9 +106,9 @@ def register_callbacks(app):
 
         if was:
             was = was[0]
-            return get_graph(gid=was, figure=get_was_figure(was, day, selected_date=date))
+            return get_graph(index=was, figure=get_was_figure(was, day, selected_date=date))
         print("WAS figure " + date, was, day)
-        return get_graph(gid='none', figure=get_was_figure(selected_date=date))
+        return get_graph(index='none', figure=get_was_figure(selected_date=date))
 
 
     @app.callback(
@@ -119,9 +135,9 @@ def register_callbacks(app):
 
         if prob:
             prob = prob.replace('prob_', '')
-            return get_graph(gid=prob, figure=get_prob_figure(var, prob, day, selected_date=date))
+            return get_graph(index=prob, figure=get_prob_figure(var, prob, day, selected_date=date))
         print("PROB figure " + date, prob, day)
-        return get_graph(gid='none', figure=get_prob_figure(var, selected_date=date))
+        return get_graph(index='none', figure=get_prob_figure(var, selected_date=date))
 
 
     @app.callback(
@@ -149,28 +165,9 @@ def register_callbacks(app):
         if ctx.triggered:
             button_id = ctx.triggered[0]["prop_id"].split(".")[0]
             figures['layout']['mapbox']['style'] = button_id
-        else:
-            figures['layout']['mapbox']['style'] = 'carto-positron'
+        # else:
+        #    figures['layout']['mapbox']['style'] = 'carto-positron'
         return figures
-
-
-#     @app.callback(
-#         Output({'type': 'graph-with-slider', 'index': MATCH}, 'figure'),
-#         [Input('airports', 'n_clicks')],
-#         [State({'type': 'graph-with-slider', 'index': MATCH}, 'figure')]
-#     )
-#     def update_layers(n_click, figures):
-#         """ Function updating map layout cartography """
-#         ctx = dash.callback_context
-#         # figures = args[-1]
-# 
-#         if ctx.triggered:
-#             button_id = ctx.triggered[0]["prop_id"].split(".")[0]
-#             # fig = get_figure()
-#             for fig in figures:
-#                 fig.add_trace({})  # get_obs1d(obs='airports')
-# 
-#         return figures
 
 
     # retrieve timeseries according to coordinates selected

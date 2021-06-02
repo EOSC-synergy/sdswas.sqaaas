@@ -197,7 +197,7 @@ def register_callbacks(app):
         return tstep
 
     @app.callback(
-        Output('vis-graph', 'children'),
+        Output('obs-vis-graph', 'children'),
         [Input('obs-vis-date-picker', 'date'),
          Input('obs-vis-slider-graph', 'value')]
     )
@@ -213,5 +213,5 @@ def register_callbacks(app):
         else:
             date = end_date
 
-        if DEBUG: print('SERVER: VIS callback date {}'.format(date))
-        return get_graph(gid='vis-graph', figure=get_vis_figure(tstep=tstep, selected_date=date))
+        if DEBUG: print('SERVER: VIS callback date {}, tstep {}'.format(date, tstep))
+        return get_graph(index='vis-graph', figure=get_vis_figure(tstep=tstep, selected_date=date))

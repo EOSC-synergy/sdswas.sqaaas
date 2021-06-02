@@ -14,9 +14,21 @@ start_date = "20201001"
 end_date = "20201231"
 
 
-def obs_time_slider(div='obs', start=0, end=23, step=1):
-    return html.Div([
+layout_view = html.Div([
     html.Span(
+        dbc.DropdownMenu(
+            id='map-view-dropdown',
+            label='VIEW',
+            children=[
+                dbc.DropdownMenuItem(STYLES[style], id=style)
+                for style in STYLES],
+            direction="up",
+        ),
+    )])
+
+def obs_time_slider(div='obs', start=0, end=23, step=1):
+
+    date_picker = html.Span(
         dcc.DatePickerSingle(
             id='{}-date-picker'.format(div),
             min_date_allowed=dt.strptime(start_date, "%Y%m%d"),
@@ -27,13 +39,15 @@ def obs_time_slider(div='obs', start=0, end=23, step=1):
             with_portal=True,
         ),
         className="timesliderline",
-    ),
-    html.Span(
+    )
+
+    play_button = html.Span(
         html.Button('\u2023', title='Play/Stop',
                     id='btn-{}-play'.format(div), n_clicks=0),
         className="timesliderline",
-    ),
-    html.Span(
+    )
+    
+    slider = html.Span(
         dcc.Slider(
             id='{}-slider-graph'.format(div),
             min=start, max=end, step=step, value=0,
@@ -45,10 +59,22 @@ def obs_time_slider(div='obs', start=0, end=23, step=1):
             # updatemode='drag',
         ),
         className="timesliderline",
-    ),
-    ],
-    className="timeslider"
-)
+    )
+    if div == 'obs-vis':
+        return html.Div([
+                date_picker,
+                slider,
+            ],
+            className="timeslider"
+        )
+
+    return html.Div([
+            date_picker,
+            play_button,
+            slider,
+        ],
+        className="timeslider"
+    )
 
 def tab_observations(window='rgb'):
     """ """
@@ -95,6 +121,7 @@ def tab_observations(window='rgb'):
         )),
         html.Div(
             obs_time_slider(div='obs'),
+            className="layout-dropdown",
         ),
     ]
 
@@ -129,6 +156,7 @@ def tab_observations(window='rgb'):
         )),
         html.Div(
             obs_time_slider(div='obs-aod'),
+            className="layout-dropdown",
         ),
     ]
 
@@ -150,15 +178,20 @@ def tab_observations(window='rgb'):
                 ),
             className="description-body"
         ),
-        html.Div(
-            id='vis-graph',
-            children=[],
+        dbc.Spinner(
+            html.Div(
+                id='obs-vis-graph',
+                children=[],
+            ),
         ),
-        html.Div(
+        html.Div([
             obs_time_slider(div='obs-vis',
                 start=0,
-                end=23,
+                end=18,
                 step=6),
+            layout_view
+            ],
+            className="layout-dropdown",
         ),
     ]
 

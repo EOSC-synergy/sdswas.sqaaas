@@ -163,7 +163,7 @@ def tab_evaluation(window='nrt'):
                 searchable=False,
                 multi=True,
             ),
-            style={ 'width': '10rem' },
+            style={ 'width': '14rem' },
             className="linetool",
         ),
         html.Span(
@@ -179,7 +179,7 @@ def tab_evaluation(window='nrt'):
                 # clearable=False,
                 searchable=False
             ),
-            style={ 'width': '10rem' },
+            style={ 'width': '8rem' },
             className="linetool",
         ),
         html.Span(
@@ -207,40 +207,13 @@ def tab_evaluation(window='nrt'):
                 id='modis-scores-table',
                 columns=[],
                 data=[],
-                # style_table={ 'display': 'none' },
                 style_cell={
                     'whiteSpace': 'normal',
                     'height': 'auto',
                     'textAlign': 'center',
                     'font-family': '"Roboto", sans-serif',
+                    "fontWeight": "bold",
                 },
-#                 style_data_conditional=[
-#                     {
-#                         'if': {'column_id': 'station'},
-#                         'textAlign': 'left',
-#                         'padding': '0.1rem 1rem',
-#                     },
-#                     {
-#                         "if": {
-#                             "state": "selected"
-#                             },
-#                         "backgroundColor": "inherit !important",
-#                         "border": "inherit !important",
-#                     },
-#                     {
-#                         "if": {
-#                             'filter_query': '{station} = "Mediterranean" || {station} = "Middle_East" || {station} = "Sahel/Sahara" || {station} = "Total"',
-#                             },
-#                         "fontWeight": "bold",
-#                         'padding': '1rem',
-#                     },
-#                     {
-#                         "if": {
-#                             'filter_query': '{station} = "Total"',
-#                             },
-#                         "backgroundColor": "#F0F1F2",
-#                     }
-#                 ],
                 style_header={
                     'backgroundColor': '#2B383E',
                     'fontWeight': 'bold',
@@ -260,7 +233,7 @@ def tab_evaluation(window='nrt'):
                 id='aeronet-scores-table-{}'.format(score),
                 columns=[],  #get_scores_table(),
                 data=[],
-                # style_table={ 'display': 'none' },
+                #fixed_rows={'headers': True},
                 style_cell={
                     'whiteSpace': 'normal',
                     'height': 'auto',
@@ -314,6 +287,7 @@ def tab_evaluation(window='nrt'):
                 'padding': '1rem 0.1rem 0.1rem 1rem',
                 'width': '95%',
               },
+        id='eval-tables',
         ),
     ]
 
