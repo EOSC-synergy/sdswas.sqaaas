@@ -150,6 +150,16 @@ def tab_observations(window='rgb'):
                 ),
             className="description-body"
         ),
+        html.Div(
+            id='vis-graph',
+            children=[],
+        ),
+        html.Div(
+            obs_time_slider(div='obs-vis',
+                start=0,
+                end=23,
+                step=6),
+        ),
     ]
 
     windows = {

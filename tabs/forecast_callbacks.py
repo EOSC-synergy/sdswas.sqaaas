@@ -90,9 +90,9 @@ def register_callbacks(app):
 
         if was:
             was = was[0]
-            return dbc.Spinner(get_graph(gid=was, figure=get_was_figure(was, day, selected_date=date)))
+            return get_graph(gid=was, figure=get_was_figure(was, day, selected_date=date))
         print("WAS figure " + date, was, day)
-        return dbc.Spinner(get_graph(gid='none', figure=get_was_figure(selected_date=date)))
+        return get_graph(gid='none', figure=get_was_figure(selected_date=date))
 
 
     @app.callback(
@@ -119,9 +119,9 @@ def register_callbacks(app):
 
         if prob:
             prob = prob.replace('prob_', '')
-            return dbc.Spinner(get_graph(gid=prob, figure=get_prob_figure(var, prob, day, selected_date=date)))
+            return get_graph(gid=prob, figure=get_prob_figure(var, prob, day, selected_date=date))
         print("PROB figure " + date, prob, day)
-        return dbc.Spinner(get_graph(gid='none', figure=get_prob_figure(var, selected_date=date)))
+        return get_graph(gid='none', figure=get_prob_figure(var, selected_date=date))
 
 
     @app.callback(

@@ -752,6 +752,232 @@ class FigureHandler(object):
         return self.fig
 
 
+class VisFigureHandler(object):
+    """ Class to manage the figure creation """
+
+    def __init__(self, selected_date=None):
+
+        self.path_tpl = '/data/interactive_test/obs/visibility/{year}/{month}/{year}{month}{day}{tstep0:02d}{tstep1:02d}_visibility.csv'
+        self.title = """Visibility reduced by airborne dust<br>{date} {tstep0:02d}-{tstep1:02d} UTC"""
+        self.xlon = np.array([-25, 60])
+        self.ylat = np.array([0, 65])
+        self.ec = 'none'
+        self.size = 80
+        self.freq = 6
+        self.colors = ('#714921', '#da7230', '#fcd775', 'CadetBlue')
+        self.labels = ("<1 km", "1 - 2 km", "2 - 5 km", "uncertain")
+        self.markers = ('o', 'o', 'o', '^')
+
+        if selected_date:
+            self.selected_date_plain = selected_date
+
+            self.selected_date = datetime.strptime(
+                selected_date, "%Y%m%d").strftime("%Y-%m-%d")
+
+        else:
+            self.selected_date_plain = None
+            self.selected_date = None
+
+    def get_mapbox_style_buttons(self):
+        """ Relayout map with different styles """
+        return dict(
+            direction="up",
+            buttons=list([self.get_mapbox(style, relayout=True) for style in
+                          STYLES.keys()]),
+            # pad={"r": 0, "t": 0},
+            showactive=True,
+            x=0.9,
+            y=0.09,
+            xanchor="right",
+            yanchor="top",
+        )
+
+    def get_mapbox(self, style='carto-positron', relayout=False, zoom=3, center=None):
+        """ Returns mapbox layout """
+        if center is None and hasattr(self, 'ylat'):
+            center = go.layout.mapbox.Center(
+                lat=(self.ylat.max()-self.ylat.min())/2 +
+                self.ylat.min(),
+                lon=(self.xlon.max()-self.xlon.min())/2 +
+                self.xlon.min(),
+            )
+        elif center is not None:
+            center = go.layout.mapbox.Center(center)
+        else:
+            center = go.layout.mapbox.Center({'lat': 30, 'lon': 15})
+        mapbox_dict = dict(
+            uirevision=True,
+            style=style,
+            bearing=0,
+            center=center,
+            pitch=0,
+            zoom=zoom
+        )
+
+        if not relayout:
+            return mapbox_dict
+
+        return dict(
+            args=["mapbox", mapbox_dict],
+            label=STYLES[style].capitalize(),
+            method="relayout"
+        )
+
+    def get_updated_trace(self, varname, tstep=0):
+        """ Get updated trace """
+        return dict(
+            args=["scattermapbox", self.generate_var_tstep_trace(varname,
+                                                                 tstep)],
+            label=VARS[varname]['name'],
+            method="restyle"
+        )
+
+    def set_data(self, tstep=0):
+        """ Set time dependent data """
+        tstep0 = tstep*self.freq
+        tstep1 = (tstep+1)*self.freq
+
+        year = datetime.strptime(self.selected_date_plain, '%Y%m%d').strftime('%Y')
+        month = datetime.strptime(self.selected_date_plain, '%Y%m%d').strftime('%m')
+        day = datetime.strptime(self.selected_date_plain, '%Y%m%d').strftime('%d')
+
+        data = pd.read_table(self.path_tpl.format(year=year, month=month, day=day, tstep0=tstep0, tstep1=tstep1))
+
+        # colors
+        cx = np.where((data['WW'].astype(str) == "HZ") | (data['WW'].astype(str) == "5")| (data['WW'].astype(str) == "05"))
+
+        c0t = np.where((data['VV'] <= 1000))[0]
+        c0x = np.where([c0t == i for i in cx[0]])[-1]
+        c0 = (np.delete(c0t, c0x),)
+
+        c1t = np.where((data['VV'] > 1000) & (data['VV'] <= 2000))[0]
+        c1x = np.where([c1t == i for i in cx[0]])[-1]
+        c1 = (np.delete(c1t, c1x),)
+
+        c2t = np.where((data['VV'] > 2000) & (data['VV'] <= 5000))[0]
+        c2x = np.where([c2t == i for i in cx[0]])[-1]
+        c2 = (np.delete(c2t, c2x),)
+
+        xlon = data['LON'].values
+        ylat = data['LAT'].values
+
+#         if c0[0].size > 0:
+#             mp.scatter(x[c0], y[c0], s=SZ, c=COLORS[0], marker='o', label=label0, edgecolor=EC, alpha=AL)
+#         else:
+#             mp.scatter([-1], [-1], s=SZ, c=COLORS[0], marker='o', label=label0, edgecolor=EC, alpha=AL)
+#         if c1[0].size > 0:
+#             mp.scatter(x[c1], y[c1], s=SZ, c=COLORS[1], marker='o', label=label1, edgecolor=EC, alpha=AL)
+#         else:
+#             mp.scatter([-1], [-1], s=SZ, c=COLORS[1], marker='o', label=label1, edgecolor=EC, alpha=AL)
+#         if c2[0].size > 0:
+#             mp.scatter(x[c2], y[c2], s=SZ, c=COLORS[2], marker='o', label=label2, edgecolor=EC, alpha=AL)
+#         else:
+#             mp.scatter([-1], [-1], s=SZ, c=COLORS[2], marker='o', label=label2, edgecolor=EC, alpha=AL)
+#         if cx[0].size > 0:
+#             mp.scatter(x[cx], y[cx], s=SZ+10, c=COLORS[3], marker='^', label=labelx, edgecolor=EC, alpha=AL)
+#         else:
+#             mp.scatter([-1], [-1], s=SZ, c=COLORS[3], marker='o', label=labelx, edgecolor=EC, alpha=AL)
+
+        return xlon, ylat, (c0, c1, c2, cx)
+
+    def generate_var_tstep_trace(self, xlon, ylat, value, color, label, marker, tstep=0):
+        """ Generate trace to be added to data, per variable and timestep """
+        if tstep is None:
+            return dict(
+                type='scattermapbox',
+                below='',
+                lon=[15],
+                lat=[30],
+                hoverinfo='none',
+                opacity=0,
+                showlegend=False,
+                marker=dict(
+                    showscale=False,
+                    size=0,
+                    colorbar=None,
+                ),
+            )
+        name = 'visibility {}'.format(label)
+        if DEBUG: print('VIS ___', xlon[value], ylat[value])
+        return dict(
+            type='scattermapbox',
+            below='',
+            lon=xlon[value],
+            lat=ylat[value],
+            text=label,
+            name=name,
+            hovertemplate="lon: %{lon:.4f}<br>lat: %{lat:.4f}<br>",
+            opacity=0.7,
+            mode='markers',
+            showlegend=True,
+            marker=dict(
+                showscale=False,
+                color=color,
+                size=50,
+                colorbar=None,
+            ),
+        )
+
+    def get_title(self, tstep=0):
+        """ return title according to the date """
+        tstep0 = tstep
+        tstep1 = (tstep+1)*self.freq
+        fdate = datetime.strptime(self.selected_date_plain, '%Y%m%d').strftime('%d %B %Y')
+        return self.title.format(date=fdate, tstep0=tstep0, tstep1=tstep1)
+
+    def retrieve_var_tstep(self, tstep=0, hour=None, static=True, aspect=(1,1), center=None):
+        """ run plot """
+
+        if hour is None:
+            tstep *= self.freq
+        else:
+            tstep = int(hour)
+
+        xlon, ylat, vals = self.set_data(tstep)
+        self.fig = go.Figure()
+        if tstep is not None:
+            for value, color, label, marker in zip(vals, self.colors, self.labels, self.markers):
+                if DEBUG: print('Adding VIS points ...', xlon, ylat, value, color, label, marker, tstep)
+                self.fig.add_trace(self.generate_var_tstep_trace(xlon, ylat, value, color, label, marker, tstep))
+        else:
+            if DEBUG: print('Adding one point ...')
+            self.fig.add_trace(self.generate_var_tstep_trace())
+
+        # axis_style = dict(
+        #     zeroline=False,
+        #     showline=False,
+        #     showgrid=True,
+        #     ticks='',
+        #     showticklabels=False,
+        # )
+
+        if DEBUG: print('Update layout ...')
+        if tstep is not None:
+            fig_title=dict(text='<b>{}</b>'.format(self.get_title(tstep)),
+                           xanchor='left',
+                           yanchor='top',
+                           x=0.01, y=0.95)
+        else:
+            fig_title={}
+        self.fig.update_layout(
+            title=fig_title,
+            uirevision=True,
+            autosize=True,
+            hovermode="closest",        # highlight closest point on hover
+            mapbox=self.get_mapbox(zoom=3-(0.5*aspect[0]), center=center),
+            # width="100%",
+            updatemenus=[
+                # get_animation_buttons(),
+                # self.get_mapbox_style_buttons(),
+                # self.get_variable_dropdown_buttons(),
+            ],
+            margin={"r": 0, "t": 0, "l": 0, "b": 0},
+        )
+
+        # if DEBUG: print('Returning fig of size {}'.format(sys.getsizeof(self.fig)))
+        return self.fig
+
+
 class ProbFigureHandler(object):
     """ Class to manage the figure creation """
 

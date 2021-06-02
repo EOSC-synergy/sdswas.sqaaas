@@ -5,6 +5,7 @@
 from data_handler import FigureHandler
 from data_handler import WasFigureHandler
 from data_handler import ProbFigureHandler
+from data_handler import VisFigureHandler
 from data_handler import TimeSeriesHandler
 from data_handler import ObsTimeSeriesHandler
 from data_handler import Observations1dHandler
@@ -75,6 +76,23 @@ def get_was_figure(was=None, day=1, selected_date=end_date):
         return fh.retrieve_var_tstep(day=day)
     if DEBUG: print('SERVER: NO WAS Figure')
     return WasFigureHandler().retrieve_var_tstep()
+
+def get_vis_figure(tstep=0, selected_date=end_date):
+    """ Retrieve figure """
+    if DEBUG: print(tstep, selected_date)
+    try:
+        selected_date = dt.strptime(
+            selected_date, "%Y-%m-%d").strftime("%Y%m%d")
+    except:
+        pass
+    if DEBUG: print(tstep, selected_date)
+    if tstep is not None:
+        if DEBUG: print('SERVER: VIS Figure init ... ')
+        fh = VisFigureHandler(selected_date=selected_date)
+        if DEBUG: print('SERVER: VIS Figure generation ... ')
+        return fh.retrieve_var_tstep(tstep=tstep)
+    if DEBUG: print('SERVER: NO VIS Figure')
+    return VisFigureHandler().retrieve_var_tstep()
 
 #@app.app_context
 #@cache.cached(timeout=60, key_prefix='figure')

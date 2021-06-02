@@ -24,11 +24,7 @@
     height: 85vh !important;
 }
 
-#prob-graph {
-    height: 85vh !important;
-}
-
-#was-graph {
+#prob-graph, #was-graph {
     height: 85vh !important;
 }
 
@@ -63,7 +59,7 @@
   font-weight: bold;
   letter-spacing: 0;
   line-height: 35px;
-  margin-top: 1rem !important;
+  margin: 1rem;
 }
 
 .description-body>p {
@@ -74,6 +70,7 @@
   font-size: 14px;
   letter-spacing: 0;
   line-height: 22px;
+  margin: .5rem 1rem;
 }
 
 .btn-link {
@@ -93,56 +90,13 @@
     display: table-row;
 }
 
-#prob-date-picker #date {
+.timesliderline #date {
     color: #F1B545 !important;
     background-color: #2B383E !important;
     border: none !important;
     font-family: "Roboto", sans-serif !important;
-    font-size: small !important;
-    text-transform: uppercase;
-    padding: 0.9rem;
-    margin-right: 0;
-}
-
-#was-date-picker #date {
-    color: #F1B545 !important;
-    background-color: #2B383E !important;
-    border: none !important;
-    font-family: "Roboto", sans-serif !important;
-    font-size: small !important;
-    text-transform: uppercase;
-    padding: 0.9rem;
-    margin-right: 0;
-}
-
-#model-date-picker #date {
-    color: #F1B545 !important;
-    background-color: #2B383E !important;
-    border: none !important;
-    font-family: "Roboto", sans-serif !important;
-    font-size: small !important;
-    text-transform: uppercase;
-    padding: 0.9rem;
-    margin-right: 0;
-}
-
-#obs-date-picker #date {
-    color: #F1B545 !important;
-    background-color: #2B383E !important;
-    border: none !important;
-    font-family: "Roboto", sans-serif !important;
-    font-size: small !important;
-    text-transform: uppercase;
-    padding: 0.9rem;
-    margin-right: 0;
-}
-
-#obs-aod-date-picker #date {
-    color: #F1B545 !important;
-    background-color: #2B383E !important;
-    border: none !important;
-    font-family: "Roboto", sans-serif !important;
-    font-size: small !important;
+    font-size: medium !important;
+    font-weight: bold;
     text-transform: uppercase;
     padding: 0.9rem;
     margin-right: 0;
@@ -163,35 +117,19 @@ div.SingleDatePickerInput {
     border: none;
 }
 
-#was-slider-graph {
+#was-slider-graph, #prob-slider-graph, #obs-vis-slider-graph {
     width: 10rem;
 }
 
-#prob-slider-graph {
-    width: 10rem;
-}
-
-#slider-graph {
+#slider-graph, #obs-slider-graph, #obs-aod-slider-graph {
     width: 30rem;
 }
 
-#obs-slider-graph {
-    width: 30rem;
-}
-
-#obs-aod-slider-graph {
-    width: 30rem;
-}
-
-#rgb-image {
+#rgb-image, #aod-image, #vis-graph {
     height: 35rem;
 }
 
-#aod-image {
-    height: 35rem;
-}
-
-#btn-play {
+.timesliderline>button {
     margin: 0.4rem 0;
     border: none;
     padding: 0.2rem 0.6rem;
@@ -201,44 +139,11 @@ div.SingleDatePickerInput {
     border-radius: 50%;
 }
 
-#btn-play:hover {
+.timesliderline>button:hover {
     background-color: #F1B545 !important;
 }
 
-#btn-obs-play {
-    margin: 0.4rem 0;
-    border: none;
-    padding: 0.2rem 0.6rem;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    border-radius: 50%;
-}
-
-#btn-obs-play:hover {
-    background-color: #F1B545 !important;
-}
-
-#btn-obs-aod-play {
-    margin: 0.4rem 0;
-    border: none;
-    padding: 0.2rem 0.6rem;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    border-radius: 50%;
-}
-
-#btn-obs-aod-play:hover {
-    background-color: #F1B545 !important;
-}
-
-#btn-obs-aod-play:active {
-    background-color: #F1B545 !important;
-    border: 0 !important;
-}
-
-#btn-obs-aod-play:focus {
+.timesliderline>button:active, .timesliderline>button:focus {
     background-color: #F1B545 !important;
     border: 0 !important;
 }
@@ -277,8 +182,6 @@ div.SingleDatePickerInput {
     display: table-cell;
     vertical-align: bottom;
     padding: 1rem;
-    /*
-    */
 }
 
 .timesliderline {
@@ -305,17 +208,11 @@ div.SingleDatePickerInput {
     margin-left: 1rem;
 }
 
-#layout-dropdown #map-view-dropdown {
-}
-
 #layout-dropdown #map-view-dropdown>button {
     margin-left: 1rem;
     width: 8rem;
     border-radius: 0 !important;
     background-color: #2B383E !important;
-}
-
-#layout-dropdown #map-layers-dropdown {
 }
 
 .btn-secondary {

@@ -183,9 +183,11 @@ def tab_forecast(window='models'):
     ]
 
     was_children = [
-        html.Div(
-            id='was-graph',
-            children=[],
+        dbc.Spinner(
+            html.Div(
+                id='was-graph',
+                children=[],
+            ),
         ),
         html.Div([
             was_time_slider,
@@ -196,9 +198,11 @@ def tab_forecast(window='models'):
     ]
 
     prob_children = [
-        html.Div(
-            id='prob-graph',
-            children=[],
+        dbc.Spinner(
+            html.Div(
+                id='prob-graph',
+                children=[],
+            )
         ),
         html.Div([
             prob_time_slider,

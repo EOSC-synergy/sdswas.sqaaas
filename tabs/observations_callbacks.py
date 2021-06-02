@@ -86,7 +86,7 @@ def register_callbacks(app):
          State('obs-aod-slider-graph', 'value')],
         prevent_initial_call=True
     )
-    def start_stop_obs_autoslider(n, disabled, value):
+    def start_stop_obs_aod__autoslider(n, disabled, value):
         """ Play/Pause map animation """
         if DEBUG: print("VALUE", value)
         if not value:
@@ -101,11 +101,11 @@ def register_callbacks(app):
         [Input('obs-aod-slider-interval', 'n_intervals')],
         prevent_initial_call=True
         )
-    def update_obs_slider(n):
+    def update_obs_aod_slider(n):
         """ Update slider value according to the number of intervals """
         if DEBUG: print('SERVER: updating slider-graph ' + str(n))
         if not n:
-            return
+            return 0
         if n >= 24:
             tstep = int(round(24*math.modf(n/24)[0], 0))
         else:
@@ -188,10 +188,30 @@ def register_callbacks(app):
         """ Update slider value according to the number of intervals """
         if DEBUG: print('SERVER: updating slider-graph ' + str(n))
         if not n:
-            return
+            return 0
         if n >= 24:
             tstep = int(round(24*math.modf(n/24)[0], 0))
         else:
             tstep = int(n)
         if DEBUG: print('SERVER: updating slider-graph ' + str(tstep))
         return tstep
+
+    @app.callback(
+        Output('vis-graph', 'children'),
+        [Input('obs-vis-date-picker', 'date'),
+         Input('obs-vis-slider-graph', 'value')]
+    )
+    def update_vis_figure(date, tstep):
+        from tools import get_vis_figure
+        if date is not None:
+            date = date.split(' ')[0]
+            try:
+                date = dt.strptime(
+                    date, "%Y-%m-%d").strftime("%Y%m%d")
+            except:
+                pass
+        else:
+            date = end_date
+
+        if DEBUG: print('SERVER: VIS callback date {}'.format(date))
+        return get_graph(gid='vis-graph', figure=get_vis_figure(tstep=tstep, selected_date=date))
