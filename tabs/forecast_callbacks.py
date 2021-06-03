@@ -73,15 +73,23 @@ def register_callbacks(app):
         [Input('info-button', 'n_clicks'),
          Input('download-button', 'n_clicks')],
         [State('info-collapse', 'is_open'),
-         State('download-collapse', 'is_open')]
+         State('download-collapse', 'is_open')],
+        prevent_initial_call=True
     )
     def sidebar_bottom(n_info, n_download, open_info, open_download):
-        if n_info:
-            return not open_info, open_info
-        if n_download:
-            return not open_download, open_download
+        ctx = dash.callback_context
+        if ctx.triggered:
+            button_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
-        return False, False
+        if button_id == 'info-button':
+            if DEBUG: print('clicked INFO', not open_info, False)
+            return not open_info, False
+        elif button_id == 'download-button':
+            if DEBUG: print('clicked DOWN', False, not open_download)
+            return False, not open_download
+
+        if DEBUG: print('clicked NONE', False, False)
+        raise PreventUdate
 
     @app.callback(
         Output('was-graph', 'children'),

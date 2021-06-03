@@ -178,7 +178,7 @@ def get_animation_buttons():
     )
 
 
-def get_graph(index=None, figure={}, gid=None, style={}):
+def get_graph(index=None, figure={}, gid=None, style={ 'height': '90vh !important' }):
     """ Renders map graph """
 
     if gid is None:

@@ -110,6 +110,54 @@
     border-right: 0;
 }
 
+.sidebar-bottom {
+    position: absolute;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    bottom: 0 !important;
+}
+
+.sidebar-bottom  .btn {
+    border-radius: 0;
+    background-repeat: no-repeat;
+    height: 2rem;
+    font-size: Medium;
+    margin: 0 !important;
+    width: -moz-fit-content;
+    width: fit-content;
+}
+
+.sidebar-bottom  #info-button {
+    background-image: url("/dashboard/assets/images/Icon_Info.png");
+    background-position: center;
+    width: 80%;
+}
+
+.sidebar-bottom  #download-button {
+    background-image: url("/dashboard/assets/images/Icon_Download.png");
+    background-position: 1rem;
+    padding-left: 2rem;
+    width: 100%;
+}
+
+.collapsible-cards {
+    margin: 0 !important;
+}
+.collapsible-cards .col {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+.collapsible-cards .col .collapse .card {
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none;
+}
+.collapsible-cards .col .collapse .card .card-body {
+    height: 25vh !important;
+    overflow: auto;
+    font-size: Small;
+}
 
 /* Page content. The value of the margin-left property should match the value of the sidebar's width property */
 div.tab-parent {

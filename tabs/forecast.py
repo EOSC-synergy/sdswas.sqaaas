@@ -310,23 +310,50 @@ def sidebar_forecast(variables, default_var, models, default_model):
     className="accordion"
     ),
     html.Div([
-        dbc.Button(
-            "Info",
-            id="info-button",
-            className="mr-1",
-        ),
-        dbc.Button(
-            "Download",
-            id="download-button",
-            className="mr-1",
-        ),
-        dbc.Collapse(
-            dbc.Card(dbc.CardBody("This INFO content is hidden in the collapse")),
-            id="info-collapse",
-        ),
-        dbc.Collapse(
-            dbc.Card(dbc.CardBody("This DOWNLOAD content is hidden in the collapse")),
-            id="download-collapse",
+        dbc.Row([
+          dbc.Col(
+            dbc.Button(
+                "",
+                id="info-button",
+            ),
+            width=3,
+            ),
+          dbc.Col(
+            dbc.Button(
+                "DOWNLOAD",
+                id="download-button",
+            ),
+            width=7,
+            ),
+          ],
+          no_gutters=True,
+          ),
+        dbc.Row([
+            dbc.Col([
+              dbc.Collapse(
+                dbc.Card(dbc.CardBody(
+                    [
+                        html.H6("Glossary"),
+                        html.P("""
+                            1. Variables: Lorem ipsum dolor sit amet, consectetur adipiscing elit."""),
+                        html.P("""
+                            2. Comparing: Lorem ipsum dolor sit , conssit amet, sit amet, consecte dolor elit."""),
+                        html.P("""
+                            3. User Oriented Products: Lorem ipsum dolor sit amet, consectetur adipiscing elitLorem consectetur adipiscing elit"""),
+                    ],
+                    className="card-text",
+                    )),
+                id="info-collapse",
+                is_open=False,
+              ),
+              dbc.Collapse(
+                dbc.Card(dbc.CardBody("This DOWNLOAD content is hidden in the collapse")),
+                id="download-collapse",
+                is_open=False,
+              )
+            ]),
+        ],
+        className="collapsible-cards",
         ),
     ],
     className="sidebar-bottom",
