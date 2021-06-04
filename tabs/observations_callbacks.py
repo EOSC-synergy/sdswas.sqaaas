@@ -37,7 +37,10 @@ def register_callbacks(app):
     """ Registering callbacks """
 
     @app.callback(
-        Output('observations-tab', 'children'),
+        [Output('observations-tab', 'children'),
+         Output('rgb', 'style'),
+         Output('aod', 'style'),
+         Output('visibility', 'style')],
         [Input('rgb', 'n_clicks'),
          Input('aod', 'n_clicks'),
          Input('visibility', 'n_clicks')],
@@ -46,19 +49,21 @@ def register_callbacks(app):
         """ Function rendering requested tab """
         ctx = dash.callback_context
 
-        if not ctx.triggered:
-            raise PreventUpdate
-        else:
+        bold = { 'font-weight': 'bold' }
+        norm = { 'font-weight': 'normal' }
+
+        if ctx.triggered:
             button_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
-        if button_id == "rgb" and rgb_button:
-            return tab_observations('rgb')
-        elif button_id == "aod" and aod_button:
-            return tab_observations('aod')
-        elif button_id == "visibility" and vis_button:
-            return tab_observations('visibility')
+            if button_id == "rgb" and rgb_button:
+                return tab_observations('rgb'), bold, norm, norm
+            elif button_id == "aod" and aod_button:
+                return tab_observations('aod'), norm, bold, norm
+            elif button_id == "visibility" and vis_button:
+                return tab_observations('visibility'), norm, norm, bold
 
-        raise PreventUpdate
+        return dash.no_update, bold, norm, norm
+        #raise PreventUpdate
 
     @app.callback(
     Output('aod-image', 'src'),

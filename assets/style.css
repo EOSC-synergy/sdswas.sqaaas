@@ -3,6 +3,13 @@
     height: 3.8rem;
 }
 
+.tab-content {
+    background-color: #F0F1F2;
+    height: 90vh !important;
+    box-shadow: inset 5px 0px 5px lightgrey;
+    bottom: 0 !important;
+}
+
 :hover.tab.horizontal-menu>span, .tab.horizontal-menu.tab--selected>span {
     color: #F1B545 !important;
     border-bottom: 4px solid #F1B545 !important;
@@ -115,7 +122,7 @@
     font-size: medium !important;
     font-weight: bold;
     text-transform: uppercase;
-    padding: 0.9rem;
+    padding: 0.5rem 0.9rem;
     margin-right: 0;
 }
 
@@ -203,13 +210,14 @@ div.SingleDatePickerInput {
 
 .timesliderline {
     display: table-cell;
-    vertical-align: bottom;
+    vertical-align: middle;
     margin: 0;
 }
 
 .timeslider {
     display: table-cell;
-    position: relative;
+    position: absolute;
+    height: 2.5rem;
     /*
     height: 50px;
     display: table-row;
@@ -217,19 +225,25 @@ div.SingleDatePickerInput {
     bottom: 3.5rem;
     color: #F1B545 !important;*/
     background-color: #2B383E !important;
+    bottom: 2.5rem !important;
+    margin-left: 1rem;
 }
 
 .layout-dropdown {
-    display: inline-flex;
-    float: left;
-    margin-left: 1rem;
 }
 
-.layout-dropdown #map-view-dropdown>button {
-    margin-left: 1rem;
-    width: 8rem;
-    border-radius: 0 !important;
-    background-color: #2B383E !important;
+.layout-dropdown #map-view-dropdown {
+    margin-left: 44rem;
+    display: table-cell;
+    position: absolute;
+    bottom: 2.5rem !important;
+}
+
+.layout-dropdown #map-layers-dropdown {
+    margin-left: 53rem;
+    display: table-cell;
+    position: absolute;
+    bottom: 2.5rem !important;
 }
 
 .btn-secondary {
@@ -237,16 +251,16 @@ div.SingleDatePickerInput {
     border: 0 !important;
 }
 
-.layout-dropdown #map-layers-dropdown>button {
+.layout-dropdown #map-view-dropdown>button, .layout-dropdown #map-layers-dropdown>button {
     margin-left: 1rem;
-    width: 8rem;
+    width: 7rem;
     border-radius: 0 !important;
     background-color: #2B383E !important;
+    height: 1.75rem;
 }
 
 .layout-dropdown .dropdown-menu {
-    min-width: 8rem;
-    width: 8rem;
+    min-width: 8.4rem;
     border-radius: 0 !important;
     background-color: #6C7B82;
     padding: 0;

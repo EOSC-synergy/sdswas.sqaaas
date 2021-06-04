@@ -59,7 +59,7 @@
 
 .sidebar-item {
     height: 2rem;
-    margin: 1rem 1rem;
+    margin: 1rem 0;
 }
 
 .sidebar-item>label {
@@ -67,9 +67,15 @@
 }
 
 .sidebar-item>button {
-    height: 2rem;
+    height: 1.5rem;
     padding-top: 0;
     outline: none;
+    text-align: left;
+    text-decoration: none !important;
+}
+
+.sidebar-item>button:hover, .sidebar-item>button:focus {
+    font-weight: bold;
 }
 
 .sidebar-first-item .Select-menu-outer {
@@ -95,13 +101,20 @@
 }
 
 .sidebar-dropdown>label {
-    padding-left: 1.5rem;
+    padding-left: 1rem;
     margin-top: 0.5rem;
     overflow: hidden;
     display: block;
     font-size: small;
 }
 
+.sidebar>label {
+    margin-left: 1rem;
+    margin-top: 0.5rem;
+    overflow: hidden;
+    display: block;
+    font-size: small;
+}
 .sidebar-dropdown {
 }
 

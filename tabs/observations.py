@@ -226,7 +226,7 @@ def sidebar_observations():
         )],
         className="sidebar-first-item",
     ),
-    # html.Label("Column integrated"),
+    html.Label("Column integrated"),
     html.Div([
         dbc.Button("EUMETSAT - RGB",
             color="link",
@@ -241,7 +241,7 @@ def sidebar_observations():
         )],
         className="sidebar-item",
     ),
-    # html.Label("Surface level"),
+    html.Label("Surface level"),
     html.Div([
         dbc.Button("NOAA - Visibility",
             color="link",

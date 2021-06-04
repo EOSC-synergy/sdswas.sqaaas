@@ -47,25 +47,28 @@ def register_callbacks(app):
     """ Registering callbacks """
 
     @app.callback(
-        Output('evaluation-tab', 'children'),
+        [Output('evaluation-tab', 'children'),
+         Output('nrt-evaluation', 'style'),
+         Output('scores-evaluation', 'style')],
         [Input('nrt-evaluation', 'n_clicks'),
          Input('scores-evaluation', 'n_clicks')],
     )
     def render_evaluation_tab(nrtbutton, scoresbutton):
         """ Function rendering requested tab """
+        bold = { 'font-weight': 'bold' }
+        norm = { 'font-weight': 'normal' }
         ctx = dash.callback_context
 
-        if not ctx.triggered:
-            raise PreventUpdate
-        else:
+        if ctx.triggered:
             button_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
-        if button_id == "nrt-evaluation" and nrtbutton:
-            return tab_evaluation('nrt')
-        elif button_id == "scores-evaluation" and scoresbutton:
-            return tab_evaluation('scores')
+            if button_id == "nrt-evaluation" and nrtbutton:
+                return tab_evaluation('nrt'), bold, norm
+            elif button_id == "scores-evaluation" and scoresbutton:
+                return tab_evaluation('scores'), norm, bold
 
-        raise PreventUpdate
+        return dash.no_update, bold, norm
+        #raise PreventUpdate
 
     @app.callback(
         [Output('obs-selection-dropdown','options')],
