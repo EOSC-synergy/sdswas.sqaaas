@@ -150,7 +150,7 @@ div.SingleDatePickerInput {
 }
 
 #rgb-image, #aod-image {
-    height: 68vh;
+    height: 65vh;
 }
 
 .timesliderline>button {
@@ -225,7 +225,7 @@ div.SingleDatePickerInput {
     bottom: 3.5rem;
     color: #F1B545 !important;*/
     background-color: #2B383E !important;
-    bottom: 2.5rem !important;
+    bottom: 1.5rem !important;
     margin-left: 1rem;
 }
 
@@ -236,14 +236,14 @@ div.SingleDatePickerInput {
     margin-left: 44rem;
     display: table-cell;
     position: absolute;
-    bottom: 2.5rem !important;
+    bottom: 1.5rem !important;
 }
 
 .layout-dropdown #map-layers-dropdown {
     margin-left: 53rem;
     display: table-cell;
     position: absolute;
-    bottom: 2.5rem !important;
+    bottom: 1.5rem !important;
 }
 
 .btn-secondary {
@@ -253,14 +253,26 @@ div.SingleDatePickerInput {
 
 .layout-dropdown #map-view-dropdown>button, .layout-dropdown #map-layers-dropdown>button {
     margin-left: 1rem;
-    width: 7rem;
+    width: 6.5rem;
     border-radius: 0 !important;
     background-color: #2B383E !important;
     height: 1.75rem;
+    background-repeat: no-repeat;
+    background-position: 1rem;
+    text-align: right;
+    padding-right: 1rem;
+}
+
+.layout-dropdown #map-view-dropdown>button {
+    background-image: url('/dashboard/assets/images/map_icon.png');
+}
+
+.layout-dropdown #map-layers-dropdown>button {
+    background-image: url('/dashboard/assets/images/layers_icon.png');
 }
 
 .layout-dropdown .dropdown-menu {
-    min-width: 8.4rem;
+    min-width: 8.2rem;
     border-radius: 0 !important;
     background-color: #6C7B82;
     padding: 0;
