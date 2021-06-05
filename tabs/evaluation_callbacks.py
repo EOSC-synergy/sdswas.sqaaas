@@ -16,6 +16,8 @@ from data_handler import MODELS
 from data_handler import OBS
 from data_handler import DEBUG
 from data_handler import DATES
+from data_handler import MODEBAR_CONFIG
+from data_handler import MODEBAR_LAYOUT
 
 from utils import calc_matrix
 from utils import get_graph
@@ -271,10 +273,15 @@ def register_callbacks(app):
 
             models = [obs] + [model for model in MODELS]
             if DEBUG: print('SHOW MODIS EVAL TS"""""', obs_cdata, lat, lon)
+            figure = get_timeseries(models, date, DEFAULT_VAR, lat, lon)
+            mb = MODEBAR_LAYOUT
+            mb['modebar']['orientation'] = 'h'
+            figure.update_layout(mb)
             return dbc.ModalBody(
                 dcc.Graph(
                     id='timeseries-eval-modal',
-                    figure=get_timeseries(models, date, DEFAULT_VAR, lat, lon),
+                    figure=figure,
+                    config=MODEBAR_CONFIG
                 )
             ), True
  
@@ -297,12 +304,15 @@ def register_callbacks(app):
             idx = cdata['points'][0]['pointIndex']
             if idx != 0:
                 name = cdata['points'][0]['customdata']
-
+                figure = get_eval_timeseries(obs, start_date, end_date, DEFAULT_VAR, idx, name),
+                mb = MODEBAR_LAYOUT
+                mb['modebar']['orientation'] = 'h'
+                figure.update_layout(mb)
                 if DEBUG: print('SHOW AERONET EVAL TS"""""', obs, idx, name)
                 return dbc.ModalBody(
                     dcc.Graph(
                         id='timeseries-eval-modal',
-                        figure=get_eval_timeseries(obs, start_date, end_date, DEFAULT_VAR, idx, name),
+                        figure=figure,
                     )
                 ), True
 

@@ -160,6 +160,16 @@ was_time_slider = html.Div([
 
 def tab_forecast(window='models'):
     models_children = [
+        dbc.Alert(
+            "Please note that the maps will take longer to load " +
+            "if more than 4 models are selected at once.",
+            id="alert-models-auto",
+            is_open=False,
+            duration=4000,
+            fade=True,
+            color="primary",
+            style={ 'overflow': 'auto' }
+        ),
         html.Div(
             dbc.Container(
                 id='graph-collection',
@@ -255,14 +265,25 @@ def sidebar_forecast(variables, default_var, models, default_model):
                 id='collapse-1',
                 is_open=True,
                 children=[
-                    dbc.CardBody(
+                    dbc.CardBody([
                         dcc.Checklist(
                             id='model-dropdown',
                             options=[{'label': models[model]['name'],
                                       'value': model} for model in models],
                             value=[default_model,],
                             className="sidebar-dropdown"
-                        )
+                        ),
+                        html.Span([
+                            html.Button('APPLY', id='models-apply', n_clicks=0),
+#                             dbc.Popover([
+#                                 dbc.PopoverBody("And here's some amazing content. Cool!")],
+#                                 id="click-on-apply",
+#                                 target="models-apply",
+#                                 trigger="click",
+#                                 placement="right"
+#                             )
+                        ],
+                        )],
                     )
                 ]
             )],
@@ -347,7 +368,16 @@ def sidebar_forecast(variables, default_var, models, default_model):
                 is_open=False,
               ),
               dbc.Collapse(
-                dbc.Card(dbc.CardBody("This DOWNLOAD content is hidden in the collapse")),
+                dbc.Card(dbc.CardBody(
+                    [
+                        html.Button('NETCDF', id='btn-netcdf-download', n_clicks=0),
+                        dcc.Download(
+                            id="netcdf-download",
+                            base64=True,
+                            )
+                    ],
+                    className="card-text",
+                    )),
                 id="download-collapse",
                 is_open=False,
               )

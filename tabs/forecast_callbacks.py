@@ -18,6 +18,8 @@ from data_handler import FREQ
 from data_handler import DEBUG
 from data_handler import DATES
 from data_handler import PROB 
+from data_handler import MODEBAR_CONFIG_TS
+from data_handler import MODEBAR_LAYOUT_TS
 
 from utils import calc_matrix
 from utils import get_graph
@@ -25,6 +27,10 @@ from utils import get_graph
 from tabs.forecast import tab_forecast
 
 from datetime import datetime as dt
+from io import BytesIO
+import zipfile
+import tempfile
+import os.path
 import math
 
 start_date = DATES['start_date']
@@ -90,6 +96,44 @@ def register_callbacks(app):
 
         if DEBUG: print('clicked NONE', False, False)
         raise PreventUdate
+
+    @app.callback(
+        Output('netcdf-download', 'data'),
+        [Input('btn-netcdf-download', 'n_clicks')],
+        [State('model-dropdown', 'value'),
+         State('model-date-picker', 'date')],
+         prevent_initial_call=True,
+    )
+    def download_netcdf(btn, models, date):
+        ctx = dash.callback_context
+
+        if ctx.triggered:
+            button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+            if button_id == 'btn-netcdf-download':
+                if DEBUG: print('NC', btn, models, date)
+                try:
+                    curdate = dt.strptime(date, '%Y-%m-%d').strftime('%Y%m%d')
+                except:
+                    curdate = date
+
+                if len(models) == 1:
+                    model = models[0]
+                    tpl = MODELS[model]['template']
+                    mod_path = MODELS[model]['path']
+                    final_path = os.path.join(mod_path, 'netcdf', '{date}{tpl}.nc'.format(date=curdate, tpl=tpl))
+                    if DEBUG: print('DOWNLOAD', final_path)
+                    return dcc.send_file(final_path, filename=os.path.basename(final_path), type='application/x-netcdf')
+                with tempfile.NamedTemporaryFile() as fp:
+                    with zipfile.ZipFile(fp, mode="w", compression=zipfile.ZIP_DEFLATED) as zf:
+                        for model in models:
+                            tpl = MODELS[model]['template']
+                            mod_path = MODELS[model]['path']
+                            final_path = os.path.join(mod_path, 'netcdf', '{date}{tpl}.nc'.format(date=curdate, tpl=tpl))
+                            if DEBUG: print('ZIPPING', final_path)
+                            fname = os.path.basename(final_path)
+                            zf.write(final_path, fname)
+                    if DEBUG: print('DOWNLOAD', fp.name)
+                    return dcc.send_file(fp.name, filename='{}_DUST_MODELS.zip'.format(date), type='application/zip')
 
     @app.callback(
         Output('was-graph', 'children'),
@@ -205,10 +249,13 @@ def register_callbacks(app):
 
         if DEBUG: print('SHOW TS """""', model, lat, lon)
         if lat and lon:
+            figure = get_timeseries(model, date, variable, lat, lon)
+            figure.update_layout(MODEBAR_LAYOUT_TS)
             return dbc.ModalBody(
                 dcc.Graph(
                     id='timeseries-modal',
-                    figure=get_timeseries(model, date, variable, lat, lon),
+                    figure=figure,
+                    config=MODEBAR_CONFIG_TS
                 )
             ), True
 
@@ -248,17 +295,26 @@ def register_callbacks(app):
 
 
     @app.callback(
-        Output('graph-collection', 'children'),
-        [Input('model-date-picker', 'date'),
-         Input('model-dropdown', 'value'),
+        [Output('alert-models-auto', 'is_open'),
+         Output('graph-collection', 'children')],
+        [Input('models-apply', 'n_clicks'),
          Input('variable-dropdown-forecast', 'value'),
-         Input('slider-graph', 'value')],
-        [State('graph-collection', 'children'),
+         Input('slider-graph', 'value'),
+         Input('model-date-picker', 'date')],
+        [State('model-dropdown', 'value'),
+         State('graph-collection', 'children'),
          State('slider-interval', 'disabled')])
-    def update_models_figure(date, model, variable, tstep, graphs, static):
+    def update_models_figure(n_clicks, variable, tstep, date, model, graphs, static):
         """ Update mosaic of maps figures according to all parameters """
         from tools import get_figure
         if DEBUG: print('SERVER: calling figure from picker callback')
+        ctx = dash.callback_context
+
+        if ctx.triggered:
+            button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+            if button_id != 'models-apply' and variable is None and tstep is None:
+                raise PreventUpdate
+
         # if DEBUG: print('SERVER: interval ' + str(n))
         if DEBUG: print('SERVER: tstep ' + str(tstep))
 
@@ -300,7 +356,7 @@ def register_callbacks(app):
                     ])
                 ])
             )
-            return figures
+            return dash.no_update, figures
 
         ncols, nrows = calc_matrix(len(model))
         for idx, mod in enumerate(model):
@@ -328,4 +384,6 @@ def register_callbacks(app):
             ) for row in range(nrows)
         ]
         if DEBUG: print(ncols, nrows, len(res), [(type(i), len(i.children)) for i in res])
-        return res
+        if len(model) > 4:
+            return True, res
+        return dash.no_update, res

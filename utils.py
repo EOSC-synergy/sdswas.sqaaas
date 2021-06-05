@@ -178,8 +178,10 @@ def get_animation_buttons():
     )
 
 
-def get_graph(index=None, figure={}, gid=None, style={ 'height': '90vh' }):
+def get_graph(index=None, figure={}, gid=None, style={ 'height': '93vh !important' }):
     """ Renders map graph """
+    from data_handler import MODEBAR_CONFIG
+    from data_handler import MODEBAR_LAYOUT
 
     if gid is None:
         gid = {
@@ -187,9 +189,12 @@ def get_graph(index=None, figure={}, gid=None, style={ 'height': '90vh' }):
                 'index': index,
             }
 
+    figure.update_layout(MODEBAR_LAYOUT)
+
     return dcc.Graph(
             id=gid,
             className="graph-with-slider",
             style=style,
-            figure=figure
+            figure=figure,
+            config=MODEBAR_CONFIG
         )

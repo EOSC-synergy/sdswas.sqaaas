@@ -63,6 +63,45 @@ STYLES = {
     "stamen-terrain": "Terrain",
 }
 
+
+MODEBAR_CONFIG = {
+    "displayModeBar": True,
+    "displaylogo": False,
+    "modeBarButtonsToRemove": ["pan2d",
+                               "select2d",
+                               "lasso2d",
+                               ],
+}
+
+MODEBAR_CONFIG_TS = {
+    "displayModeBar": True,
+    "displaylogo": False,
+    "modeBarButtonsToRemove": ["zoom2d",
+                               "pan2d",
+                               "select2d",
+                               "lasso2d",
+                               "autoScale2d"
+                               ],
+}
+
+MODEBAR_LAYOUT = {
+    'modebar': {
+        'orientation': 'v',
+        'color': '#40535C',
+        'bgcolor': 'rgba(0,0,0,0)',
+        'activecolor': '#A2B0B6',
+    }
+}
+
+MODEBAR_LAYOUT_TS = {
+    'modebar': {
+        'orientation': 'h',
+        'color': '#40535C',
+        'bgcolor': 'rgba(0,0,0,0)',
+        'activecolor': '#A2B0B6',
+    }
+}
+
 GEOJSON_TEMPLATE = "{}/geojson/{}/{:02d}_{}_{}.geojson"
 NETCDF_TEMPLATE = "{}/netcdf/{}{}.nc"
 

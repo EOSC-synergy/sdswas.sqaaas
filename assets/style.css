@@ -1,3 +1,14 @@
+
+a.modebar-btn {
+    font-size: 2rem !important;
+    margin: 1rem .5rem;
+}
+
+#timeseries-modal>.js-plotly-plot>.plot-container>.svg-container>.modal-content>.modebar-container>.modebar>.modebar-group>a.modebar-btn {
+    font-size: 1rem !important;
+    margin: .5rem .25rem;
+}
+
 .tab-container {
     background-color: #2B383E !important;
     height: 3.8rem;
@@ -5,7 +16,7 @@
 
 .tab-content {
     background-color: #F0F1F2;
-    height: 90vh !important;
+    height: 93vh !important;
     box-shadow: inset 5px 0px 5px lightgrey;
     bottom: 0 !important;
 }
@@ -32,11 +43,11 @@
 #graph-collection {
     padding: 0;
     margin: 0;
-    height: 85vh !important;
+    height: 93vh !important;
 }
 
 #prob-graph, #was-graph {
-    height: 85vh !important;
+    height: 91vh !important;
 }
 
 #obs-vis-graph {
@@ -100,6 +111,22 @@
 .btn-link {
   color: #2B383E;
   font-family: "Roboto", sans-serif !important;
+}
+
+#models-apply {
+  background-color: #2B383E;
+  color: #FFFFFF;
+  font-family: "Roboto", sans-serif !important;
+  letter-spacing: 0;
+  height: 2rem;
+  border: none;
+  width: 5rem;
+  text-align: center;
+  float: right;
+}
+
+span>#models-apply {
+  margin-bottom: 1.5rem;
 }
 
 #scores-apply {
@@ -229,7 +256,8 @@ div.SingleDatePickerInput {
     margin-left: 1rem;
 }
 
-.layout-dropdown {
+.layout-dropdown .dropdown {
+    z-index: 1002;
 }
 
 .layout-dropdown #map-view-dropdown {
@@ -253,7 +281,6 @@ div.SingleDatePickerInput {
 
 .layout-dropdown #map-view-dropdown>button, .layout-dropdown #map-layers-dropdown>button {
     margin-left: 1rem;
-    width: 6.5rem;
     border-radius: 0 !important;
     background-color: #2B383E !important;
     height: 1.75rem;
@@ -265,10 +292,12 @@ div.SingleDatePickerInput {
 
 .layout-dropdown #map-view-dropdown>button {
     background-image: url('/dashboard/assets/images/map_icon.png');
+    width: 5.5rem;
 }
 
 .layout-dropdown #map-layers-dropdown>button {
     background-image: url('/dashboard/assets/images/layers_icon.png');
+    width: 6.5rem;
 }
 
 .layout-dropdown .dropdown-menu {

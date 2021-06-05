@@ -7,7 +7,7 @@
 /*  background-color: #F1B545 !important; */
   color: #2B383E !important;
   position: fixed !important;
-  height: 100% !important;
+  height: 100vh !important;
   overflow: auto !important;
   display: inline-block !important;
 }
@@ -144,14 +144,23 @@
 .sidebar-bottom  #info-button {
     background-image: url("/dashboard/assets/images/Icon_Info.png");
     background-position: center;
-    width: 80%;
+    width: 3vw;
 }
 
 .sidebar-bottom  #download-button {
     background-image: url("/dashboard/assets/images/Icon_Download.png");
     background-position: 1rem;
     padding-left: 2rem;
-    width: 100%;
+    width: 8.9vw;
+}
+
+#download-collapse .card-text>button {
+    margin: auto;
+    border: 2px solid #2b383e;
+    width: 9vw;
+    height: 4vh;
+    font-size: 1.2rem;
+    color:  #2b383e;
 }
 
 .collapsible-cards {
@@ -175,7 +184,7 @@
 /* Page content. The value of the margin-left property should match the value of the sidebar's width property */
 div.tab-parent {
   margin-left: 15% !important;
-  height: 100% !important;
+  height: 100hv !important;
 }
 
 /* On screens that are less than 700px wide, make the sidebar into a topbar */
