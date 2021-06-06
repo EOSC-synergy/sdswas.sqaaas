@@ -4,7 +4,7 @@
   padding: 0 !important;
   width: 15% !important;
   font-family: "Roboto", sans-serif;
-/*  background-color: #F1B545 !important; */
+  background-color: #FAFAFA;
   color: #2B383E !important;
   position: fixed !important;
   height: 100vh !important;
@@ -66,8 +66,12 @@
     color: #FFFFFF !important;
 }
 
+.sidebar .card-header {
+    padding: .5rem .5rem;
+}
+
 .sidebar-item {
-    height: 2rem;
+    height: 1.5rem;
     margin: 1rem 0;
 }
 
@@ -141,6 +145,24 @@
     background-color: #EFEFEF !important;
 }
 
+#models-apply {
+  background-color: #2B383E;
+  color: #FFFFFF;
+  font-family: "Roboto", sans-serif !important;
+  letter-spacing: 0;
+  height: 2rem;
+  border: none;
+  border-radius: 0;
+  width: 5rem;
+  text-align: center;
+  float: right;
+  margin-right: 2vw;
+}
+
+span>#models-apply {
+  margin-bottom: 1rem;
+}
+
 .sidebar-bottom  .btn {
     border-radius: 0;
     background-repeat: no-repeat;
@@ -165,6 +187,9 @@
 }
 
 .sidebar-bottom .card-text>button.download-section {
+    background-image: url("/dashboard/assets/images/download.svg");
+    background-repeat: no-repeat;
+    background-position: 1rem;
     display: block;
     width: 9vw;
     height: 4vh;
@@ -178,6 +203,8 @@
     color:  #2b383e;
     text-decoration: underline;
 }
+
+
 .collapsible-cards {
     margin: 0 !important;
 }

@@ -113,28 +113,16 @@ a.modebar-btn {
   font-family: "Roboto", sans-serif !important;
 }
 
-#models-apply {
-  background-color: #2B383E;
-  color: #FFFFFF;
-  font-family: "Roboto", sans-serif !important;
-  letter-spacing: 0;
-  height: 2rem;
-  border: none;
-  width: 5rem;
-  text-align: center;
-  float: right;
-}
-
-span>#models-apply {
-  margin-bottom: 1.5rem;
-}
-
 #scores-apply {
   background-color: #2B383E;
   color: #FFFFFF;
   font-family: "Roboto", sans-serif !important;
   letter-spacing: 0;
-  height: 2rem;
+  height: 36px;
+  border: none;
+  border-radius: 0;
+  width: 5rem;
+  text-align: center;
 }
 
 #forecast-footer {
@@ -248,13 +236,13 @@ div.SingleDatePickerInput {
     border: none; 
 }
 
+.linetool #eval-date-picker {
+    display: block !important;
+}
+
 .linetool .DateInput {
     height: 36px;
     line-height: 36px !important;
-}
-
-.linetool #eval-date-picker {
-    display: block !important;
 }
 
 .linetool .DateInput_input {
@@ -272,13 +260,13 @@ div.SingleDatePickerInput {
     display: none;
 }
 
-.linetool .CalendarDay__hovered_span, .CalendarDay__hovered_span:hover, .linetool .CalendarDay__selected_span {
+.CalendarDay__hovered_span, .CalendarDay__hovered_span:hover, .linetool .CalendarDay__selected_span {
     background: #D8A443;
     border: 1px double #D8A443;
     color: #2B383E;
 }
 
-.linetool .CalendarDay__selected, .CalendarDay__selected:active, .CalendarDay__selected:hover {
+.CalendarDay__selected, .CalendarDay__selected:active, .CalendarDay__selected:hover {
     background: #F1B545;
     border: 1px double #F1B545;
     color: #2B383E;

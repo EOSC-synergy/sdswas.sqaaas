@@ -1,6 +1,5 @@
 *.pyc
 .idea
-*.png
 test-reports
 .vscode
 .pytest_cache

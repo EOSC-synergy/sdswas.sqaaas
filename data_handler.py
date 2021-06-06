@@ -13,6 +13,7 @@ import json
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from collections import OrderedDict
+from PIL import Image
 import calendar
 import os
 
@@ -773,6 +774,17 @@ class FigureHandler(object):
                            x=0.01, y=0.95)
         else:
             fig_title={}
+        if DEBUG: print('ADD IMAGES')
+        if varname and varname in VARS:
+            self.fig.add_layout_image(
+                dict(
+                    source=Image.open(VARS[varname]['image_scale']),
+                    xref="paper", yref="paper",
+                    x=0.01, y=0.87,
+                    sizex=0.18, sizey=0.08,
+                    xanchor="left", yanchor="top",
+                    layer='above',
+                ))
         self.fig.update_layout(
             title=fig_title,
             uirevision='forecast-multimodel',  # True,
@@ -990,6 +1002,7 @@ class VisFigureHandler(object):
                            x=0.01, y=0.95)
         else:
             fig_title={}
+
         self.fig.update_layout(
             title=fig_title,
             uirevision=True,
@@ -1298,6 +1311,15 @@ class ProbFigureHandler(object):
                            x=0.01, y=0.95)
         else:
             fig_title={}
+        self.fig.add_layout_image(
+            dict(
+                source=Image.open(PROB[varname]['image_scale']),
+                xref="paper", yref="paper",
+                x=0.01, y=1,
+                sizex=0.35, sizey=0.35,
+                xanchor="left", yanchor="top",
+                layer='above',
+            ))
         self.fig.update_layout(
             title=fig_title,
             uirevision=True,
@@ -1560,6 +1582,11 @@ class WasFigureHandler(object):
         except:
             fig_title={}
         self.fig.update_layout(
+            legend=dict(
+                x=0.01,
+                y=0.85,
+                bgcolor="rgba(0,0,0,0)"
+            ),
             title=fig_title,
             uirevision=True,
             autosize=True,
