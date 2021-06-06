@@ -253,6 +253,10 @@ div.SingleDatePickerInput {
     line-height: 36px !important;
 }
 
+.linetool #eval-date-picker {
+    display: block !important;
+}
+
 .linetool .DateInput_input {
     line-height: 36px !important;
     border-bottom: none;

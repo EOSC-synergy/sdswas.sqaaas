@@ -95,7 +95,7 @@ def tab_evaluation(window='nrt'):
                 clearable=False,
                 searchable=False,
                 value='median',
-                style={ 'display': 'none' },
+                #style={ 'display': 'none' },
             )],
             id="obs-mod-dropdown-span",
             className="linetool",
@@ -131,7 +131,8 @@ def tab_evaluation(window='nrt'):
                 ),
             className="description-body"
         ),
-        html.Span(
+        html.Span([
+            html.Label("Network"),
             dcc.Dropdown(
                 id='obs-network-dropdown',
                 options=[{'label': OBS[obs]['name'],
@@ -139,11 +140,12 @@ def tab_evaluation(window='nrt'):
                 placeholder='Select network',
                 clearable=False,
                 searchable=False
-            ),
+            )],
             style={ 'width': '12rem' },
             className="linetool",
         ),
-        html.Span(
+        html.Span([
+            html.Label("Models"),
             dcc.Dropdown(
                 id='obs-models-dropdown',
                 options=[{'label': MODELS[model]['name'],
@@ -152,11 +154,12 @@ def tab_evaluation(window='nrt'):
                 clearable=False,
                 searchable=False,
                 multi=True,
-            ),
+            )],
             style={ 'width': '12rem' },
             className="linetool",
         ),
-        html.Span(
+        html.Span([
+            html.Label("Statistics"),
             dcc.Dropdown(
                 id='obs-statistics-dropdown',
                 options=[
@@ -166,11 +169,12 @@ def tab_evaluation(window='nrt'):
                 clearable=False,
                 searchable=False,
                 multi=True,
-            ),
+            )],
             style={ 'width': '14rem' },
             className="linetool",
         ),
-        html.Span(
+        html.Span([
+            html.Label("Timescale"),
             dcc.Dropdown(
                 id='obs-timescale-dropdown',
                 options=[
@@ -182,11 +186,12 @@ def tab_evaluation(window='nrt'):
                 value='montly',
                 clearable=False,
                 searchable=False
-            ),
+            )],
             style={ 'width': '8rem' },
             className="linetool",
         ),
-        html.Span(
+        html.Span([
+            html.Label("Selection"),
             dcc.Dropdown(
                 id='obs-selection-dropdown',
                 options=[
@@ -198,7 +203,7 @@ def tab_evaluation(window='nrt'):
                 # value='montly',
                 clearable=False,
                 searchable=False
-            ),
+            )],
             style={ 'width': '10rem'},
             className="linetool",
         ),
