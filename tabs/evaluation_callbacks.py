@@ -16,8 +16,8 @@ from data_handler import MODELS
 from data_handler import OBS
 from data_handler import DEBUG
 from data_handler import DATES
-from data_handler import MODEBAR_CONFIG
-from data_handler import MODEBAR_LAYOUT
+from data_handler import MODEBAR_CONFIG_TS
+from data_handler import MODEBAR_LAYOUT_TS
 
 from utils import calc_matrix
 from utils import get_graph
@@ -274,14 +274,13 @@ def register_callbacks(app):
             models = [obs] + [model for model in MODELS]
             if DEBUG: print('SHOW MODIS EVAL TS"""""', obs_cdata, lat, lon)
             figure = get_timeseries(models, date, DEFAULT_VAR, lat, lon)
-            mb = MODEBAR_LAYOUT
-            mb['modebar']['orientation'] = 'h'
+            mb = MODEBAR_LAYOUT_TS
             figure.update_layout(mb)
             return dbc.ModalBody(
                 dcc.Graph(
                     id='timeseries-eval-modal',
                     figure=figure,
-                    config=MODEBAR_CONFIG
+                    config=MODEBAR_CONFIG_TS
                 )
             ), True
  
@@ -304,15 +303,15 @@ def register_callbacks(app):
             idx = cdata['points'][0]['pointIndex']
             if idx != 0:
                 name = cdata['points'][0]['customdata']
-                figure = get_eval_timeseries(obs, start_date, end_date, DEFAULT_VAR, idx, name),
-                mb = MODEBAR_LAYOUT
-                mb['modebar']['orientation'] = 'h'
+                figure = get_eval_timeseries(obs, start_date, end_date, DEFAULT_VAR, idx, name)
+                mb = MODEBAR_LAYOUT_TS
                 figure.update_layout(mb)
                 if DEBUG: print('SHOW AERONET EVAL TS"""""', obs, idx, name)
                 return dbc.ModalBody(
                     dcc.Graph(
                         id='timeseries-eval-modal',
                         figure=figure,
+                        config=MODEBAR_CONFIG_TS
                     )
                 ), True
 
@@ -416,7 +415,7 @@ def register_callbacks(app):
         [Output('eval-date', 'children'),
          Output('eval-graph', 'children'),
          Output('obs-dropdown', 'value'),
-         Output('obs-mod-dropdown', 'style')],
+         Output('obs-mod-dropdown-span', 'style')],
         [Input('obs-dropdown', 'value')],
          prevent_initial_call=True)
     def update_eval(obs):
@@ -428,7 +427,9 @@ def register_callbacks(app):
 
         if obs == 'aeronet':
 
-            eval_date = [dcc.DatePickerRange(
+            eval_date = [
+              html.Label("Date range"),
+              dcc.DatePickerRange(
                 id='eval-date-picker',
                 min_date_allowed=dt.strptime(start_date, "%Y%m%d"),
                 max_date_allowed=dt.strptime(end_date, "%Y%m%d"),
@@ -444,7 +445,9 @@ def register_callbacks(app):
 
         elif obs == 'modis':
 
-            eval_date = [dcc.DatePickerSingle(
+            eval_date = [
+              html.Label("Date"),
+              dcc.DatePickerSingle(
                 id='eval-date-picker',
                 min_date_allowed=dt.strptime(start_date, "%Y%m%d"),
                 max_date_allowed=dt.strptime(end_date, "%Y%m%d"),
@@ -470,7 +473,7 @@ def register_callbacks(app):
                 no_gutters=True
                 )]
 
-            style = { 'display': 'block' }
+            style = { 'display': 'table-cell' }
 
         else:
             raise PreventUpdate

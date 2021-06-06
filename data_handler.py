@@ -210,7 +210,7 @@ class ObsTimeSeriesHandler(object):
         self.model = models
         self.variable = variable
         self.dataframe = []
-        print("ObsTimeSeries", start_date, end_date)
+        if DEBUG: print("ObsTimeSeries", start_date, end_date)
         self.date_range = pd.date_range(start_date, end_date, freq='D')
 
         fname_tpl = os.path.join(OBS[obs]['path'],
@@ -219,7 +219,7 @@ class ObsTimeSeriesHandler(object):
 
         months = np.unique([d.strftime("%Y%m") for d in self.date_range.to_pydatetime()])
 
-        print('MONTHS', months)
+        if DEBUG: print('MONTHS', months)
 #         if not months:
 #             months = [datetime.strptime(end_date, "%Y-%m-%d").strftime("%Y%m")]
 
@@ -242,7 +242,7 @@ class ObsTimeSeriesHandler(object):
         dict_idx = dict(zip(new_indexes, old_indexes))
         fig = go.Figure()
         for mod, df in zip([self.obs]+self.model, self.dataframe):
-            print("MOD", mod, "COLS", df.columns)
+            if DEBUG: print("MOD", mod, "COLS", df.columns)
             timeseries = \
                 df[df['station']==dict_idx[idx]].set_index('time')
             #visible_ts = timeseries[timeseries.index.isin(self.date_range)]
@@ -258,8 +258,8 @@ class ObsTimeSeriesHandler(object):
                 sc_mode = 'markers'
                 marker = {'size': 10, 'symbol': "triangle-up-dot"}
                 visible = True
-                print(mod)
-                print(timeseries[self.variable].size)
+                # print(mod)
+                # print(timeseries[self.variable].size)
             else:
                 sc_mode = 'lines+markers'
                 marker = {'size': 5}
@@ -304,8 +304,8 @@ class ObsTimeSeriesHandler(object):
 #                     dict(count=1, label="1y",
 #                          step="year", stepmode="backward"),
                     dict(step="all", label="all"),
-                    dict(count=1, label="1m",
-                         step="month", stepmode="backward"),
+#                     dict(count=1, label="1m",
+#                          step="month", stepmode="backward"),
                     dict(count=14, label="2w",
                          step="day", stepmode="backward"),
                     dict(count=7, # label="1w",
@@ -316,6 +316,7 @@ class ObsTimeSeriesHandler(object):
 
 #        fig['layout']['xaxis'].update(range=['2020-04-01', '2020-04-17 09:00'])
 
+        if DEBUG: print('FIG TYPE', type(fig))
         return fig
 
 
@@ -420,8 +421,8 @@ class TimeSeriesHandler(object):
 #                     dict(count=1, label="1y",
 #                          step="year", stepmode="backward"),
                     dict(step="all", label="all"),
-                    dict(count=1, label="1m",
-                         step="month", stepmode="backward"),
+#                     dict(count=1, label="1m",
+#                          step="month", stepmode="backward"),
                     dict(count=14, label="2w",
                          step="day", stepmode="backward"),
                     dict(count=7, # label="1w",

@@ -235,6 +235,51 @@ div.SingleDatePickerInput {
     padding: 1rem;
 }
 
+.linetool>label {
+    font-size: Small;
+    opacity: 0.8;
+    color: #2B383E;
+    font-family: "Roboto", sans-serif !important;
+    margin-bottom: 0;
+}
+
+.linetool .Select-control {
+    border-radius: 0; 
+    border: none; 
+}
+
+.linetool .DateInput {
+    height: 36px;
+    line-height: 36px !important;
+}
+
+.linetool .DateInput_input {
+    line-height: 36px !important;
+    border-bottom: none;
+    padding-left: .5rem;
+}
+
+.linetool .DateRangePickerInput__withBorder {
+    border: none;
+    border-radius: 0;
+}
+
+.linetool .DateRangePickerInput_arrow {
+    display: none;
+}
+
+.linetool .CalendarDay__hovered_span, .CalendarDay__hovered_span:hover, .linetool .CalendarDay__selected_span {
+    background: #D8A443;
+    border: 1px double #D8A443;
+    color: #2B383E;
+}
+
+.linetool .CalendarDay__selected, .CalendarDay__selected:active, .CalendarDay__selected:hover {
+    background: #F1B545;
+    border: 1px double #F1B545;
+    color: #2B383E;
+}
+
 .timesliderline {
     display: table-cell;
     vertical-align: middle;
@@ -280,28 +325,35 @@ div.SingleDatePickerInput {
 }
 
 .layout-dropdown #map-view-dropdown>button, .layout-dropdown #map-layers-dropdown>button {
-    margin-left: 1rem;
     border-radius: 0 !important;
     background-color: #2B383E !important;
     height: 1.75rem;
     background-repeat: no-repeat;
     background-position: 1rem;
     text-align: right;
-    padding-right: 1rem;
+    margin-left: .5rem;
 }
 
 .layout-dropdown #map-view-dropdown>button {
     background-image: url('/dashboard/assets/images/map_icon.png');
-    width: 5.5rem;
+    width: 6rem;
+    padding-right: 1rem;
 }
 
 .layout-dropdown #map-layers-dropdown>button {
     background-image: url('/dashboard/assets/images/layers_icon.png');
-    width: 6.5rem;
+    width: 6.6rem;
+}
+
+.layout-dropdown #map-view-dropdown .dropdown-menu  {
+    min-width: 7.6rem;
+}
+
+.layout-dropdown #map-layers-dropdown .dropdown-menu  {
+    min-width: 8rem;
 }
 
 .layout-dropdown .dropdown-menu {
-    min-width: 8.2rem;
     border-radius: 0 !important;
     background-color: #6C7B82;
     padding: 0;

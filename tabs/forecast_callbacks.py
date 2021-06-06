@@ -98,7 +98,8 @@ def register_callbacks(app):
         raise PreventUdate
 
     @app.callback(
-        Output('netcdf-download', 'data'),
+        [Output('netcdf-download', 'data'),
+         Output('btn-netcdf-download', 'loading_state')],
         [Input('btn-netcdf-download', 'n_clicks')],
         [State('model-dropdown', 'value'),
          State('model-date-picker', 'date')],
@@ -122,7 +123,7 @@ def register_callbacks(app):
                     mod_path = MODELS[model]['path']
                     final_path = os.path.join(mod_path, 'netcdf', '{date}{tpl}.nc'.format(date=curdate, tpl=tpl))
                     if DEBUG: print('DOWNLOAD', final_path)
-                    return dcc.send_file(final_path, filename=os.path.basename(final_path), type='application/x-netcdf')
+                    return dcc.send_file(final_path, filename=os.path.basename(final_path), type='application/x-netcdf'), { 'is_loading': 'true' }
                 with tempfile.NamedTemporaryFile() as fp:
                     with zipfile.ZipFile(fp, mode="w", compression=zipfile.ZIP_DEFLATED) as zf:
                         for model in models:
@@ -133,7 +134,7 @@ def register_callbacks(app):
                             fname = os.path.basename(final_path)
                             zf.write(final_path, fname)
                     if DEBUG: print('DOWNLOAD', fp.name)
-                    return dcc.send_file(fp.name, filename='{}_DUST_MODELS.zip'.format(date), type='application/zip')
+                    return dcc.send_file(fp.name, filename='{}_DUST_MODELS.zip'.format(date), type='application/zip'), { 'is_loading': 'true' }
 
     @app.callback(
         Output('was-graph', 'children'),
@@ -201,7 +202,7 @@ def register_callbacks(app):
         """ Update Prob maps dropdown """
         opt_list = PROB[var]['prob_thresh']
         units = PROB[var]['units']
-        return [{'label': '{} {}'.format(prob, units), 'value': 'prob_{}'.format(prob)} for prob in opt_list], 'prob_{}'.format(opt_list[0])
+        return [{'label': '> {} {}'.format(prob, units), 'value': 'prob_{}'.format(prob)} for prob in opt_list], 'prob_{}'.format(opt_list[0])
 
 
     @app.callback(
@@ -351,7 +352,7 @@ def register_callbacks(app):
                 dbc.Row([
                     dbc.Col([dbc.Spinner(
                         get_graph(index='none', figure=fig,
-                            style={'height': '90vh'}
+                            style={'height': '93vh'}
                             ))
                     ])
                 ])
@@ -366,7 +367,7 @@ def register_callbacks(app):
                     index=mod,
                     figure=get_figure(mod, variable, date, tstep,
                         static=static, aspect=(nrows, ncols)),
-                    style={'height': '{}vh'.format(int(90/nrows))}
+                    style={'height': '{}vh'.format(int(93/nrows))}
                 ))
             )
 

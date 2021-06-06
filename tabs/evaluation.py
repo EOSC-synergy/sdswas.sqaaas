@@ -73,29 +73,33 @@ def tab_evaluation(window='nrt'):
                 ),
             className="description-body"
         ),
-        html.Span(
+        html.Span([
+            html.Label("Network"),
             dcc.Dropdown(
                 id='obs-dropdown',
                 options=[{'label': OBS[obs]['name'],
                           'value': obs} for obs in OBS],
-                placeholder='Select observation network',
-                # clearable=False,
+                placeholder='Select network',
+                clearable=False,
                 searchable=False
-            ),
+            )],
             className="linetool",
         ),
-        html.Span(
+        html.Span([
+            html.Label("Model"),
             dcc.Dropdown(
                 id='obs-mod-dropdown',
                 options=[{'label': MODELS[model]['name'],
                           'value': model} for model in MODELS],
                 placeholder='Select model',
-                # clearable=False,
+                clearable=False,
                 searchable=False,
                 value='median',
                 style={ 'display': 'none' },
-            ),
+            )],
+            id="obs-mod-dropdown-span",
             className="linetool",
+            style={ 'display': 'none' }
         ),
         html.Span(
             id='eval-date',
@@ -132,8 +136,8 @@ def tab_evaluation(window='nrt'):
                 id='obs-network-dropdown',
                 options=[{'label': OBS[obs]['name'],
                           'value': obs} for obs in OBS],
-                placeholder='Select observation network',
-                # clearable=False,
+                placeholder='Select network',
+                clearable=False,
                 searchable=False
             ),
             style={ 'width': '12rem' },
@@ -145,7 +149,7 @@ def tab_evaluation(window='nrt'):
                 options=[{'label': MODELS[model]['name'],
                           'value': model} for model in MODELS],
                 placeholder='Select model',
-                # clearable=False,
+                clearable=False,
                 searchable=False,
                 multi=True,
             ),
@@ -159,7 +163,7 @@ def tab_evaluation(window='nrt'):
                     {'label': v, 'value': l} for l, v in STATS.items()
                 ],
                 placeholder='Select statistic',
-                # clearable=False,
+                clearable=False,
                 searchable=False,
                 multi=True,
             ),
@@ -176,7 +180,7 @@ def tab_evaluation(window='nrt'):
                 ],
                 placeholder='Select timescale',
                 value='montly',
-                # clearable=False,
+                clearable=False,
                 searchable=False
             ),
             style={ 'width': '8rem' },
@@ -192,7 +196,7 @@ def tab_evaluation(window='nrt'):
                 ],
                 placeholder='Select month',
                 # value='montly',
-                # clearable=False,
+                clearable=False,
                 searchable=False
             ),
             style={ 'width': '10rem'},
@@ -309,7 +313,7 @@ def sidebar_evaluation():
         html.Label("Variable"),
         dcc.Dropdown(
             id='variable-dropdown-evaluation',
-            options=[{'label': VARS[variable]['name'],
+            options=[{'label': VARS[variable]['name_sidebar'],
                       'value': variable} for variable in VARS],
             value=DEFAULT_VAR,
             clearable=False,
@@ -317,6 +321,7 @@ def sidebar_evaluation():
             optionHeight=70,
             disabled=True,
         )],
+        id='evaluation-variable',
         className="sidebar-first-item",
     ),
     html.Div([

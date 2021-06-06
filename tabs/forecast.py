@@ -245,7 +245,7 @@ def sidebar_forecast(variables, default_var, models, default_model):
         html.Label("Variable"),
         dcc.Dropdown(
             id='variable-dropdown-forecast',
-            options=[{'label': variables[variable]['name'],
+            options=[{'label': variables[variable]['name_sidebar'],
                       'value': variable} for variable in variables],
             value=default_var,
             clearable=False,
@@ -354,6 +354,11 @@ def sidebar_forecast(variables, default_var, models, default_model):
               dbc.Collapse(
                 dbc.Card(dbc.CardBody(
                     [
+                        html.Button('USER GUIDE',
+                            id='btn-userguide-download',
+                            n_clicks=0,
+                            className='download-section',
+                            ),
                         html.H6("Glossary"),
                         html.P("""
                             1. Variables: Lorem ipsum dolor sit amet, consectetur adipiscing elit."""),
@@ -370,11 +375,20 @@ def sidebar_forecast(variables, default_var, models, default_model):
               dbc.Collapse(
                 dbc.Card(dbc.CardBody(
                     [
-                        html.Button('NETCDF', id='btn-netcdf-download', n_clicks=0),
+                        html.Button('NETCDF',
+                            id='btn-netcdf-download',
+                            n_clicks=0,
+                            className='download-section',
+                            ),
                         dcc.Download(
                             id="netcdf-download",
                             base64=True,
-                            )
+                            ),
+                        html.P("""This button allows you to get selected models netCDF files."""),
+                        html.P([
+                            """To get access to the forecast archive please click """,
+                            dcc.Link('here', href="http://www.google.com"),
+                            ]),
                     ],
                     className="card-text",
                     )),
