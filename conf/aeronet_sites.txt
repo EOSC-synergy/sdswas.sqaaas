@@ -1,38 +1,38 @@
 SITE                LONGITUDE   LATITUDE     AREA
-Capo_Verde          -22.93550   16.73250     Sahel/Sahara
+Capo Verde          -22.93550   16.73250     Sahel/Sahara
 Dakar               -16.95861   14.39417     Sahel/Sahara
-IER_Cinzana          -5.93387   13.27843     Sahel/Sahara
+Cinzana IER          -5.93387   13.27843     Sahel/Sahara
 Banizoumbou           2.66475   13.54117     Sahel/Sahara
-Zinder_Airport        8.99023   13.77668     Sahel/Sahara
-Santa_Cruz_Tenerife -16.24736   28.47253     Sahel/Sahara
-Zouerate-Fennec     -12.48333   22.75000     Sahel/Sahara
-Tamanrasset_INM       5.53000   22.79000     Sahel/Sahara
+Zinder Airport        8.99023   13.77668     Sahel/Sahara
+Santa Cruz Tenerife -16.24736   28.47253     Sahel/Sahara
+Zouerate Fennec     -12.48333   22.75000     Sahel/Sahara
+Tamanrasset INM       5.53000   22.79000     Sahel/Sahara
 Saada                -8.15583   31.62583     Sahel/Sahara
 Oujda                -1.89850   34.65317     Mediterranean
-Cairo_EMA_2          31.29007   30.08077     Mediterranean
+Cairo EMA2          31.29007   30.08077     Mediterranean
 Eilat                34.91750   29.50250     Mediterranean
-SEDE_BOKER           34.78222   30.85500     Mediterranean
-Solar_Village        46.39729   24.90693     Middle_East
-IMS-METU-ERDEMLI     34.25500   36.56500     Mediterranean
+Sede Boker           34.78222   30.85500     Mediterranean
+Solar Village        46.39729   24.90693     Middle_East
+Erdemli IMS-METU     34.25500   36.56500     Mediterranean
 IASBS                48.50711   36.70517     Middle_East
-FORTH_CRETE          25.28242   35.33269     Mediterranean
+Crete FORTH          25.28242   35.33269     Mediterranean
 Xanthi               24.91895   41.14677     Mediterranean
-Lecce_University     18.11139   40.33511     Mediterranean
+Lecce University     18.11139   40.33511     Mediterranean
 Lampedusa            12.63167   35.51667     Mediterranean
-IMAA_Potenza         15.72000   40.60000     Mediterranean
-Rome_Tor_Vergata     12.64733   41.83955     Mediterranean
-ETNA                 15.01943   37.61350     Mediterranean
+Potenza IMAA         15.72000   40.60000     Mediterranean
+Rome Tor Vergata     12.64733   41.83955     Mediterranean
+Etna                 15.01943   37.61350     Mediterranean
 Ersa                  9.35929   43.00367     Mediterranean
 Villefranche          7.32889   43.68389     Mediterranean
 Avignon               4.87807   43.93275     Mediterranean
 Porquerolles          6.16139   43.00139     Mediterranean
 Seysses               1.25972   43.50333     Mediterranean
-Cabo_da_Roca         -9.50000   38.78333     Mediterranean
+Cabo da Roca         -9.50000   38.78333     Mediterranean
 Evora                -7.91150   38.56783     Mediterranean
 Barcelona             2.11697   41.38567     Mediterranean
 Caceres              -6.34347   39.47858     Mediterranean
 Granada              -3.60500   37.16400     Mediterranean
-Tabernas_PSA-DLR     -2.35818   37.09076     Mediterranean
+Tabernas PSA-DLR     -2.35818   37.09076     Mediterranean
 Palma_de_Mallorca     2.62510   39.5533      Mediterranean
 Ouarzazate           -6.91287   30.92837     Sahel/Sahara
 Ilorin                4.34000    8.32000     Sahel/Sahara
