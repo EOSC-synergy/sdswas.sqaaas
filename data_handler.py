@@ -179,7 +179,7 @@ class Observations1dHandler(object):
             lon=clon,
             lat=clat,
             mode='markers',
-            #text=val,
+            text=cicao,
             name=name,
             customdata=cstations,
             hovertemplate="name:%{customdata}<br>lon: %{lon:.4f}<br>" +

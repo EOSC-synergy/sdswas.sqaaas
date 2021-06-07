@@ -14,6 +14,7 @@ from data_handler import DATES
 start_date = DATES['start_date']
 end_date = DATES['end_date']
 
+forecast_days = ('Today', 'Tomorrow')
 
 time_series = html.Div(
             id='open-timeseries',
@@ -120,8 +121,8 @@ prob_time_slider = html.Div([
             id='prob-slider-graph',
             min=0, max=1, step=1, value=0,
             marks={
-                tstep: 'Day {:d}'.format(tstep+1)
-                for tstep in range(3)
+                tstep: forecast_days[tstep]
+                for tstep in range(2)
             },
         ),
         className="timesliderline",
@@ -149,8 +150,8 @@ was_time_slider = html.Div([
             id='was-slider-graph',
             min=1, max=2, step=1, value=1,
             marks={
-                tstep: 'Day {:d}'.format(tstep)
-                for tstep in range(3)
+                tstep: forecast_days[tstep-1]
+                for tstep in range(1, 3)
             },
         ),
         className="timesliderline",
@@ -216,6 +217,7 @@ def tab_forecast(window='models'):
         html.Div([
             was_time_slider,
             layout_view,
+            layout_layers,
             ],
             id='layout-dropdown',
             className="layout-dropdown",
@@ -232,6 +234,7 @@ def tab_forecast(window='models'):
         html.Div([
             prob_time_slider,
             layout_view,
+            layout_layers,
             ],
             id='layout-dropdown',
             className="layout-dropdown",
@@ -288,16 +291,16 @@ def sidebar_forecast(variables, default_var, models, default_model):
                         ),
                         html.Span([
                             html.Button('APPLY', id='models-apply', n_clicks=0),
-                            dbc.Popover([
-                                dbc.PopoverBody(
-                                    "Please note that the maps will take longer to load " +
-                                    "if more than 4 models are selected at once."
-                                )],
-                                id="click-on-apply",
-                                target="models-apply",
-                                trigger="legacy",
-                                placement="top"
-                            )
+#                             dbc.Popover([
+#                                 dbc.PopoverBody(
+#                                     "Please note that the maps will take longer to load " +
+#                                     "if more than 4 models are selected at once."
+#                                 )],
+#                                 id="click-on-apply",
+#                                 target="models-apply",
+#                                 trigger="legacy",
+#                                 placement="right"
+#                             )
                         ],
                         )],
                     )

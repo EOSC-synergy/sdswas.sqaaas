@@ -9,6 +9,7 @@ from dash.dependencies import State
 from dash.dependencies import ALL
 from dash.dependencies import MATCH
 from dash.exceptions import PreventUpdate
+
 from data_handler import DEFAULT_VAR
 from data_handler import DEFAULT_MODEL
 from data_handler import VARS 
@@ -20,12 +21,11 @@ from data_handler import DATES
 from data_handler import PROB 
 from data_handler import MODEBAR_CONFIG_TS
 from data_handler import MODEBAR_LAYOUT_TS
-
 from utils import calc_matrix
 from utils import get_graph
-
 from tabs.forecast import tab_forecast
 
+import pandas as pd
 from datetime import datetime as dt
 from io import BytesIO
 import zipfile
@@ -58,17 +58,15 @@ def register_callbacks(app):
         """ Function rendering requested tab """
         ctx = dash.callback_context
 
-        if not ctx.triggered:
-            return False, False, False
-        else:
+        if ctx.triggered:
             button_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
-        if button_id == "group-1-toggle" and modbutton:
-            return var, tab_forecast('models'), not modopen, False, False
-        elif button_id == "group-2-toggle" and probbutton:
-            return var, tab_forecast('prob'), False, not probopen, False
-        elif button_id == "group-3-toggle" and wasbutton:
-            return 'SCONC_DUST', tab_forecast('was'), False, False, not wasopen
+            if button_id == "group-1-toggle" and modbutton:
+                return var, tab_forecast('models'), not modopen, False, False
+            elif button_id == "group-2-toggle" and probbutton:
+                return var, tab_forecast('prob'), False, not probopen, False
+            elif button_id == "group-3-toggle" and wasbutton:
+                return 'SCONC_DUST', tab_forecast('was'), False, False, not wasopen
 
         raise PreventUpdate
 
@@ -206,7 +204,8 @@ def register_callbacks(app):
 
     @app.callback(
         Output({'type': 'graph-with-slider', 'index': MATCH}, 'figure'),
-        [Input(style, 'n_clicks') for style in STYLES],
+        [Input(style, 'n_clicks') for style in STYLES] +
+        [Input('airports', 'n_clicks')],
         [State({'type': 'graph-with-slider', 'index': MATCH}, 'figure')]
     )
     def update_styles(*args):
@@ -216,11 +215,54 @@ def register_callbacks(app):
 
         if ctx.triggered:
             button_id = ctx.triggered[0]["prop_id"].split(".")[0]
-            figures['layout']['mapbox']['style'] = button_id
-        # else:
-        #    figures['layout']['mapbox']['style'] = 'carto-positron'
-        return figures
+            if button_id in STYLES:
+                figures['layout']['mapbox']['style'] = button_id
+                return figures
+            elif button_id == 'airports':
+                traces_list = [trace for trace in figures['data']]
+                for trace in figures['data']:
+                    if trace['name'] == 'Airports':
+                        figures['data'].remove(trace)
+                        return figures
 
+                fname = "/data/interactive_test/obs/airports/airports.dat"
+                df = pd.read_csv(fname)
+                clon = df['Longitude']
+                clat = df['Latitude']
+                calt = df['Altitude']
+                cname = df['Name']
+                cicao = df['ICAO']
+                ccity = df['City']
+                ccountry = df['Country']
+                figures['data'].append(
+                    dict(
+                        type='scattermapbox',
+                        name='Airports',
+                        below='',
+                        lon=clon,
+                        lat=clat,
+                        text=cname,
+                        customdata=cicao,
+                        #name='{} ({})'.format(cname, cicao),
+                        mode='markers',
+                        hovertemplate="lon: %{lon:.2f}<br>" +
+                                      "lat: %{lat:.2f}<br>" +
+                                      "name: %{text} (%{customdata})",
+                        opacity=0.6,
+                        showlegend=False,
+                        marker=dict(
+                            # autocolorscale=True,
+                            # symbol='square',
+                            color='#2B383E',
+                            opacity=0.6,
+                            size=15,
+                            showscale=False,
+                        )
+                    ),
+                )
+                return figures
+
+        raise PreventUpdate
 
     # retrieve timeseries according to coordinates selected
     @app.callback(
