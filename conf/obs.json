@@ -1,8 +1,19 @@
 {
     "aeronet": {
 	"obs_var": "od550aero",
+	"flt_var": "ae440-870aero",
 	"mod_var": "OD550_DUST",
-	"template" : "od550aero_{}",
-	"path" : "/data/interactive_test/obs/aeronet/"
+	"template" : "{}_{}",
+	"sites": "./aeronet_sites.txt",
+	"path" : "/data/interactive_test/obs/aeronet/",
+	"name": "Aeronet v3 lev1.5"
+    },
+    "modis": {
+	"obs_var": "od550aero",
+	"mod_var": "OD550_DUST",
+	"template" : "{}_{}",
+	"path" : "/data/interactive_test/obs/modis/",
+	"name": "MODIS DeepBlue",
+	"title": "Optical Depth (550nm)<br>for %(shour)sh %(sday)s %(smonth)s %(syear)s"
     }
 }

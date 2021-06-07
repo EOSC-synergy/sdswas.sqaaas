@@ -1,0 +1,32 @@
+{
+    "burkinafaso": 
+        {
+            "shp": "/home/fbeninca/devel/interactive-forecast-viewer/conf/was/burkinafaso/shp/BFA_adm1.shp",
+            "model": "median",
+            "var": "SCONC_DUST",
+	    "path": "/data/interactive_test/was/{was}/h5/{date}",
+	    "template": "{date}_{var}.h5",
+            "colors": {
+                "green"     : "Normal",
+                "gold"      : "High",
+                "darkorange": "Very High",
+                "red"       : "Extremely High"
+            },
+            "values": {
+                "Boucle du Mouhoun" : [328, 411, 533],
+		"Cascades"          : [237, 304, 379],
+		"Centre-Est"        : [321, 387, 502],
+		"Centre-Nord"       : [359, 453, 582],
+		"Centre-Ouest"      : [308, 366, 456],
+		"Centre-Sud"        : [301, 366, 452],
+		"Centre"            : [301, 354, 460],
+		"Est"               : [391, 476, 619],
+		"Haut-Bassins"      : [287, 344, 448],
+		"Nord"              : [365, 447, 616],
+		"Plateau-Central"   : [310, 384, 465],
+		"Sahel"             : [473, 596, 766],
+		"Sud-Ouest"         : [258, 320, 392]
+            },
+            "title": "Barcelona Regional Center - Burkina Faso WAS.<br>Expected concentration of airborne dust.<br>Issued: %(rday)s %(rmonth)s %(ryear)s. Valid: %(sday)s %(smonth)s %(syear)s"
+        } 
+}

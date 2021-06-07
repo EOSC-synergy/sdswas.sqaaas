@@ -1,14 +1,18 @@
 {
     "OD550_DUST": {
         "name": "Dust Optical Depth",
+	"name_sidebar": "AOD",
+	"image_scale": "/home/fbeninca/devel/interactive-forecast-viewer/assets/images/AOD.png",
         "bounds": [0.1, 0.2, 0.4, 0.8, 1.2, 1.6, 3.2, 6.4, 10],
         "mul": 1,
         "title": "Dust Optical Depth (550nm)<br>Run: %(rhour)sh %(rday)s %(rmonth)s %(ryear)s<br>Valid: %(shour)sh %(sday)s %(smonth)s %(syear)s (H+%(step)s)"
     },
     "SCONC_DUST": {
         "name": "Dust Surface Concentration (µg/m³)",
+	"name_sidebar": "Concentration",
+	"image_scale": "/home/fbeninca/devel/interactive-forecast-viewer/assets/images/SurfaceConcentration.png",
         "bounds": [5, 20, 50, 200, 500, 2000, 5000, 20000, 100000],
         "mul": 1e9,
-        "title": "Dust Surface Conc. (µg/m³)<br>Run: %(rhour)sh %(rday)s %(rmonth)s %(ryear)s<br>Valid: %(shour)sh %(sday)s %(smonth)s %(syear)s (H+%(step)s)"
+        "title": "Dust Surface Concentration (µg/m³)<br>Run: %(rhour)sh %(rday)s %(rmonth)s %(ryear)s<br>Valid: %(shour)sh %(sday)s %(smonth)s %(syear)s (H+%(step)s)"
     }
 }

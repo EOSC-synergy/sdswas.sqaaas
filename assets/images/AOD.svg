@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="275px" height="41px" viewBox="0 0 275 41" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>AOD</title>
+    <defs>
+        <rect id="path-1" x="0" y="0" width="267" height="24" rx="12"></rect>
+    </defs>
+    <g id="Symbols" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="map_lines" transform="translate(-34.000000, -137.000000)">
+            <g id="AOD" transform="translate(34.000000, 137.000000)">
+                <g id="Group">
+                    <mask id="mask-2" fill="white">
+                        <use xlink:href="#path-1"></use>
+                    </mask>
+                    <use id="Mask" fill="#D9FFFA" xlink:href="#path-1"></use>
+                    <g mask="url(#mask-2)">
+                        <g transform="translate(39.000000, -6.000000)">
+                            <rect id="Rectangle-Copy-5" fill="#382511" x="190" y="0" width="49" height="36"></rect>
+                            <rect id="Rectangle-Copy-4" fill="#714921" x="158" y="0" width="33" height="36"></rect>
+                            <rect id="Rectangle-Copy-3" fill="#9E6326" x="127" y="0" width="32" height="36"></rect>
+                            <rect id="Rectangle-Copy-2" fill="#D9722F" x="94" y="0" width="34" height="36"></rect>
+                            <rect id="Rectangle-Copy" fill="#FDD876" x="63" y="0" width="32" height="36"></rect>
+                            <rect id="Rectangle" fill="#5CE3BA" x="31" y="0" width="33" height="36"></rect>
+                            <rect id="Rectangle" fill="#A1EDE3" x="0" y="0" width="32" height="36"></rect>
+                        </g>
+                    </g>
+                </g>
+                <text id="0.8" font-family="Roboto-Bold, Roboto" font-size="8" font-weight="bold" line-spacing="20" fill="#2B383E">
+                    <tspan x="129" y="28">0.8</tspan>
+                </text>
+                <text id="1.2" font-family="Roboto-Bold, Roboto" font-size="8" font-weight="bold" line-spacing="20" fill="#2B383E">
+                    <tspan x="162" y="28">1.2</tspan>
+                </text>
+                <text id="1.6" font-family="Roboto-Bold, Roboto" font-size="8" font-weight="bold" line-spacing="20" fill="#2B383E">
+                    <tspan x="192" y="28">1.6</tspan>
+                </text>
+                <text id="3.2" font-family="Roboto-Bold, Roboto" font-size="8" font-weight="bold" line-spacing="20" fill="#2B383E">
+                    <tspan x="225" y="28">3.2</tspan>
+                </text>
+                <text id="6.4" font-family="Roboto-Bold, Roboto" font-size="8" font-weight="bold" line-spacing="20" fill="#2B383E">
+                    <tspan x="258" y="28">6.4</tspan>
+                </text>
+                <text id="0.2" font-family="Roboto-Bold, Roboto" font-size="8" font-weight="bold" line-spacing="20" fill="#2B383E">
+                    <tspan x="68" y="28">0.2</tspan>
+                </text>
+                <text id="0.1" font-family="Roboto-Bold, Roboto" font-size="8" font-weight="bold" line-spacing="20" fill="#2B383E">
+                    <tspan x="34" y="28">0.1</tspan>
+                </text>
+                <text id="0.4" font-family="Roboto-Bold, Roboto" font-size="8" font-weight="bold" line-spacing="20" fill="#2B383E">
+                    <tspan x="98" y="28">0.4</tspan>
+                </text>
+            </g>
+        </g>
+    </g>
+</svg>
