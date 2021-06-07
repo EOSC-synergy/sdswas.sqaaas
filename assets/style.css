@@ -240,6 +240,19 @@ div.SingleDatePickerInput {
     display: block !important;
 }
 
+.linetool .dropdown>button {
+    width: 9.5rem;
+    text-align: left;
+    border-radius: 0;
+    border: none;
+    color: #aaa;
+    background-color: #fff;
+}
+
+.linetool .dropdown .show {
+    padding-right: 1rem;
+}
+
 .linetool .DateInput {
     height: 36px;
     line-height: 36px !important;
@@ -289,26 +302,26 @@ div.SingleDatePickerInput {
     bottom: 3.5rem;
     color: #F1B545 !important;*/
     background-color: #2B383E !important;
-    bottom: 1.5rem !important;
+    bottom: 1rem !important;
     margin-left: 1rem;
 }
 
-.layout-dropdown .dropdown {
-    z-index: 1002;
+.layout-dropdown .dropdown, .layout-dropdown .timeslider {
+    z-index: 1002 !important;
 }
 
 .layout-dropdown #map-view-dropdown {
     margin-left: 44rem;
     display: table-cell;
     position: absolute;
-    bottom: 1.5rem !important;
+    bottom: 1rem !important;
 }
 
 .layout-dropdown #map-layers-dropdown {
     margin-left: 53rem;
     display: table-cell;
     position: absolute;
-    bottom: 1.5rem !important;
+    bottom: 1rem !important;
 }
 
 .btn-secondary {

@@ -24,7 +24,7 @@ from utils import get_colorscale
 
 DIR_PATH = os.path.dirname(os.path.realpath(__file__))
 
-DEBUG =  True
+DEBUG = False  # True
 
 COLORS = ['#a1ede3', '#5ce3ba', '#fcd775', '#da7230',
           '#9e6226', '#714921', '#392511', '#1d1309']
@@ -776,12 +776,15 @@ class FigureHandler(object):
             fig_title={}
         if DEBUG: print('ADD IMAGES')
         if varname and varname in VARS:
+            ypos = 0.87-(aspect[0]/50)
+            size = 0.18+(aspect[0]/50)
+            if DEBUG: print("YPOS", aspect[0], ypos)
             self.fig.add_layout_image(
                 dict(
                     source=Image.open(VARS[varname]['image_scale']),
                     xref="paper", yref="paper",
-                    x=0.01, y=0.87,
-                    sizex=0.18, sizey=0.08,
+                    x=0.01, y=ypos,
+                    sizex=size, sizey=size,
                     xanchor="left", yanchor="top",
                     layer='above',
                 ))

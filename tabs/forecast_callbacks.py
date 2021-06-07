@@ -98,8 +98,7 @@ def register_callbacks(app):
         raise PreventUdate
 
     @app.callback(
-        [Output('netcdf-download', 'data'),
-         Output('btn-netcdf-download', 'loading_state')],
+        Output('netcdf-download', 'data'),
         [Input('btn-netcdf-download', 'n_clicks')],
         [State('model-dropdown', 'value'),
          State('model-date-picker', 'date')],
@@ -123,7 +122,7 @@ def register_callbacks(app):
                     mod_path = MODELS[model]['path']
                     final_path = os.path.join(mod_path, 'netcdf', '{date}{tpl}.nc'.format(date=curdate, tpl=tpl))
                     if DEBUG: print('DOWNLOAD', final_path)
-                    return dcc.send_file(final_path, filename=os.path.basename(final_path), type='application/x-netcdf'), { 'is_loading': 'true' }
+                    return dcc.send_file(final_path, filename=os.path.basename(final_path), type='application/x-netcdf')
                 with tempfile.NamedTemporaryFile() as fp:
                     with zipfile.ZipFile(fp, mode="w", compression=zipfile.ZIP_DEFLATED) as zf:
                         for model in models:
@@ -134,7 +133,7 @@ def register_callbacks(app):
                             fname = os.path.basename(final_path)
                             zf.write(final_path, fname)
                     if DEBUG: print('DOWNLOAD', fp.name)
-                    return dcc.send_file(fp.name, filename='{}_DUST_MODELS.zip'.format(date), type='application/zip'), { 'is_loading': 'true' }
+                    return dcc.send_file(fp.name, filename='{}_DUST_MODELS.zip'.format(date), type='application/zip')
 
     @app.callback(
         Output('was-graph', 'children'),
@@ -228,14 +227,14 @@ def register_callbacks(app):
         [ # Output('progress-modal', 'is_open'),
          Output('ts-modal', 'children'),
          Output('ts-modal', 'is_open')],
-        [Input('model-date-picker', 'date'),
-         Input({'type': 'graph-with-slider', 'index': ALL}, 'clickData'),
+        [Input({'type': 'graph-with-slider', 'index': ALL}, 'clickData'),
          Input({'type': 'graph-with-slider', 'index': ALL}, 'id')],
-        [State('model-dropdown', 'value'),
+        [State('model-date-picker', 'date'),
+         State('model-dropdown', 'value'),
          State('variable-dropdown-forecast', 'value')],
         prevent_initial_call=True
     )
-    def show_timeseries(date, cdata, element, model, variable):
+    def show_timeseries(cdata, element, date, model, variable):
         """ Renders model comparison timeseries """
         from tools import get_timeseries
         if cdata is None:
@@ -248,19 +247,20 @@ def register_callbacks(app):
                 lon = click['points'][0]['lon']
                 break
 
-        if DEBUG: print('SHOW TS """""', model, lat, lon)
-        if lat and lon:
-            figure = get_timeseries(model, date, variable, lat, lon)
-            figure.update_layout(MODEBAR_LAYOUT_TS)
-            return dbc.ModalBody(
-                dcc.Graph(
-                    id='timeseries-modal',
-                    figure=figure,
-                    config=MODEBAR_CONFIG_TS
-                )
-            ), True
+        if lat is None or lon is None:
+            raise PreventUpdate
 
-        return dash.no_update, False
+        if DEBUG: print('SHOW TS """""', model, lat, lon)
+        figure = get_timeseries(model, date, variable, lat, lon)
+        figure.update_layout(MODEBAR_LAYOUT_TS)
+        return dbc.ModalBody(
+            dcc.Graph(
+                id='timeseries-modal',
+                figure=figure,
+                config=MODEBAR_CONFIG_TS
+            )
+        ), True
+
 
     # start/stop animation
     @app.callback(
@@ -297,15 +297,18 @@ def register_callbacks(app):
 
     @app.callback(
         [Output('alert-models-auto', 'is_open'),
+         Output('btn-play', 'style'),
          Output('graph-collection', 'children')],
         [Input('models-apply', 'n_clicks'),
          Input('variable-dropdown-forecast', 'value'),
          Input('slider-graph', 'value'),
          Input('model-date-picker', 'date')],
         [State('model-dropdown', 'value'),
-         State('graph-collection', 'children'),
+         # State('graph-collection', 'children'),
+         State({'type': 'graph-with-slider', 'index': ALL}, 'figure'),
+         State({'type': 'graph-with-slider', 'index': ALL}, 'id'),
          State('slider-interval', 'disabled')])
-    def update_models_figure(n_clicks, variable, tstep, date, model, graphs, static):
+    def update_models_figure(n_clicks, variable, tstep, date, model, graphs, ids, static):
         """ Update mosaic of maps figures according to all parameters """
         from tools import get_figure
         if DEBUG: print('SERVER: calling figure from picker callback')
@@ -343,33 +346,66 @@ def register_callbacks(app):
 
         if DEBUG: print('SERVER: tstep calc ' + str(tstep))
 
-        #if DEBUG and len(graphs) > 0: print('SERVER: graphs ' + str(graphs[0]['props']['children'][-1]['props']['children']['props'].keys()))
+        if DEBUG and len(ids) > 0: print('SERVER: graphs ' + str(graphs), 'ids' + str(ids))
 
         figures = []
         if not model:
             fig = get_figure(model, variable, date, tstep, static=static)
-            figures.append(
-                dbc.Row([
-                    dbc.Col([dbc.Spinner(
-                        get_graph(index='none', figure=fig,
-                            style={'height': '93vh'}
-                            ))
+            if static:
+                figures.append(
+                    dbc.Row([
+                        dbc.Col([
+                            get_graph(index='none', figure=fig,
+                                style={'height': '93vh'}
+                                )
+                        ])
                     ])
-                ])
-            )
-            return dash.no_update, figures
+                )
+            else:
+                figures.append(
+                    dbc.Row([
+                        dbc.Col([dbc.Spinner(
+                            get_graph(index='none', figure=fig,
+                                style={'height': '93vh'}
+                                ))
+                        ])
+                    ])
+                )
+            if len(figures) > 1:
+                btn_style = { 'display': 'none' }
+            else:
+                btn_style = { 'display': 'inline-block' }
+            return dash.no_update, btn_style, figures
 
         ncols, nrows = calc_matrix(len(model))
+        past_models = {mod['index']: figure for mod, figure in zip(ids, graphs)}
+
         for idx, mod in enumerate(model):
-            figures.append(
-              dbc.Spinner(
-                get_graph(
-                    index=mod,
-                    figure=get_figure(mod, variable, date, tstep,
-                        static=static, aspect=(nrows, ncols)),
-                    style={'height': '{}vh'.format(int(93/nrows))}
-                ))
-            )
+            if mod in past_models:
+                figure = past_models[mod]
+                figure['layout']['mapbox']['zoom'] = 3-(0.5*nrows)
+            else:
+                figure = get_figure(mod, variable, date, tstep,
+                    static=static, aspect=(nrows, ncols))
+            if static:
+                figures.append(
+                    get_graph(
+                        index=mod,
+                        figure=get_figure(mod, variable, date, tstep,
+                            static=static, aspect=(nrows, ncols)),
+                        style={'height': '{}vh'.format(int(93/nrows))}
+                    )
+                )
+            else:
+                figures.append(
+                  dbc.Spinner(
+                    get_graph(
+                        index=mod,
+                        figure=get_figure(mod, variable, date, tstep,
+                            static=static, aspect=(nrows, ncols)),
+                        style={'height': '{}vh'.format(int(93/nrows))}
+                    ))
+                )
 
         res = [
             dbc.Row(
@@ -385,6 +421,10 @@ def register_callbacks(app):
             ) for row in range(nrows)
         ]
         if DEBUG: print(ncols, nrows, len(res), [(type(i), len(i.children)) for i in res])
+        if len(figures) > 1:
+            btn_style = { 'display': 'none' }
+        else:
+            btn_style = { 'display': 'inline-block' }
         if len(model) > 4:
-            return True, res
-        return dash.no_update, res
+            return True, btn_style, res
+        return dash.no_update, btn_style, res

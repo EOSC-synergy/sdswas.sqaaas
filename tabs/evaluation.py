@@ -146,31 +146,54 @@ def tab_evaluation(window='nrt'):
         ),
         html.Span([
             html.Label("Models"),
-            dcc.Dropdown(
-                id='obs-models-dropdown',
-                options=[{'label': MODELS[model]['name'],
-                          'value': model} for model in MODELS],
-                placeholder='Select model',
-                clearable=False,
-                searchable=False,
-                multi=True,
-            )],
-            style={ 'width': '12rem' },
+            dbc.DropdownMenu(
+                label="Select model",
+                children=[
+                    dcc.Checklist(
+                        id='obs-models-dropdown',
+                        options=[{'label': MODELS[model]['name'],
+                                  'value': model} for model in MODELS],
+                        #value=[default_model,],
+                        className="sidebar-dropdown"
+                    )
+                ],
+            ),
+#             dcc.Dropdown(
+#                 id='obs-models-dropdown',
+#                 options=[{'label': MODELS[model]['name'],
+#                           'value': model} for model in MODELS],
+#                 placeholder='Select model',
+#                 clearable=False,
+#                 searchable=False,
+#                 multi=True,
+#             )
+            ],
+            #style={ 'width': '9.5rem' },
             className="linetool",
         ),
         html.Span([
             html.Label("Statistics"),
-            dcc.Dropdown(
-                id='obs-statistics-dropdown',
-                options=[
-                    {'label': v, 'value': l} for l, v in STATS.items()
+            dbc.DropdownMenu(
+                label="Select statistics",
+                children=[
+                    dcc.Checklist(
+                        id='obs-statistics-dropdown',
+                        options=[
+                            {'label': v, 'value': l} for l, v in STATS.items()
+                        ],
+                        #value=[default_model,],
+                        className="sidebar-dropdown"
+                    )
                 ],
-                placeholder='Select statistic',
-                clearable=False,
-                searchable=False,
-                multi=True,
-            )],
-            style={ 'width': '14rem' },
+            ),
+#             dcc.Dropdown(
+#                 id='obs-statistics-dropdown',
+#                 placeholder='Select statistic',
+#                 clearable=False,
+#                 searchable=False,
+#                 multi=True,
+#             )
+            ],
             className="linetool",
         ),
         html.Span([

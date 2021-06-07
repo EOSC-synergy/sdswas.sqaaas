@@ -15,28 +15,30 @@ start_date = DATES['start_date']
 end_date = DATES['end_date']
 
 
-time_series = dbc.Spinner(
-    id='loading-ts-modal',
-    fullscreen=True,
-    fullscreen_style={'opacity': '0.5'},
-    children=[
-        html.Div(
+time_series = html.Div(
             id='open-timeseries',
             children=[
-                dbc.Modal([
-                    dbc.ModalBody(
-                        dcc.Graph(
-                            id='timeseries-modal',
-                            figure={},
+                dbc.Spinner(
+                    id='loading-ts-modal',
+                    fullscreen=True,
+                    fullscreen_style={'opacity': '0.5'},
+                    show_initially=False,
+                    children=[
+                        dbc.Modal([
+                            dbc.ModalBody(
+                                dcc.Graph(
+                                    id='timeseries-modal',
+                                    figure={},
+                                ),
+                            )],
+                            id='ts-modal',
+                            size='xl',
+                            centered=True,
+                            is_open=False,
                         ),
-                    )],
-                    id='ts-modal',
-                    size='xl',
-                    centered=True,
-                ),
             ],
-            style={'display': 'none'},
         )],
+        #style={'display': 'none'},
 )
 
 
@@ -170,12 +172,23 @@ def tab_forecast(window='models'):
             color="primary",
             style={ 'overflow': 'auto' }
         ),
-        html.Div(
-            dbc.Container(
-                id='graph-collection',
-                children=[],
-                fluid=True,
-        )),
+        html.Div(dbc.Container(
+                    id='graph-collection',
+                    children=[],
+                    fluid=True,
+                    )
+        ),
+#         html.Div(dbc.Spinner(
+#             id='loading-graph-collection',
+#             fullscreen=True,
+#             fullscreen_style={'opacity': '0.5'},
+#             children=[
+#                 dbc.Container(
+#                     id='graph-collection',
+#                     children=[],
+#                     fluid=True,
+#                     )]
+#         )),
         html.Div(
             dcc.Interval(id='slider-interval',
                 interval=1000,
@@ -275,13 +288,16 @@ def sidebar_forecast(variables, default_var, models, default_model):
                         ),
                         html.Span([
                             html.Button('APPLY', id='models-apply', n_clicks=0),
-#                             dbc.Popover([
-#                                 dbc.PopoverBody("And here's some amazing content. Cool!")],
-#                                 id="click-on-apply",
-#                                 target="models-apply",
-#                                 trigger="click",
-#                                 placement="right"
-#                             )
+                            dbc.Popover([
+                                dbc.PopoverBody(
+                                    "Please note that the maps will take longer to load " +
+                                    "if more than 4 models are selected at once."
+                                )],
+                                id="click-on-apply",
+                                target="models-apply",
+                                trigger="legacy",
+                                placement="top"
+                            )
                         ],
                         )],
                     )
@@ -344,7 +360,7 @@ def sidebar_forecast(variables, default_var, models, default_model):
                 "DOWNLOAD",
                 id="download-button",
             ),
-            width=7,
+            width=9,
             ),
           ],
           no_gutters=True,
