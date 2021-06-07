@@ -403,7 +403,7 @@ def sidebar_forecast(variables, default_var, models, default_model):
                         html.P("""This button allows you to get selected models netCDF files."""),
                         html.P([
                             """To get access to the forecast archive please click """,
-                            dcc.Link('here', href="http://www.google.com"),
+                            dcc.Link('here', href="https://earth.bsc.es/thredds/catalog/exp/monarch/a2in/regional/catalog.html"),
                             ]),
                     ],
                     className="card-text",
