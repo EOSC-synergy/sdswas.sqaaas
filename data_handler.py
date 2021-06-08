@@ -24,7 +24,7 @@ from utils import get_colorscale
 
 DIR_PATH = os.path.dirname(os.path.realpath(__file__))
 
-DEBUG = False  # True
+DEBUG = True
 
 COLORS = ['#a1ede3', '#5ce3ba', '#fcd775', '#da7230',
           '#9e6226', '#714921', '#392511', '#1d1309']
@@ -125,7 +125,7 @@ class Observations1dHandler(object):
         self.rdatetime = datetime.strptime("{} {}".format(rdate, rtime[:5]),
                                            "%Y-%m-%d %H:%M")
         self.varlist = [var for var in self.input_file.variables if var == OBS[obs]['obs_var']]
-        print('VARLIST', self.varlist)
+        if DEBUG: print('VARLIST', self.varlist)
 
         self.station_names = np.array([st_name[~st_name.mask].tostring().decode('utf-8')
                               for st_name in
@@ -171,7 +171,7 @@ class Observations1dHandler(object):
         clon = self.lon[notnan]
         clat = self.lat[notnan]
         cstations = self.station_names[notnan]
-        print(len(clon), len(clat), len(cstations))
+        if DEBUG: print(len(clon), len(clat), len(cstations))
         name = 'Aeronet Station'
         return dict(
             type='scattermapbox',
@@ -527,7 +527,7 @@ class FigureHandler(object):
             yanchor="top",
         )
 
-    def get_mapbox(self, style='carto-positron', relayout=False, zoom=3, center=None):
+    def get_mapbox(self, style='carto-positron', relayout=False, zoom=2.8, center=None):
         """ Returns mapbox layout """
         if center is None and hasattr(self, 'ylat'):
             center = go.layout.mapbox.Center(
@@ -625,7 +625,7 @@ class FigureHandler(object):
             if feature['geometry']['coordinates']
         ]
         locations, values = np.array(loc_val).T if loc_val else ([], [])
-        if DEBUG: print(varname, self.colormaps[varname], values)
+        # if DEBUG: print(varname, self.colormaps[varname], values)
         return dict(
             type='choroplethmapbox',
             name=name+'_contours',
@@ -644,16 +644,6 @@ class FigureHandler(object):
                 line_width=0,
             ),
             colorbar=None,
-#                 {
-#                     "borderwidth": 0,
-#                     "outlinewidth": 0,
-#                     "thickness": 15,
-#                     "tickfont": {"size": 14},
-#                     "tickvals": self.bounds[varname][:-1],
-#                     "tickmode": "array",
-#                     "x": 0.95,
-#                     "y": 0.5,
-#                 },
         )
 
     def generate_var_tstep_trace(self, varname=None, tstep=0):
@@ -793,7 +783,7 @@ class FigureHandler(object):
             uirevision='forecast-multimodel',  # True,
             autosize=True,
             hovermode="closest",        # highlight closest point on hover
-            mapbox=self.get_mapbox(zoom=3-(0.5*aspect[0]), center=center),
+            mapbox=self.get_mapbox(zoom=2.8-(0.5*aspect[0]), center=center),
             # width="100%",
             updatemenus=[
                 # get_animation_buttons(),
@@ -847,7 +837,7 @@ class VisFigureHandler(object):
             yanchor="top",
         )
 
-    def get_mapbox(self, style='carto-positron', relayout=False, zoom=3, center=None):
+    def get_mapbox(self, style='carto-positron', relayout=False, zoom=2.8, center=None):
         """ Returns mapbox layout """
         if center is None and hasattr(self, 'ylat'):
             center = go.layout.mapbox.Center(
@@ -1011,7 +1001,7 @@ class VisFigureHandler(object):
             uirevision=True,
             autosize=True,
             hovermode="closest",        # highlight closest point on hover
-            mapbox=self.get_mapbox(zoom=3-(0.5*aspect[0]), center=center),
+            mapbox=self.get_mapbox(zoom=2.8-(0.5*aspect[0]), center=center),
             # width="100%",
             legend=dict(
                 x=0.01,
@@ -1102,7 +1092,7 @@ class ProbFigureHandler(object):
             yanchor="top",
         )
 
-    def get_mapbox(self, style='carto-positron', relayout=False, zoom=3):
+    def get_mapbox(self, style='carto-positron', relayout=False, zoom=2.8):
         """ Returns mapbox layout """
         if hasattr(self, 'ylat'):
             center = go.layout.mapbox.Center(
@@ -1328,7 +1318,7 @@ class ProbFigureHandler(object):
             uirevision=True,
             autosize=True,
             hovermode="closest",        # highlight closest point on hover
-            mapbox=self.get_mapbox(zoom=3-(0.5*aspect[0])),
+            mapbox=self.get_mapbox(zoom=2.8-(0.5*aspect[0])),
             # width="100%",
             updatemenus=[
                 # get_animation_buttons(),
@@ -1594,7 +1584,7 @@ class WasFigureHandler(object):
             uirevision=True,
             autosize=True,
             hovermode="closest",        # highlight closest point on hover
-            mapbox=self.get_mapbox(zoom=7-(0.5*aspect[0])),
+            mapbox=self.get_mapbox(zoom=6.5-(0.5*aspect[0])),
             #height=800,
             margin={"r": 0, "t": 0, "l": 0, "b": 0},
         )

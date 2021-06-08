@@ -394,6 +394,24 @@ def sidebar_forecast(variables, default_var, models, default_model):
               dbc.Collapse(
                 dbc.Card(dbc.CardBody(
                     [
+                        html.Button('PNG FRAME',
+                            id='btn-frame-download',
+                            n_clicks=0,
+                            className='download-section',
+                            ),
+                        dcc.Download(
+                            id="frame-download",
+                            base64=True,
+                            ),
+                        html.Button('GIF ANIM',
+                            id='btn-anim-download',
+                            n_clicks=0,
+                            className='download-section',
+                            ),
+                        dcc.Download(
+                            id="anim-download",
+                            base64=True,
+                            ),
                         html.Button('NETCDF',
                             id='btn-netcdf-download',
                             n_clicks=0,

@@ -13,12 +13,14 @@ import dash_core_components as dcc
 import dash_bootstrap_components as dbc
 import dash_html_components as html
 
+DEBUG = True
 
 TIMES = {
     'animation': 900,
     'transition': 500,
     'slider_transition': 500
 }
+
 
 
 def concat_dataframes(fname_tpl, months, variable, rename_from=None, notnans=None):

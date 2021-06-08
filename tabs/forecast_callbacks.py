@@ -28,6 +28,7 @@ from tabs.forecast import tab_forecast
 import pandas as pd
 from datetime import datetime as dt
 from io import BytesIO
+from PIL import Image
 import zipfile
 import tempfile
 import os.path
@@ -120,18 +121,86 @@ def register_callbacks(app):
                     mod_path = MODELS[model]['path']
                     final_path = os.path.join(mod_path, 'netcdf', '{date}{tpl}.nc'.format(date=curdate, tpl=tpl))
                     if DEBUG: print('DOWNLOAD', final_path)
-                    return dcc.send_file(final_path, filename=os.path.basename(final_path), type='application/x-netcdf')
+                    return dcc.send_file(
+                            final_path,
+                            filename=os.path.basename(final_path),
+                            type='application/x-netcdf')
+
                 with tempfile.NamedTemporaryFile() as fp:
-                    with zipfile.ZipFile(fp, mode="w", compression=zipfile.ZIP_DEFLATED) as zf:
+                    with zipfile.ZipFile(
+                            fp, mode="w",
+                            compression=zipfile.ZIP_DEFLATED) as zf:
+
                         for model in models:
                             tpl = MODELS[model]['template']
                             mod_path = MODELS[model]['path']
-                            final_path = os.path.join(mod_path, 'netcdf', '{date}{tpl}.nc'.format(date=curdate, tpl=tpl))
+                            final_path = os.path.join(
+                                    mod_path,
+                                    'netcdf',
+                                    '{date}{tpl}.nc'.format(date=curdate, tpl=tpl))
                             if DEBUG: print('ZIPPING', final_path)
                             fname = os.path.basename(final_path)
                             zf.write(final_path, fname)
                     if DEBUG: print('DOWNLOAD', fp.name)
-                    return dcc.send_file(fp.name, filename='{}_DUST_MODELS.zip'.format(date), type='application/zip')
+                    return dcc.send_file(
+                            fp.name,
+                            filename='{}_DUST_MODELS.zip'.format(date),
+                            type='application/zip')
+
+    @app.callback(
+        Output('anim-download', 'data'),
+        [Input('btn-anim-download', 'n_clicks')],
+        [State('model-dropdown', 'value'),
+         State('variable-dropdown-forecast', 'value'),
+         State('model-date-picker', 'date')],
+         prevent_initial_call=True,
+    )
+    def download_anim(btn, models, variable, date):
+        """ Download PNG frame """
+        from tools import get_figure
+        from tools import download_image
+
+        ctx = dash.callback_context
+
+        if ctx.triggered:
+            button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+            if button_id == 'btn-anim-download':
+                if DEBUG: print('GIF', btn, models, variable, date)
+                try:
+                    curdate = dt.strptime(date, '%Y-%m-%d').strftime('%Y%m%d')
+                except:
+                    curdate = date
+
+                return download_image(models, variable, curdate, anim=True)
+
+    @app.callback(
+        Output('frame-download', 'data'),
+        [Input('btn-frame-download', 'n_clicks')],
+        [State('model-dropdown', 'value'),
+         State('variable-dropdown-forecast', 'value'),
+         State('model-date-picker', 'date'),
+         State('slider-graph', 'value')],
+         prevent_initial_call=True,
+    )
+    def download_frame(btn, models, variable, date, tstep):
+        """ Download PNG frame """
+        from tools import get_figure
+        from tools import download_image
+
+        ctx = dash.callback_context
+
+        if ctx.triggered:
+            button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+            if button_id == 'btn-frame-download':
+                if tstep is None:
+                    tstep = 0
+                if DEBUG: print('PNG', btn, models, variable, date, tstep)
+                try:
+                    curdate = dt.strptime(date, '%Y-%m-%d').strftime('%Y%m%d')
+                except:
+                    curdate = date
+
+                return download_image(models, variable, curdate, tstep)
 
     @app.callback(
         Output('was-graph', 'children'),
@@ -255,7 +324,7 @@ def register_callbacks(app):
                             # symbol='square',
                             color='#2B383E',
                             opacity=0.6,
-                            size=15,
+                            size=10,
                             showscale=False,
                         )
                     ),
@@ -388,7 +457,7 @@ def register_callbacks(app):
 
         if DEBUG: print('SERVER: tstep calc ' + str(tstep))
 
-        if DEBUG and len(ids) > 0: print('SERVER: graphs ' + str(graphs), 'ids' + str(ids))
+        # if DEBUG and len(ids) > 0: print('SERVER: graphs ' + str(graphs), 'ids' + str(ids))
 
         figures = []
         if not model:
