@@ -17,29 +17,29 @@ end_date = DATES['end_date']
 forecast_days = ('Today', 'Tomorrow')
 
 time_series = html.Div(
-            id='open-timeseries',
+    id='open-timeseries',
+    children=[
+        dbc.Spinner(
+            id='loading-ts-modal',
+            fullscreen=True,
+            fullscreen_style={'opacity': '0.5'},
+            show_initially=False,
             children=[
-                dbc.Spinner(
-                    id='loading-ts-modal',
-                    fullscreen=True,
-                    fullscreen_style={'opacity': '0.5'},
-                    show_initially=False,
-                    children=[
-                        dbc.Modal([
-                            dbc.ModalBody(
-                                dcc.Graph(
-                                    id='timeseries-modal',
-                                    figure={},
-                                ),
-                            )],
-                            id='ts-modal',
-                            size='xl',
-                            centered=True,
-                            is_open=False,
+                dbc.Modal([
+                    dbc.ModalBody(
+                        dcc.Graph(
+                            id='timeseries-modal',
+                            figure={},
                         ),
+                    )],
+                    id='ts-modal',
+                    size='xl',
+                    centered=True,
+                    is_open=False,
+                ),
             ],
         )],
-        #style={'display': 'none'},
+    style={'display': 'none'},
 )
 
 

@@ -462,7 +462,7 @@ def register_callbacks(app):
         figures = []
         if not model:
             fig = get_figure(model, variable, date, tstep, static=static)
-            if static:
+            if not static:
                 figures.append(
                     dbc.Row([
                         dbc.Col([
@@ -498,7 +498,8 @@ def register_callbacks(app):
             else:
                 figure = get_figure(mod, variable, date, tstep,
                     static=static, aspect=(nrows, ncols))
-            if static:
+            if DEBUG: print('STATIC', static)
+            if not static:
                 figures.append(
                     get_graph(
                         index=mod,

@@ -28,38 +28,38 @@ end_date = DATES['end_date']
 def get_gif_figure(model, variable, curdate, tstep):
     return get_figure(model, variable, curdate, tstep, static=False)
 
-@gif.frame
 def get_composite(models, variable, curdate, tstep):
-        ncols, nrows = calc_matrix(len(models))
+    """ """
+    ncols, nrows = calc_matrix(len(models))
+    
+    row = col = 1
+    xpos = ypos = 0
+    mod_fps = [tempfile.NamedTemporaryFile() for model in models]
+
+    composite_img = None
+    for fp, model in zip(mod_fps, models):
         
-        row = col = 1
-        xpos = ypos = 0
-        composite_fp = tempfile.NamedTemporaryFile()
-        mod_fps = [tempfile.NamedTemporaryFile() for model in models]
+        if col == ncols + 1:
+            row += 1
+            col = 1
+        if row == nrows + 1:
+            break
 
-        composite_img = None
-        for fp, model in zip(mod_fps, models):
-            
-            if col == ncols + 1:
-                row += 1
-                col = 1
-            if row == nrows + 1:
-                break
+        if DEBUG: print('ROWCOL', row, col)
+        fig = get_figure(model, variable, curdate, hour=tstep, static=False)
+        fig.write_image(fp.name, format='png', engine='kaleido')
+        img = Image.open(fp.name)
+        img_size = img.size
+        if row == 1 and col == 1:
+            composite_img = Image.new("RGB", (img_size[0]*ncols, img_size[1]*nrows), 'white')
 
-            if DEBUG: print('ROWCOL', row, col)
-            fig = get_figure(model, variable, curdate, hour=tstep, static=False)
-            fig.write_image(fp.name, format='png', engine='kaleido')
-            img = Image.open(fp.name)
-            img_size = img.size
-            if row == 1 and col == 1:
-                composite_img = Image.new("RGB", (img_size[0]*ncols, img_size[1]*nrows), 'white')
+        composite_img.paste(img, (img_size[0]*(col-1), img_size[1]*(row-1)))
 
-            composite_img.paste(img, (img_size[0]*(col-1), img_size[1]*(row-1)))
+        col += 1
 
-            col += 1
-
-        if composite_img is not None:
-            return composite_img
+    if DEBUG: print(composite_img)
+    if composite_img is not None:
+        return composite_img
 
 
 def download_image(models, variable, curdate, tstep=0, anim=False):
@@ -86,11 +86,12 @@ def download_image(models, variable, curdate, tstep=0, anim=False):
         if anim:
             frames = [get_composite(models, variable, curdate, ts) for ts in range(21)]
             fname = "{date}_LOOP_MULTIMODEL_{variable}.png".format(date=curdate, variable=variable)
-            gif.save(frames, '/tmp/{}'.format(fname), duration=120)
+            frames[0].save('/tmp/{}'.format(fname), save_all=True, append_images=frames[1:], duration=200, loop=0)
             return dcc.send_file(
                     '/tmp/{}'.format(fname),
                     filename=fname)
 
+        composite_fp = tempfile.NamedTemporaryFile()
         composite_img = get_composite(models, variable, curdate, tstep)
         if composite_img is not None:
             composite_img.save(composite_fp.name + '.png')
