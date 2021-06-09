@@ -175,7 +175,22 @@ div.SingleDatePickerInput {
     width: 30rem;
 }
 
+.centered-image {
+    text-align: center !important;
+    text-align: -moz-center !important; 
+}
+
+.centered-image .timeslider {
+    position: relative !important;	
+    text-align: center !important;
+    text-align: -moz-center !important; 
+    margin: auto !important;
+    left: 1rem;
+    top: .5rem;
+}
+
 #rgb-image, #aod-image {
+    vertical-align: baseline;
     height: 65vh;
 }
 
@@ -206,6 +221,7 @@ div.SingleDatePickerInput {
     display: block;
     float: left;
     margin: 1rem;
+    width: 1rem;
 }
 
 #rgb-buttons .btn {

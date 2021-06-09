@@ -53,15 +53,18 @@
     border: none;
 }
 
-#evaluation-variable.sidebar-first-item {
+#evaluation-variable.sidebar-first-item, #observations-variable.sidebar-first-item {
     background-color: #6C7B82 !important;
 }
 
-#evaluation-variable.sidebar-first-item .dash-dropdown .Select .Select-control .Select-multi-value-wrapper .Select-value {
+#evaluation-variable.sidebar-first-item .dash-dropdown .Select .Select-control .Select-multi-value-wrapper .Select-value,
+#observations-variable.sidebar-first-item .dash-dropdown .Select .Select-control .Select-multi-value-wrapper .Select-value {
     background-color: #6C7B82 !important;
     color: #FFFFFF !important;
 }
-#evaluation-variable.sidebar-first-item .dash-dropdown .Select .Select-control .Select-multi-value-wrapper .Select-value .Select-value-label {
+
+#evaluation-variable.sidebar-first-item .dash-dropdown .Select .Select-control .Select-multi-value-wrapper .Select-value .Select-value-label,
+#observations-variable.sidebar-first-item .dash-dropdown .Select .Select-control .Select-multi-value-wrapper .Select-value .Select-value-label {
     background-color: #6C7B82 !important;
     color: #FFFFFF !important;
 }

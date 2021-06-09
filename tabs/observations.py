@@ -108,10 +108,15 @@ def tab_observations(window='rgb'):
             ],
             id='rgb-buttons'
         ),
-        html.Div(
+        html.Div([
             html.Img(
                 id='rgb-image',
-                )
+                ),
+            html.Div(
+                obs_time_slider(div='obs'),
+                className="layout-dropdown",
+            )],
+            className='centered-image',
         ),
         html.Div(
             dcc.Interval(id='obs-slider-interval',
@@ -119,10 +124,6 @@ def tab_observations(window='rgb'):
                 n_intervals=0,
                 disabled=True
         )),
-        html.Div(
-            obs_time_slider(div='obs'),
-            className="layout-dropdown",
-        ),
     ]
 
     aod_children = [
@@ -143,10 +144,15 @@ def tab_observations(window='rgb'):
                 ),
             className="description-body"
         ),
-        html.Div(
+        html.Div([
             html.Img(
                 id='aod-image',
-                )
+                ),
+            html.Div(
+                obs_time_slider(div='obs-aod'),
+                className="layout-dropdown",
+            )],
+            className='centered-image',
         ),
         html.Div(
             dcc.Interval(id='obs-aod-slider-interval',
@@ -154,10 +160,6 @@ def tab_observations(window='rgb'):
                 n_intervals=0,
                 disabled=True
         )),
-        html.Div(
-            obs_time_slider(div='obs-aod'),
-            className="layout-dropdown",
-        ),
     ]
 
     visibility_children = [
@@ -224,6 +226,7 @@ def sidebar_observations():
             disabled=True
             # optionHeight=70,
         )],
+        id='observations-variable',
         className="sidebar-first-item",
     ),
     html.Label("Column integrated"),

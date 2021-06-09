@@ -40,10 +40,12 @@ def register_callbacks(app):
         [Output('observations-tab', 'children'),
          Output('rgb', 'style'),
          Output('aod', 'style'),
-         Output('visibility', 'style')],
+         Output('visibility', 'style'),
+         Output('variable-dropdown-observation', 'value')],
         [Input('rgb', 'n_clicks'),
          Input('aod', 'n_clicks'),
          Input('visibility', 'n_clicks')],
+        prevent_initial_call=True
     )
     def render_observations_tab(rgb_button, aod_button, vis_button):
         """ Function rendering requested tab """
@@ -56,14 +58,15 @@ def register_callbacks(app):
             button_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
             if button_id == "rgb" and rgb_button:
-                return tab_observations('rgb'), bold, norm, norm
+                return tab_observations('rgb'), bold, norm, norm, button_id
             elif button_id == "aod" and aod_button:
-                return tab_observations('aod'), norm, bold, norm
+                return tab_observations('aod'), norm, bold, norm, button_id
             elif button_id == "visibility" and vis_button:
-                return tab_observations('visibility'), norm, norm, bold
+                return tab_observations('visibility'), norm, norm, bold, button_id
+            else:
+                raise PreventUpdate
 
-        return dash.no_update, bold, norm, norm
-        #raise PreventUpdate
+        return dash.no_update, bold, norm, norm, 'rgb'
 
     @app.callback(
     Output('aod-image', 'src'),
