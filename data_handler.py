@@ -50,7 +50,7 @@ WAS = json.load(open(os.path.join(DIR_PATH, 'conf/was.json')))
 PROB = json.load(open(os.path.join(DIR_PATH, 'conf/prob.json')))
 DATES = json.load(open(os.path.join(DIR_PATH, 'conf/dates.json')))
 
-STATS = OrderedDict({ 'bias': 'BIAS', 'corr': 'CORRELATION', 'rmse': 'ROOT MEAN SQUARED ERR', 'frge': 'FRACTIONAL GROSS ERR', 'totn': 'TOTAL CASES' })
+STATS = OrderedDict({ 'bias': 'BIAS', 'corr': 'CORR', 'rmse': 'RMSE', 'frge': 'FRGE', 'totn': 'TOTAL CASES' })
 
 # Frequency = 3 Hourly
 FREQ = 3

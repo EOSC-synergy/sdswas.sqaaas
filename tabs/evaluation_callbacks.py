@@ -151,7 +151,7 @@ def register_callbacks(app):
         columns = [{'name': i in SCORES and
             STATS[i] or '', 'id': i} for
             i in stat]
-        return columns, ret.to_dict('records'), { 'display': 'block' }
+        return columns, ret.replace('_', ' ', regex=True).to_dict('records'), { 'display': 'block' }
 
     @app.callback(
         extend_l([[Output('aeronet-scores-table-{}'.format(score), 'columns'),
@@ -178,7 +178,7 @@ def register_callbacks(app):
         if not n or network != 'aeronet':
             return extend_l([[dash.no_update, dash.no_update, { 'display': 'none' }] for score in SCORES])
 
-        areas = ['Mediterranean', 'Middle_East', 'Sahel/Sahara', 'Total']
+        areas = ['Mediterranean', 'Middle East', 'Sahel/Sahara', 'Total']
 
         active_cells = list(tables[:len(SCORES)])
         tables = list(tables[len(SCORES):])
@@ -209,7 +209,7 @@ def register_callbacks(app):
                 filename = "{}_{}.h5".format(selection, SCORES[table_idx])
                 tab_name = "{}_{}".format(SCORES[table_idx], selection)
                 filepath = os.path.join(filedir, "h5", filename)
-                df = pd.read_hdf(filepath, tab_name)  # .round(decimals=2).fillna('-')
+                df = pd.read_hdf(filepath, tab_name).replace('_', ' ', regex=True)  # .round(decimals=2).fillna('-')
                 # replace "tables" columns
                 tables[obj_idx] = [{'name': i in MODELS and
                     [STATS[SCORES[table_idx]], MODELS[i]['name']] or
@@ -217,14 +217,15 @@ def register_callbacks(app):
                     i in models]
                 # replace "tables" data
                 if curr_active_cell is not None:
-                    print("ACTIVE", curr_active_cell)
+                    if DEBUG: print("ACTIVE", curr_active_cell)
                     curr_data = tables[obj_idx+1]
                     if not curr_data:
                         continue
                     row_number = curr_active_cell['row']
                     # 1st case:
-                    print('CURRDATA', curr_data)
-                    print('ROWNUMBER', row_number)
+                    if DEBUG:
+                        print('CURRDATA', curr_data)
+                        print('ROWNUMBER', row_number)
                     value = curr_data[row_number]['station']
                     if value not in areas[:-1]:
                         raise PreventUpdate
@@ -237,8 +238,9 @@ def register_callbacks(app):
                             tables[obj_idx+1] = [table_row for table_row in curr_data if curr_data.index(table_row) < row_number] + df.iloc[val_idx:foll_idx-1][models].to_dict('rows') + [table_row for table_row in curr_data if curr_data.index(table_row) > row_number]
                         else:
                             foll_area = areas[areas.index(value)+1]
-                            print("'''", curr_data)
-                            print("---", foll_area)
+                            if DEBUG:
+                                print("'''", curr_data)
+                                print("---", foll_area)
                             foll_idx = curr_data.index([row for row in curr_data if row['station'] == foll_area][0])
                             tables[obj_idx+1] = [table_row for table_row in curr_data if curr_data.index(table_row) <= row_number] +  [table_row for table_row in curr_data if curr_data.index(table_row) >= foll_idx]
 

@@ -287,7 +287,7 @@ def tab_evaluation(window='nrt'):
                     },
                     {
                         "if": {
-                            'filter_query': '{station} = "Mediterranean" || {station} = "Middle_East" || {station} = "Sahel/Sahara" || {station} = "Total"',
+                            'filter_query': '{station} = "Mediterranean" || {station} = "Middle East" || {station} = "Sahel/Sahara" || {station} = "Total"',
                             },
                         "fontWeight": "bold",
                         'padding': '1rem',
