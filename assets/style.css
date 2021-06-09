@@ -1,12 +1,18 @@
 
 a.modebar-btn {
     font-size: 2rem !important;
-    margin: 1rem .5rem;
+    margin: 1rem .2rem;
 }
 
-#timeseries-modal>.js-plotly-plot>.plot-container>.svg-container>.modal-content>.modebar-container>.modebar>.modebar-group>a.modebar-btn {
-    font-size: 1rem !important;
-    margin: .5rem .25rem;
+.modal-body>.dash-graph>.js-plotly-plot>.plot-container>.svg-container>.modebar-container>.modebar>.modebar-group>a.modebar-btn {
+    font-size: 1.2rem !important;
+    margin: .25rem .2rem;
+}
+
+.modal-body>.dash-graph>.js-plotly-plot>.plot-container>.svg-container>.modebar-container>.modebar {
+    top: 0;
+    margin-top: 0;
+    padding-top: 0;
 }
 
 .tab-container {
@@ -137,8 +143,12 @@ a.modebar-btn {
     font-size: medium !important;
     font-weight: bold;
     text-transform: uppercase;
-    padding: 0.5rem 0.9rem;
+    padding: 0.1rem 0.9rem;
     margin-right: 0;
+}
+
+.DateInput {
+    vertical-align: baseline;
 }
 
 .DateInput_input {
@@ -158,6 +168,7 @@ div.SingleDatePickerInput {
 
 #was-slider-graph, #prob-slider-graph, #obs-vis-slider-graph {
     width: 10rem;
+    padding-right: 35px !important;
 }
 
 #slider-graph, #obs-slider-graph, #obs-aod-slider-graph {

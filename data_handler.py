@@ -179,18 +179,17 @@ class Observations1dHandler(object):
             lon=clon,
             lat=clat,
             mode='markers',
-            text=cicao,
             name=name,
             customdata=cstations,
-            hovertemplate="name:%{customdata}<br>lon: %{lon:.4f}<br>" +
-                          "lat: %{lat:.4f}", #"<br>value: %{text:.4f}",
+            hovertemplate="name:%{customdata}<br>lon: %{lon:.2f}<br>" +
+                          "lat: %{lat:.2f}", #"<br>value: %{text:.2f}",
             opacity=0.6,
             showlegend=False,
             marker=dict(
                 # autocolorscale=True,
                 # symbol='square',
-                color='royalblue',
-                opacity=0.6,
+                color='#F1B545',
+                opacity=0.8,
                 size=15,
                 colorscale=self.colormaps[varname],
                 cmin=self.bounds[varname][0],
@@ -258,9 +257,8 @@ class ObsTimeSeriesHandler(object):
             if mod == self.obs:
                 sc_mode = 'markers'
                 marker = {'size': 10, 'symbol': "triangle-up-dot"}
+                marker['color'] = '#F1B545'
                 visible = True
-                # print(mod)
-                # print(timeseries[self.variable].size)
             else:
                 sc_mode = 'lines+markers'
                 marker = {'size': 5}
@@ -268,45 +266,45 @@ class ObsTimeSeriesHandler(object):
                 cur_lat = round(timeseries[lat_col][0], 2)
                 cur_lon = round(timeseries[lon_col][0], 2)
 
+            if mod == 'median':
+                marker['color'] = 'black'
+                line = {'dash' : 'dash'}
+            else:
+                line = {'dash' : 'solid'}
+
 
             fig.add_trace(dict(
-                    type='scatter',
-                    name="{}".format(
-                        mod.upper()),
-                    x=timeseries.index,
-                    y=timeseries[self.variable],
-                    mode=sc_mode,
-                    marker=marker,
-                    visible=visible
+                type='scatter',
+                name="{}".format(
+                    mod.upper()),
+                x=timeseries.index,
+                y=timeseries[self.variable],
+                mode=sc_mode,
+                marker=marker,
+                line=line,
+                visible=visible
                 )
             )
 
-        title = "{} @ {} (lat = {:.4f}, lon = {:.4f})".format(
+        title = "{} @ {} (lat = {:.2f}, lon = {:.2f})".format(
             VARS[self.variable]['name'], name, cur_lat, cur_lon,
         )
 
         fig.update_layout(
-            title=dict(text=title, x=0.45, y=1.),
+            title=dict(text=title, x=0.45, y=0.99),
             # uirevision=True,
             autosize=True,
             showlegend=True,
             hovermode="x",        # highlight closest point on hover
-            margin={"r": 10, "t": 30, "l": 10, "b": 10},
+            #margin={"r": 10, "t": 0, "l": 10, "b": 10},
+            margin={"r": 10, "t": 35, "l": 10, "b": 10},
         )
         fig.update_xaxes(
             range=[self.date_range[0], self.date_range[-1]],
             rangeslider_visible=True,
             rangeselector=dict(
                 buttons=list([
-#                     dict(count=6, label="6m",
-#                          step="month", stepmode="backward"),
-#                     dict(count=1, label="YTD",
-#                          step="year", stepmode="todate"),
-#                     dict(count=1, label="1y",
-#                          step="year", stepmode="backward"),
                     dict(step="all", label="all"),
-#                     dict(count=1, label="1m",
-#                          step="month", stepmode="backward"),
                     dict(count=14, label="2w",
                          step="day", stepmode="backward"),
                     dict(count=7, # label="1w",
@@ -332,10 +330,12 @@ class TimeSeriesHandler(object):
         self.fpaths = []
         try:
             self.month = datetime.strptime(date, "%Y%m%d").strftime("%Y%m")
+            self.currdate = datetime.strptime(date, "%Y%m%d").strftime("%Y%m%d")
         except:
             self.month = datetime.strptime(date, "%Y-%m-%d").strftime("%Y%m")
+            self.currdate = datetime.strptime(date, "%Y-%m-%d").strftime("%Y%m%d")
 
-    def retrieve_timeseries(self, lat, lon, model=None, method='netcdf'):
+    def retrieve_timeseries(self, lat, lon, model=None, method='netcdf', forecast=False):
 
         if not model:
             model = self.model
@@ -355,15 +355,21 @@ class TimeSeriesHandler(object):
             elif method == 'netcdf':
                 path_template = '{}*{}.nc'.format(self.month, MODELS[mod]['template'], self.variable)
 
+            if forecast:
+                method = 'netcdf'
+                path_template = '{}{}.nc'.format(self.currdate, MODELS[mod]['template'], self.variable)
+
             fpath = os.path.join(filedir,
                                  method,
                                  path_template)
-
+            if DEBUG: print('*** FPATH ***', fpath)
             self.fpaths.append(fpath)
 
         title = "{} @ lat = {} and lon = {}".format(
             VARS[self.variable]['name'], round(lat, 2), round(lon, 2)
         )
+
+        mul = VARS[self.variable]['mul']
 
         fig = go.Figure()
 
@@ -373,11 +379,21 @@ class TimeSeriesHandler(object):
                 variable = OBS[mod]['obs_var']
             else:
                 variable = self.variable
-            ts_lat, ts_lon, ts_index, ts_values = retrieve_timeseries(fpath, lat, lon, variable, method=method)
+
+            ts_lat, ts_lon, ts_index, ts_values = retrieve_timeseries(
+                    fpath, lat, lon, variable, method=method, forecast=forecast)
+
+            if isinstance(ts_lat, np.ndarray):
+                ts_lat = float(ts_lat)
+                ts_lon = float(ts_lon)
+                ts_values = (ts_values*mul).round(2)
+            else:
+                ts_values = round((ts_values*mul), 2)
 
             if obs_eval and mod == model[0]:
                 sc_mode = 'markers'
                 marker = {'size': 10, 'symbol': "triangle-up-dot"}
+                marker['color'] = '#F1B545'
                 visible = True
                 name = "{}".format(mod.upper())
             elif obs_eval:
@@ -388,9 +404,15 @@ class TimeSeriesHandler(object):
             else:
                 sc_mode = 'lines+markers'
                 marker = {'size': 5}
-                visible = True 
+                visible = True
                 name = "{} ({}, {})".format(
                         mod.upper(), round(ts_lat, 2), round(ts_lon, 2))
+
+            if mod == 'median':
+                marker['color'] = 'black'
+                line = {'dash' : 'dash'}
+            else:
+                line = {'dash' : 'solid'}
 
             fig.add_trace(dict(
                     type='scatter',
@@ -399,40 +421,20 @@ class TimeSeriesHandler(object):
                     y=ts_values,
                     mode=sc_mode,
                     marker=marker,
+                    line=line,
                     visible=visible,
                 )
             )
+
         fig.update_layout(
-            title=dict(text=title, x=0.45, y=1.),
+            title=dict(text=title, x=0.45, y=.99),
             # uirevision=True,
             autosize=True,
             showlegend=True,
             # hovermode="closest",        # highlight closest point on hover
             hovermode="x",        # highlight closest point on hover
-            margin={"r": 20, "t": 30, "l": 20, "b": 10},
+            margin={"r": 10, "t": 35, "l": 10, "b": 10},
         )
-        fig.update_xaxes(
-            rangeslider_visible=True,
-            rangeselector=dict(
-                buttons=list([
-#                     dict(count=6, label="6m",
-#                          step="month", stepmode="backward"),
-#                     dict(count=1, label="YTD",
-#                          step="year", stepmode="todate"),
-#                     dict(count=1, label="1y",
-#                          step="year", stepmode="backward"),
-                    dict(step="all", label="all"),
-#                     dict(count=1, label="1m",
-#                          step="month", stepmode="backward"),
-                    dict(count=14, label="2w",
-                         step="day", stepmode="backward"),
-                    dict(count=7, # label="1w",
-                         step="day", stepmode="backward"),
-                ])
-            )
-        )
-
-#        fig['layout']['xaxis'].update(range=['2020-04-01', '2020-04-17 09:00'])
 
         return fig
 
@@ -675,8 +677,8 @@ class FigureHandler(object):
             lat=ylat,
             text=val,
             name=name,
-            hovertemplate="lon: %{lon:.4f}<br>lat: %{lat:.4f}<br>" +
-            "value: %{text:.4f}",
+            hovertemplate="lon: %{lon:.2f}<br>lat: %{lat:.2f}<br>" +
+            "value: %{text:.2f}",
             opacity=0.6,
             showlegend=False,
             marker=dict(
@@ -944,7 +946,7 @@ class VisFigureHandler(object):
             lat=ylat_val,
             text=stat_val,
             name=name,
-            hovertemplate="lon: %{lon:.4f}<br>lat: %{lat:.4f}<br>station: %{text}",
+            hovertemplate="lon: %{lon:.2f}<br>lat: %{lat:.2f}<br>station: %{text}",
             opacity=0.7,
             mode='markers',
             showlegend=True,
@@ -1240,8 +1242,8 @@ class ProbFigureHandler(object):
             lat=ylat,
             text=val,
             name=name,
-            hovertemplate="lon: %{lon:.4f}<br>lat: %{lat:.4f}<br>" +
-            "value: %{text:.4f}",
+            hovertemplate="lon: %{lon:.2f}<br>lat: %{lat:.2f}<br>" +
+            "value: %{text:.2f}",
             opacity=0.6,
             showlegend=False,
             marker=dict(

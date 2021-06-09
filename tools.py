@@ -111,12 +111,12 @@ def get_eval_timeseries(obs, start_date, end_date, var, idx, name):
     return th.retrieve_timeseries(idx, name)
 
 
-def get_timeseries(model, date, var, lat, lon):
+def get_timeseries(model, date, var, lat, lon, forecast=False):
     """ Retrieve timeseries """
     if DEBUG: print('SERVER: TS init for models {} ... '.format(str(model)))
     th = TimeSeriesHandler(model, date, var)
     if DEBUG: print('SERVER: TS generation ... ')
-    return th.retrieve_timeseries(lat, lon, method='feather')
+    return th.retrieve_timeseries(lat, lon, method='feather', forecast=forecast)
 
 
 def get_obs1d(sdate, edate, obs, var):

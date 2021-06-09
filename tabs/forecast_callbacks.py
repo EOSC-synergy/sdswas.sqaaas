@@ -362,7 +362,7 @@ def register_callbacks(app):
             raise PreventUpdate
 
         if DEBUG: print('SHOW TS """""', model, lat, lon)
-        figure = get_timeseries(model, date, variable, lat, lon)
+        figure = get_timeseries(model, date, variable, lat, lon, forecast=True)
         figure.update_layout(MODEBAR_LAYOUT_TS)
         return dbc.ModalBody(
             dcc.Graph(
@@ -376,7 +376,8 @@ def register_callbacks(app):
     # start/stop animation
     @app.callback(
         [Output('slider-interval', 'disabled'),
-         Output('slider-interval', 'n_intervals')],
+         Output('slider-interval', 'n_intervals'),
+         Output('open-timeseries', 'style')],
         [Input('btn-play', 'n_clicks')],
         [State('slider-interval', 'disabled'),
          State('slider-graph', 'value')])
@@ -386,8 +387,8 @@ def register_callbacks(app):
         if not value:
             value = 0
         if n:
-            return not disabled, int(value/FREQ)
-        return disabled, int(value/FREQ)
+            return not disabled, int(value/FREQ), { 'display': 'none' }
+        return disabled, int(value/FREQ), { 'display': 'block' }
 
 
     @app.callback(

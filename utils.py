@@ -47,9 +47,9 @@ def concat_dataframes(fname_tpl, months, variable, rename_from=None, notnans=Non
     return notnans, mon_dfs[mon_dfs['station'].isin(notnans)]
 
 
-def retrieve_timeseries(fname, lat, lon, variable, method='netcdf'):
+def retrieve_timeseries(fname, lat, lon, variable, method='netcdf', forecast=False):
     """ """
-    if method == 'feather':
+    if method == 'feather' and not forecast:
         df = feather.read_dataframe(fname)
         if 'lat' in df.columns:
             lat_col = 'lat'
@@ -71,7 +71,10 @@ def retrieve_timeseries(fname, lat, lon, variable, method='netcdf'):
     def preprocess(ds, n=8):
         return ds.isel(time=range(n))
 
-    ds = xr.open_mfdataset(fname, concat_dim='time', combine='nested', preprocess=preprocess)
+    if forecast:
+        ds = xr.open_dataset(fname)
+    else:
+        ds = xr.open_mfdataset(fname, concat_dim='time', combine='nested', preprocess=preprocess)
     if 'lat' in ds.variables:
         da = ds[variable].sel(lon=lon, lat=lat, method='nearest')
         return da['lat'].values, da['lon'].values, da.indexes['time'], da

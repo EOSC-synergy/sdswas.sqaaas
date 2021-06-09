@@ -366,4 +366,46 @@ def sidebar_evaluation():
         )],
         className="sidebar-item",
     ),
+#     html.Div([
+#         dbc.Row([
+#           dbc.Col(
+#             dbc.Button(
+#                 "",
+#                 id="info-button",
+#             ),
+#             width=12,
+#             ),
+#           ],
+#           no_gutters=True,
+#           ),
+#         dbc.Row([
+#             dbc.Col([
+#               dbc.Collapse(
+#                 dbc.Card(dbc.CardBody(
+#                     [
+#                         html.Button('USER GUIDE',
+#                             id='btn-userguide-download',
+#                             n_clicks=0,
+#                             className='download-section',
+#                             ),
+#                         html.H6("Glossary"),
+#                         html.P("""
+#                             1. Variables: Lorem ipsum dolor sit amet, consectetur adipiscing elit."""),
+#                         html.P("""
+#                             2. Comparing: Lorem ipsum dolor sit , conssit amet, sit amet, consecte dolor elit."""),
+#                         html.P("""
+#                             3. User Oriented Products: Lorem ipsum dolor sit amet, consectetur adipiscing elitLorem consectetur adipiscing elit"""),
+#                     ],
+#                     className="card-text",
+#                     )),
+#                 id="info-collapse",
+#                 is_open=False,
+#               ),
+#         ],
+#         className="collapsible-cards",
+#         ),
+#     ],
+#     className="sidebar-bottom",
+#     )
+#     ])
 ]
