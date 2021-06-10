@@ -27,6 +27,7 @@ a.modebar-btn {
     bottom: 0 !important;
     margin: 0 !important;
     padding: 0 ! important;
+    position: relative;
 }
 
 :hover.tab.horizontal-menu>span, .tab.horizontal-menu.tab--selected>span {
