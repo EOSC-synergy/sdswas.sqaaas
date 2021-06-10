@@ -22,7 +22,7 @@ a.modebar-btn {
 
 .tab-content {
     background-color: #F0F1F2;
-    height: 91vh !important;
+    height: 90vh !important;
     box-shadow: inset 5px 0px 5px lightgrey;
     bottom: 0 !important;
     margin: 0 !important;
@@ -51,11 +51,11 @@ a.modebar-btn {
 #graph-collection {
     padding: 0;
     margin: 0;
-    height: 91vh !important;
+    height: 90vh !important;
 }
 
 #prob-graph, #was-graph {
-    height: 91vh !important;
+    height: 90vh !important;
 }
 
 #obs-vis-graph {

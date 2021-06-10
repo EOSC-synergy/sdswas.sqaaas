@@ -517,7 +517,7 @@ def register_callbacks(app):
                         index=mod,
                         figure=get_figure(mod, variable, date, tstep,
                             static=static, aspect=(nrows, ncols)),
-                        style={'height': '{}vh'.format(int(93/nrows))}
+                        style={'height': '{}vh'.format(int(91/nrows))}
                     )
                 )
             else:
@@ -527,7 +527,7 @@ def register_callbacks(app):
                         index=mod,
                         figure=get_figure(mod, variable, date, tstep,
                             static=static, aspect=(nrows, ncols)),
-                        style={'height': '{}vh'.format(int(93/nrows))}
+                        style={'height': '{}vh'.format(int(91/nrows))}
                     ))
                 )
 
