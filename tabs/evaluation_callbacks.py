@@ -261,10 +261,11 @@ def register_callbacks(app):
          Output('ts-eval-modis-modal', 'is_open')],
         [Input('graph-eval-modis-obs', 'clickData')],
         [State('eval-date-picker', 'date'),
-         State('obs-dropdown', 'value')],
+         State('obs-dropdown', 'value'),
+         State('obs-mod-dropdown', 'value')],
         prevent_initial_call=True
     )
-    def show_eval_modis_timeseries(obs_cdata, date, obs):
+    def show_eval_modis_timeseries(obs_cdata, date, obs, model):
         """ Retrieve MODIS evaluation timeseries according to station selected """
         from tools import get_timeseries
         lat = lon = None
@@ -273,7 +274,7 @@ def register_callbacks(app):
             lat = obs_cdata['points'][0]['lat']
             lon = obs_cdata['points'][0]['lon']
 
-            models = [obs] + [model for model in MODELS]
+            models = [obs, model]  # [model for model in MODELS]
             if DEBUG: print('SHOW MODIS EVAL TS"""""', obs_cdata, lat, lon)
             figure = get_timeseries(models, date, DEFAULT_VAR, lat, lon)
             mb = MODEBAR_LAYOUT_TS

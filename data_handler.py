@@ -245,7 +245,6 @@ class ObsTimeSeriesHandler(object):
             if DEBUG: print("MOD", mod, "COLS", df.columns)
             timeseries = \
                 df[df['station']==dict_idx[idx]].set_index('time')
-            #visible_ts = timeseries[timeseries.index.isin(self.date_range)]
 
             if 'lat' in df.columns:
                 lat_col = 'lat'
@@ -256,29 +255,26 @@ class ObsTimeSeriesHandler(object):
 
             if mod == self.obs:
                 sc_mode = 'markers'
-                marker = {'size': 10, 'symbol': "triangle-up-dot"}
-                marker['color'] = '#F1B545'
+                marker = {'size': 10, 'symbol': "triangle-up-dot", 'color': '#F1B545'}
+                line = {}
                 visible = True
             else:
-                sc_mode = 'lines+markers'
-                marker = {'size': 5}
+                sc_mode = 'lines'
+                marker = {}
+                line = { 'color': MODELS[mod]['color'] }
                 visible = 'legendonly'
                 cur_lat = round(timeseries[lat_col][0], 2)
                 cur_lon = round(timeseries[lon_col][0], 2)
 
             if mod == 'median':
-                marker['color'] = 'black'
-                line = {'dash' : 'dash'}
-            else:
-                line = {'dash' : 'solid'}
-
+                line['dash'] = 'dash'
 
             fig.add_trace(dict(
                 type='scatter',
                 name="{}".format(
                     mod.upper()),
                 x=timeseries.index,
-                y=timeseries[self.variable],
+                y=timeseries[self.variable].round(2),
                 mode=sc_mode,
                 marker=marker,
                 line=line,
@@ -295,6 +291,7 @@ class ObsTimeSeriesHandler(object):
             # uirevision=True,
             autosize=True,
             showlegend=True,
+            plot_bgcolor='#F9F9F9',
             hovermode="x",        # highlight closest point on hover
             #margin={"r": 10, "t": 0, "l": 10, "b": 10},
             margin={"r": 10, "t": 35, "l": 10, "b": 10},
@@ -340,9 +337,15 @@ class TimeSeriesHandler(object):
         if not model:
             model = self.model
 
-        obs_eval = model[0] not in MODELS and model[0] in OBS 
+        if DEBUG: print("----------", model)
 
-        for mod in model:
+        obs_eval = model[0] not in MODELS and model[0] in OBS
+        if obs_eval:
+            all_models = [model[0]] + list(MODELS.keys())
+        else:
+            all_models = list(MODELS.keys())
+
+        for mod in all_models:
             if obs_eval:
                 filedir = OBS[model[0]]['path']
                 path_tpl = '{}-{}-{}_interp.ft'  # 202010-median-OD550_DUST_interp.ft
@@ -362,7 +365,6 @@ class TimeSeriesHandler(object):
             fpath = os.path.join(filedir,
                                  method,
                                  path_template)
-            if DEBUG: print('*** FPATH ***', fpath)
             self.fpaths.append(fpath)
 
         title = "{} @ lat = {} and lon = {}".format(
@@ -373,13 +375,14 @@ class TimeSeriesHandler(object):
 
         fig = go.Figure()
 
-        for mod, fpath in zip(model, self.fpaths):
+        for mod, fpath in zip(all_models, self.fpaths):
             # print(mod, fpath)
             if mod not in MODELS and mod in OBS:
                 variable = OBS[mod]['obs_var']
             else:
                 variable = self.variable
 
+            if DEBUG: print('Retrieving *** FPATH ***', fpath)
             ts_lat, ts_lon, ts_index, ts_values = retrieve_timeseries(
                     fpath, lat, lon, variable, method=method, forecast=forecast)
 
@@ -392,30 +395,37 @@ class TimeSeriesHandler(object):
 
             if obs_eval and mod == model[0]:
                 sc_mode = 'markers'
-                marker = {'size': 10, 'symbol': "triangle-up-dot"}
-                marker['color'] = '#F1B545'
+                marker = {'size': 12, 'symbol': "triangle-up-dot", 'color': '#F1B545'}
+                line = {}
                 visible = True
                 name = "{}".format(mod.upper())
             elif obs_eval:
-                sc_mode = 'lines+markers'
-                marker = {'size': 5}
-                visible = 'legendonly'
+                sc_mode = 'lines'
+                marker = {}
+                line = { 'color': MODELS[mod]['color'] }
+                if mod in model:
+                    visible = True
+                else:
+                    visible = 'legendonly'
                 name = "{}".format(mod.upper())
             else:
-                sc_mode = 'lines+markers'
-                marker = {'size': 5}
-                visible = True
+                sc_mode = 'lines'
+                marker = {}
+                line = { 'color': MODELS[mod]['color'] }
+                if mod in model:
+                    visible = True
+                else:
+                    visible = 'legendonly'
                 name = "{} ({}, {})".format(
                         mod.upper(), round(ts_lat, 2), round(ts_lon, 2))
 
             if mod == 'median':
-                marker['color'] = 'black'
-                line = {'dash' : 'dash'}
+                line['dash'] = 'dash'
             else:
-                line = {'dash' : 'solid'}
+                line['dash'] = 'solid'
 
             fig.add_trace(dict(
-                    type='scatter',
+                    type='scattergl',
                     name=name,
                     x=ts_index,
                     y=ts_values,
@@ -431,6 +441,7 @@ class TimeSeriesHandler(object):
             # uirevision=True,
             autosize=True,
             showlegend=True,
+            plot_bgcolor='#F9F9F9',
             # hovermode="closest",        # highlight closest point on hover
             hovermode="x",        # highlight closest point on hover
             margin={"r": 10, "t": 35, "l": 10, "b": 10},

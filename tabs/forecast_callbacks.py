@@ -377,19 +377,29 @@ def register_callbacks(app):
     @app.callback(
         [Output('slider-interval', 'disabled'),
          Output('slider-interval', 'n_intervals'),
-         Output('open-timeseries', 'style')],
+         Output('open-timeseries', 'style'),
+         Output('btn-play', 'children')],
         [Input('btn-play', 'n_clicks')],
         [State('slider-interval', 'disabled'),
-         State('slider-graph', 'value')])
+         State('slider-graph', 'value')],
+        prevent_initial_call=True
+        )
     def start_stop_autoslider(n, disabled, value):
         """ Play/Pause map animation """
         if DEBUG: print("VALUE", value)
         if not value:
             value = 0
-        if n:
-            return not disabled, int(value/FREQ), { 'display': 'none' }
-        return disabled, int(value/FREQ), { 'display': 'block' }
+        if n and disabled:
+            ts_style = { 'display': 'none' }
+            btn_text = '\u220E'
+            return not disabled, int(value/FREQ), ts_style, btn_text
+        elif n and not disabled:
+            ts_style = { 'display': 'block' }
+            btn_text = '\u2023'
+        else:
+            raise PreventUpdate
 
+        return not disabled, int(value/FREQ), ts_style, btn_text
 
     @app.callback(
         Output('slider-graph', 'value'),
@@ -416,10 +426,11 @@ def register_callbacks(app):
          Input('slider-graph', 'value'),
          Input('model-date-picker', 'date')],
         [State('model-dropdown', 'value'),
-         # State('graph-collection', 'children'),
          State({'type': 'graph-with-slider', 'index': ALL}, 'figure'),
          State({'type': 'graph-with-slider', 'index': ALL}, 'id'),
-         State('slider-interval', 'disabled')])
+         State('slider-interval', 'disabled')],
+        prevent_init_call=True
+        )
     def update_models_figure(n_clicks, variable, tstep, date, model, graphs, ids, static):
         """ Update mosaic of maps figures according to all parameters """
         from tools import get_figure
@@ -495,7 +506,7 @@ def register_callbacks(app):
         for idx, mod in enumerate(model):
             if mod in past_models:
                 figure = past_models[mod]
-                figure['layout']['mapbox']['zoom'] = 3-(0.5*nrows)
+                figure['layout']['mapbox']['zoom'] = 2.8 -(0.5*nrows)
             else:
                 figure = get_figure(mod, variable, date, tstep,
                     static=static, aspect=(nrows, ncols))

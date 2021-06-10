@@ -208,10 +208,12 @@ div.SingleDatePickerInput {
     background-color: #F1B545 !important;
 }
 
+/*
 .timesliderline>button:active, .timesliderline>button:focus {
     background-color: #F1B545 !important;
     border: 0 !important;
 }
+*/
 
 #obs-dropdown, #obs-mod-dropdown {
     min-width: 12rem;
