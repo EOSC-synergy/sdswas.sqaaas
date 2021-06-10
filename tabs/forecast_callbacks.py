@@ -479,7 +479,7 @@ def register_callbacks(app):
                     dbc.Row([
                         dbc.Col([
                             get_graph(index='none', figure=fig,
-                                style={'height': '93vh'}
+                                style={'height': '91vh'}
                                 )
                         ])
                     ])
@@ -489,7 +489,7 @@ def register_callbacks(app):
                     dbc.Row([
                         dbc.Col([dbc.Spinner(
                             get_graph(index='none', figure=fig,
-                                style={'height': '93vh'}
+                                style={'height': '91vh'}
                                 ))
                         ])
                     ])

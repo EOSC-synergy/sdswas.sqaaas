@@ -183,7 +183,7 @@ def get_animation_buttons():
     )
 
 
-def get_graph(index=None, figure={}, gid=None, style={ 'height': '93vh' }):
+def get_graph(index=None, figure={}, gid=None, style={ 'height': '91vh' }):
     """ Renders map graph """
     from data_handler import MODEBAR_CONFIG
     from data_handler import MODEBAR_LAYOUT

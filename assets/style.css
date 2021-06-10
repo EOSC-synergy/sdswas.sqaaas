@@ -22,9 +22,11 @@ a.modebar-btn {
 
 .tab-content {
     background-color: #F0F1F2;
-    height: 93vh !important;
+    height: 91vh !important;
     box-shadow: inset 5px 0px 5px lightgrey;
     bottom: 0 !important;
+    margin: 0 !important;
+    padding: 0 ! important;
 }
 
 :hover.tab.horizontal-menu>span, .tab.horizontal-menu.tab--selected>span {
@@ -49,7 +51,7 @@ a.modebar-btn {
 #graph-collection {
     padding: 0;
     margin: 0;
-    height: 93vh !important;
+    height: 91vh !important;
 }
 
 #prob-graph, #was-graph {

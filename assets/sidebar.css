@@ -74,8 +74,9 @@
 }
 
 .sidebar-item {
-    height: 1.5rem;
+    height: 2rem;
     margin: 1rem 0;
+    border-bottom: 1px solid lightgrey;
 }
 
 .sidebar-item>label {
@@ -83,15 +84,18 @@
 }
 
 .sidebar-item>button {
-    height: 1.5rem;
-    padding-top: 0;
+    height: 2rem;
+    display: table-cell;
     outline: none;
     text-align: left;
     text-decoration: none !important;
+    vertical-align: middle;
+    margin-bottom: .6rem;
 }
 
 .sidebar-item>button:hover, .sidebar-item>button:focus {
     font-weight: bold;
+    color: #2B383E;
 }
 
 .sidebar-first-item .Select-menu-outer {
