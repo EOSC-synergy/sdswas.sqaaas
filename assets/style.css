@@ -182,10 +182,15 @@ div.SingleDatePickerInput {
     text-align: -moz-center !important; 
 }
 
+.centered-image .layout-dropdown {
+    text-align: -webkit-center !important; 
+}
+
 .centered-image .timeslider {
     position: relative !important;	
     text-align: center !important;
     text-align: -moz-center !important; 
+    text-align: -webkit-center !important; 
     margin: auto !important;
     left: 1rem;
     top: .5rem;
