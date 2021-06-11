@@ -498,7 +498,7 @@ class FigureHandler(object):
                 rtime = rtime[:5]
             self.rdatetime = datetime.strptime("{} {}".format(rdate, rtime),
                                                "%Y-%m-%d %H:%M")
-            varlist = [var for var in self.input_file.variables if var in self.filevars]
+            varlist = [var for var in self.input_file.variables if var.upper() in [f.upper() for f in self.filevars]]
             self.xlon, self.ylat = np.meshgrid(lon, lat)
 
             if self.confvars is not None:

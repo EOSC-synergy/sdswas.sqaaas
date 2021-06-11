@@ -391,7 +391,7 @@ def register_callbacks(app):
             value = 0
         if n and disabled:
             ts_style = { 'display': 'none' }
-            btn_text = '\u220E'
+            btn_text = '\u25A0'
             return not disabled, int(value/FREQ), ts_style, btn_text
         elif n and not disabled:
             ts_style = { 'display': 'block' }

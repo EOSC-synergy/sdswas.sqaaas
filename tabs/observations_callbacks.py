@@ -208,7 +208,7 @@ def register_callbacks(app):
     @app.callback(
         Output('obs-vis-graph', 'children'),
         [Input('obs-vis-date-picker', 'date'),
-         Input('obs-vis-slider-graph', 'value')]
+         Input('obs-vis-slider-graph', 'value')],
     )
     def update_vis_figure(date, tstep):
         from tools import get_vis_figure
