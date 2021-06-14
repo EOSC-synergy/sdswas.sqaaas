@@ -24,7 +24,7 @@ from utils import get_colorscale
 
 DIR_PATH = os.path.dirname(os.path.realpath(__file__))
 
-DEBUG = True
+DEBUG = False  # True
 
 COLORS = ['#a1ede3', '#5ce3ba', '#fcd775', '#da7230',
           '#9e6226', '#714921', '#392511', '#1d1309']
@@ -1184,7 +1184,7 @@ class ProbFigureHandler(object):
         if os.path.exists(geojson_file):
             geojson = json.load(open(geojson_file))
         else:
-            print('ERROR', geojson_file, 'not available')
+            if DEBUG: print('ERROR', geojson_file, 'not available')
             geojson = {
                     "type": "FeatureCollection",
                     "features": []
@@ -1295,7 +1295,7 @@ class ProbFigureHandler(object):
         tstep = int(day)
         if varname is None:
             varname = self.varname
-        print("***", varname, day, static, self.geojson, self.filepath)
+        if DEBUG: print("***", varname, day, static, self.geojson, self.filepath)
         self.fig = go.Figure()
         if varname and os.path.exists(self.geojson.format(step=day)):
             if DEBUG: print('Adding contours ...')
@@ -1364,7 +1364,7 @@ class WasFigureHandler(object):
 
         if self.was:
             # read shapefile
-            print(WAS[self.was]['shp'])
+            if DEBUG: print(WAS[self.was]['shp'])
             self.was_df = gpd.read_file(WAS[self.was]['shp'])
             self.was_df['lon_lat'] = self.was_df['geometry'].apply(lambda row: row.centroid)
             self.was_df['LON'] = self.was_df['lon_lat'].apply(lambda row: row.x)
@@ -1499,7 +1499,7 @@ class WasFigureHandler(object):
             return names, colors, definitions
 
         names, colors, definitions = df.loc['Day{}'.format(day)].values.T
-        print(names, colors, definitions)
+        # print(names, colors, definitions)
         return names, colors, definitions
 
     def retrieve_cdatetime(self, tstep=0):
@@ -1537,8 +1537,8 @@ class WasFigureHandler(object):
             if feature['geometry']['coordinates']
         ]
         locations, values = np.array(loc_val).T if loc_val else ([], [])
-        print(locations, '--', values)
-        print(colormap)
+        if DEBUG: print(locations, '--', values)
+        if DEBUG: print(colormap)
         # if DEBUG: print(varname, self.colormaps[varname], values)
         return dict(
             type='choroplethmapbox',
