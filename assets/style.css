@@ -73,11 +73,12 @@ a.modebar-btn {
 #graph-eval-aeronet, #graph-eval-modis-obs, #graph-eval-modis-mod {
     padding: 0;
     margin: 0;
-    height: 67vh !important;
+    height: 65vh !important;
+    overflow: hidden;
 }
 
 #eval-tables {
-    height: 67vh !important;
+    height: 65vh !important;
     overflow: auto;
 }
 

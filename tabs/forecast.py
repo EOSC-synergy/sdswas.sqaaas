@@ -391,13 +391,8 @@ def sidebar_forecast(variables, default_var, models, default_model):
                             n_clicks=0,
                             className='download-section',
                             ),
-                        html.H6("Glossary"),
                         html.P("""
-                            1. Variables: Lorem ipsum dolor sit amet, consectetur adipiscing elit."""),
-                        html.P("""
-                            2. Comparing: Lorem ipsum dolor sit , conssit amet, sit amet, consecte dolor elit."""),
-                        html.P("""
-                            3. User Oriented Products: Lorem ipsum dolor sit amet, consectetur adipiscing elitLorem consectetur adipiscing elit"""),
+                        Please check out the User Guide for more information."""),
                     ],
                     className="card-text",
                     )),

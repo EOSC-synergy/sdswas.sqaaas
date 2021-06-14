@@ -783,8 +783,8 @@ class FigureHandler(object):
             fig_title={}
         if DEBUG: print('ADD IMAGES')
         if varname and varname in VARS:
-            ypos = 0.87-(aspect[0]/30)
-            size = 0.18+(aspect[0]/20)
+            ypos = 0.9-(aspect[0]/30)
+            size = 0.18+(aspect[0]/5)
             if DEBUG: print("YPOS", aspect[0], ypos)
             self.fig.add_layout_image(
                 dict(
@@ -1323,12 +1323,13 @@ class ProbFigureHandler(object):
                            x=0.01, y=0.95)
         else:
             fig_title={}
-        size = 0.18+(1./20),
+        size = 0.5
+        ypos = 1.1
         self.fig.add_layout_image(
             dict(
                 source=Image.open(PROB[varname]['image_scale']),
                 xref="paper", yref="paper",
-                x=0.01, y=1,
+                x=0.01, y=ypos,
                 sizex=size, sizey=size,
                 xanchor="left", yanchor="top",
                 layer='above',

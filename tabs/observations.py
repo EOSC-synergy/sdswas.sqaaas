@@ -86,13 +86,14 @@ def tab_observations(window='rgb'):
             className="description-title"
         ),
         html.Span(
-            html.P(
-                """Rather than a detailed validation of the dust forecast, the
-                model evaluation is an assessment of how the forecast behaves
-                relative to a few key observations that are available in
-                near-real-time. This allows the modelling groups and the end
-                users to have a quick overview of the quality of the
-                forecast.""",
+            html.P([
+                html.B(
+                    """
+                    You can explore key observations that can be used to track dust events.
+                    """
+                    ),
+                """ All observations are kindly offered by Partners of the WMO Barcelona Dust Regional Center. RGB is a qualitative satellite product that indicates desert dust in the entire atmospheric column (represented by pink colour).""",
+                ]
                 ),
             className="description-body"
         ),
@@ -134,13 +135,9 @@ def tab_observations(window='rgb'):
             className="description-title"
         ),
         html.Span(
-            html.P(
-                """Rather than a detailed validation of the dust forecast, the
-                model evaluation is an assessment of how the forecast behaves
-                relative to a few key observations that are available in
-                near-real-time. This allows the modelling groups and the end
-                users to have a quick overview of the quality of the
-                forecast.""",
+            html.P([
+                html.B("""You can explore key observations that can be used to track dust events."""),
+                """All observations are kindly offered by Partners of the WMO Barcelona Dust Regional Center. AOD is a quantitative measure of the aerosol content in the entire atmospheric column."""]
                 ),
             className="description-body"
         ),
@@ -170,14 +167,10 @@ def tab_observations(window='rgb'):
             className="description-title"
         ),
         html.Span(
-            html.P(
-                """Rather than a detailed validation of the dust forecast, the
-                model evaluation is an assessment of how the forecast behaves
-                relative to a few key observations that are available in
-                near-real-time. This allows the modelling groups and the end
-                users to have a quick overview of the quality of the
-                forecast.""",
-                ),
+            html.P([
+                html.B("""You can explore key observations that can be used to track dust events."""),
+                """All observations are kindly offered by Partners of the WMO Barcelona Dust Regional Center. The reduction of VISIBILITY is an indirect measure of the occurrence of sand and dust storms on the surface.""",
+                ]),
             className="description-body"
         ),
         dbc.Spinner(

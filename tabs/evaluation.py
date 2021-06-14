@@ -64,12 +64,7 @@ def tab_evaluation(window='nrt'):
         ),
         html.Span(
             html.P(
-                """Rather than a detailed validation of the dust forecast, the
-                model evaluation is an assessment of how the forecast behaves
-                relative to a few key observations that are available in
-                near-real-time. This allows the modelling groups and the end
-                users to have a quick overview of the quality of the
-                forecast.""",
+                """The visual comparison offers a quick overview of the quality of the forecast. Please select among the available dust-related observations in near-real-time.""",
                 ),
             className="description-body"
         ),
@@ -121,14 +116,10 @@ def tab_evaluation(window='nrt'):
             className="description-title"
         ),
         html.Span(
-            html.P(
-                """An important step in dust forecasting is the evaluation of
-                the results that have been generated. This process consists of
-                the comparison of the model results to multiple kinds of
-                observations and is aimed to facilitate the understanding of
-                the model capabilities, limitations, and appropriateness for
-                the purpose for which it was designed.""",
-                ),
+            html.P([
+                """The accuracy of the forecast can be quantified by comparing it to observations and is presented by a set of statistics (skill scores).""",
+            html.B("""Here, you can use the selection menu to explore the skill scores results, based on the selected observation dataset."""),
+                ]),
             className="description-body"
         ),
         html.Span([
