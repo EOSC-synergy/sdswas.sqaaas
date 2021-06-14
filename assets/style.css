@@ -202,7 +202,7 @@ div.SingleDatePickerInput {
 }
 
 .timesliderline>button {
-    margin: 0.4rem 0;
+    margin: 0.4rem 0.1rem;
     border: none;
     padding: 0.2rem 0.6rem;
     text-align: center;
@@ -347,14 +347,14 @@ div.SingleDatePickerInput {
 }
 
 .layout-dropdown #map-view-dropdown {
-    margin-left: 44rem;
+    margin-left: 46rem;
     display: table-cell;
     position: absolute;
     bottom: 1rem !important;
 }
 
 .layout-dropdown #map-layers-dropdown {
-    margin-left: 53rem;
+    margin-left: 54rem;
     display: table-cell;
     position: absolute;
     bottom: 1rem !important;
@@ -428,6 +428,13 @@ div.SingleDatePickerInput {
     display: inline-block;
     color: magenta;
     visibility: visible;
+}
+
+.cell-table>.dash-cell .column-0>.dash-cell-value:after {
+  font-family: FontAwesome;
+  content: "\f107";
+  float: right;
+  color: grey;
 }
 */
 

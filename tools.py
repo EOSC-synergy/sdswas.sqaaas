@@ -60,7 +60,10 @@ def get_composite(models, variable, curdate, tstep):
         if DEBUG: print('ROWCOL', row, col)
         if not os.path.exists(filename):
             if DEBUG: print("MODEL", model, "NOT EXISTING")
-            fig = get_figure(model, variable, curdate, tstep=tstep, static=False)
+            try:
+                fig = get_figure(model, variable, curdate, tstep=tstep, static=False)
+            except:
+                return None
             fig.write_image(filename, format='png', engine='kaleido')
         img = Image.open(filename)
         img_size = img.size
@@ -88,7 +91,8 @@ def download_image(models, variable, curdate, tstep=0, anim=False):
             fname = "{date}_LOOP_{model}_{variable}.gif".format(date=curdate, model=model, variable=variable)
             filename = os.path.join(download_dir, fname)
             if not os.path.exists(filename):
-                frames = [get_gif_figure(model, variable, curdate, ts) for ts in range(21)]
+                frames = [get_gif_figure(model, variable, curdate, ts) for ts in range(25)]
+                frames = [f for f in frames if f is not None]
                 gif.save(frames, filename, duration=120)
             return dcc.send_file(
                     filename,
@@ -100,23 +104,21 @@ def download_image(models, variable, curdate, tstep=0, anim=False):
             fig = get_figure(model, variable, curdate, tstep=tstep, static=False)
             fig.write_image(filename, format='png', engine='kaleido')
         if DEBUG: print('DOWNLOAD SINGLE PNG', filename)
-#         return dcc.send_file(
-#                 filename,
-#                 filename=os.path.basename(filename))
+        return dcc.send_file(
+                filename,
+                filename=os.path.basename(filename))
     else:
         if anim:
             fname = "{date}_LOOP_MULTIMODEL_{variable}.gif".format(date=curdate, variable=variable)
-            frames = [get_composite(models, variable, curdate, ts) for ts in range(21)]
-            # fps = [tempfile.NamedTemporaryFile() for frame in frames]
-            fps = [open('/tmp/{:02d}.png'.format(n), 'w') for n in range(len(frames))]
-            fnames = []
-            for frame_fp, frame in zip(fps, frames):
-                frame.save(frame_fp.name)
-                fnames.append(frame_fp.name)
-            out = subprocess.call('/usr/bin/convert -delay 120 -loop 0 {} /tmp/loop.gif'.format(' '.join(fnames)), shell=True)
-            return dcc.send_file(
-                    '/tmp/loop.gif',
-                    filename=fname)
+            frames = [get_composite(models, variable, curdate, ts) for ts in range(25)]
+            frames = [f for f in frames if f is not None]
+            with tempfile.NamedTemporaryFile() as anim_fp:
+                anim_fp.name = anim_fp.name + '.gif'
+                frames[0].save(anim_fp.name, save_all=True, append_images=frames[1:],
+                   optimize=True, duration=120, loop=0)
+                return dcc.send_file(
+                        anim_fp.name,
+                        filename=fname)
 
         composite_fp = tempfile.NamedTemporaryFile()
         composite_img = get_composite(models, variable, curdate, tstep)

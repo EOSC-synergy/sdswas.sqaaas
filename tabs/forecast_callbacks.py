@@ -73,26 +73,6 @@ def register_callbacks(app):
 
 
     @app.callback(
-        [Output('model-dropdown', 'value'),
-         Output('model-dropdown', 'options')],
-        [Input('variable-dropdown-forecast', 'value')],
-        )
-    def update_model_list(variable):
-        models = VARS[variable]['models']
-        options=[{
-            'label': MODELS[model]['name'],
-            'value': model,
-            'disabled': model not in models or models == 'all',
-            } for model in MODELS]
-        if len(options) == 1:
-            mod = options[0]['value']
-        else:
-            mod = options[-1]['value']
-        print('MOD', mod, 'OPTS', options)
-        return [mod], options
-
-
-    @app.callback(
         [Output('info-collapse', 'is_open'),
          Output('download-collapse', 'is_open')],
         [Input('info-button', 'n_clicks'),
@@ -400,28 +380,31 @@ def register_callbacks(app):
         [Output('slider-interval', 'disabled'),
          Output('slider-interval', 'n_intervals'),
          Output('open-timeseries', 'style'),
-         Output('btn-play', 'children')],
-        [Input('btn-play', 'n_clicks')],
+         ],
+        [Input('btn-play', 'n_clicks'),
+         Input('btn-stop', 'n_clicks')],
         [State('slider-interval', 'disabled'),
          State('slider-graph', 'value')],
         prevent_initial_call=True
         )
-    def start_stop_autoslider(n, disabled, value):
+    def start_stop_autoslider(n_play, n_stop, disabled, value):
         """ Play/Pause map animation """
+        ctx = dash.callback_context
         if DEBUG: print("VALUE", value)
         if not value:
             value = 0
-        if n and disabled:
-            ts_style = { 'display': 'none' }
-            btn_text = '\u25A0'
-            return not disabled, int(value/FREQ), ts_style, btn_text
-        elif n and not disabled:
-            ts_style = { 'display': 'block' }
-            btn_text = '\u2023'
-        else:
-            raise PreventUpdate
 
-        return not disabled, int(value/FREQ), ts_style, btn_text
+        if ctx.triggered:
+            button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+            if button_id == 'btn-play' and disabled:
+                ts_style = { 'display': 'none' }
+                return not disabled, int(value/FREQ), ts_style
+            elif button_id == 'btn-stop' and not disabled:
+                ts_style = { 'display': 'block' }
+                return not disabled, int(value/FREQ), ts_style
+
+        raise PreventUpdate
+
 
     @app.callback(
         Output('slider-graph', 'value'),
@@ -441,19 +424,53 @@ def register_callbacks(app):
 
     @app.callback(
         [Output('alert-models-auto', 'is_open'),
+         Output('model-dropdown', 'options'),
+         Output('model-dropdown', 'value')],
+        [Input('variable-dropdown-forecast', 'value'),
+         Input('model-dropdown', 'value')],
+        )
+    def update_model_list(variable, checked):
+        models = VARS[variable]['models']
+        if models == 'all':
+            models = list(MODELS.keys())
+        else:
+            models = eval(models)
+
+        options = [{
+            'label': MODELS[model]['name'],
+            'value': model,
+            'disabled': model not in models,
+            } for model in MODELS]
+
+        checked = [c for c in checked if c in models]
+        print('MODELS', models, 'OPTS', type(options), options)
+        if len(checked) >= 4:
+            options = [{
+                'label': MODELS[model]['name'],
+                'value': model,
+                'disabled': model not in checked,
+                } for model in MODELS]
+
+            return True, options, checked
+
+        return False, options, checked
+
+
+    @app.callback(
+        [
          Output('btn-play', 'style'),
          Output('graph-collection', 'children')],
         [Input('models-apply', 'n_clicks'),
-         Input('variable-dropdown-forecast', 'value'),
          Input('slider-graph', 'value'),
          Input('model-date-picker', 'date')],
         [State('model-dropdown', 'value'),
+         State('variable-dropdown-forecast', 'value'),
          State({'type': 'graph-with-slider', 'index': ALL}, 'figure'),
          State({'type': 'graph-with-slider', 'index': ALL}, 'id'),
          State('slider-interval', 'disabled')],
         prevent_initial_call=True
         )
-    def update_models_figure(n_clicks, variable, tstep, date, model, graphs, ids, static):
+    def update_models_figure(n_clicks, tstep, date, model, variable, graphs, ids, static):
         """ Update mosaic of maps figures according to all parameters """
         from tools import get_figure
         if DEBUG: print('SERVER: calling figure from picker callback')
@@ -520,7 +537,7 @@ def register_callbacks(app):
                 btn_style = { 'display': 'none' }
             else:
                 btn_style = { 'display': 'inline-block' }
-            return dash.no_update, btn_style, figures
+            return btn_style, figures
 
         ncols, nrows = calc_matrix(len(model))
         past_models = {mod['index']: figure for mod, figure in zip(ids, graphs)}
@@ -571,6 +588,6 @@ def register_callbacks(app):
             btn_style = { 'display': 'none' }
         else:
             btn_style = { 'display': 'inline-block' }
-        if len(model) > 4:
-            return True, btn_style, res
-        return dash.no_update, btn_style, res
+#         if len(model) > 4:
+#             return True, btn_style, res
+        return btn_style, res

@@ -102,6 +102,20 @@
     background-color: #F1B545 !important;
 }
 
+.sidebar-dropdown>label {
+    padding-left: 1rem;
+    margin-top: 0.5rem;
+    display: block;
+    font-size: small;
+}
+
+.sidebar>label {
+    margin-left: 1rem;
+    margin-top: 0.5rem;
+    display: block;
+    font-size: small;
+}
+
 .sidebar-dropdown>label>input[type=checkbox] {
     float: right;
     vertical-align: bottom;
@@ -120,20 +134,25 @@
     */
 }
 
-.sidebar-dropdown>label {
-    padding-left: 1rem;
-    margin-top: 0.5rem;
-    overflow: hidden;
+.card-header {
     display: block;
-    font-size: small;
 }
 
-.sidebar>label {
-    margin-left: 1rem;
-    margin-top: 0.5rem;
-    overflow: hidden;
-    display: block;
-    font-size: small;
+
+.card-header>h2>button.btn-link {
+  float: left !important;
+  padding: 0.35rem 0.2rem;
+}
+
+.accordion>.card>.card-header:after {
+  font-family: FontAwesome;
+  content: "\f107";
+  float: right;
+  color: grey;
+}
+
+.accordion>.card>.card-header[aria-expanded="true"]:after {
+  content: "\f106";
 }
 
 .accordion .card {
@@ -201,6 +220,7 @@ span>#models-apply {
     width: 10vw;
     height: 4vh;
     margin-bottom: 1rem;
+    padding-left: 1rem;
     text-align: center;
     color:  #2b383e;
     border: 2px solid #2b383e;

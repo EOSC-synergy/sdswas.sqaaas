@@ -80,9 +80,11 @@ time_slider = html.Div([
         ),
         className="timesliderline",
     ),
-    html.Span(
-        html.Button('\u2023', title='Play/Stop',
+    html.Span(children=[
+        html.Button('\u2023', title='Play',
                     id='btn-play', n_clicks=0),
+        html.Button('\u25A0', title='Stop',
+                    id='btn-stop', n_clicks=0)],
         className="timesliderline",
     ),
     html.Span(
@@ -164,11 +166,10 @@ was_time_slider = html.Div([
 def tab_forecast(window='models'):
     models_children = [
         dbc.Alert(
-            "Please note that the maps will take longer to load " +
-            "if more than 4 models are selected at once.",
+            "Please note that you cannot select more than 4 models at once",
             id="alert-models-auto",
             is_open=False,
-            duration=4000,
+            duration=6000,
             fade=True,
             color="primary",
             style={ 'overflow': 'auto' }
@@ -266,7 +267,7 @@ def sidebar_forecast(variables, default_var, models, default_model):
             value=default_var,
             clearable=False,
             searchable=False,
-            # optionHeight=70,
+            optionHeight=50,
         )],
         className="sidebar-first-item",
     ),
@@ -281,6 +282,19 @@ def sidebar_forecast(variables, default_var, models, default_model):
                 is_open=True,
                 children=[
                     dbc.CardBody([
+#                         html.Div(
+#                             id='model-dropdown',
+#                             children=[
+#                             dcc.Checklist(
+#                                 id='{}-check'.format(model),
+#                                 options=[{'label': models[model]['name'],
+#                                           'value': model}],
+#                                 value=[],
+#                                 className='sidebar-check'
+#                             ) for model in models
+#                             ],
+#                             className="sidebar-dropdown"
+#                             ),
                         dcc.Checklist(
                             id='model-dropdown',
                             options=[{'label': models[model]['name'],

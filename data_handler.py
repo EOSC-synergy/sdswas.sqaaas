@@ -781,8 +781,8 @@ class FigureHandler(object):
             fig_title={}
         if DEBUG: print('ADD IMAGES')
         if varname and varname in VARS:
-            ypos = 0.87-(aspect[0]/50)
-            size = 0.18+(aspect[0]/50)
+            ypos = 0.87-(aspect[0]/30)
+            size = 0.18+(aspect[0]/30)
             if DEBUG: print("YPOS", aspect[0], ypos)
             self.fig.add_layout_image(
                 dict(
@@ -799,7 +799,7 @@ class FigureHandler(object):
             autosize=True,
             hovermode="closest",        # highlight closest point on hover
             mapbox=self.get_mapbox(zoom=2.8-(0.5*aspect[0]), center=center),
-            font_size=12,
+            font_size=12-(0.5*aspect[0]),
             # width="100%",
             updatemenus=[
                 # get_animation_buttons(),
@@ -1018,7 +1018,7 @@ class VisFigureHandler(object):
             autosize=True,
             hovermode="closest",        # highlight closest point on hover
             mapbox=self.get_mapbox(zoom=2.8-(0.5*aspect[0]), center=center),
-            font_size=12,
+            font_size=12-(0.5*aspect[0]),
             # width="100%",
             legend=dict(
                 x=0.01,
@@ -1336,7 +1336,7 @@ class ProbFigureHandler(object):
             autosize=True,
             hovermode="closest",        # highlight closest point on hover
             mapbox=self.get_mapbox(zoom=2.8-(0.5*aspect[0])),
-            font_size=12,
+            font_size=12-(0.5*aspect[0]),
             # width="100%",
             updatemenus=[
                 # get_animation_buttons(),
@@ -1603,7 +1603,7 @@ class WasFigureHandler(object):
             autosize=True,
             hovermode="closest",        # highlight closest point on hover
             mapbox=self.get_mapbox(zoom=6.5-(0.5*aspect[0])),
-            font_size=12,
+            font_size=12-(0.5*aspect[0]),
             #height=800,
             margin={"r": 0, "t": 0, "l": 0, "b": 0},
         )
