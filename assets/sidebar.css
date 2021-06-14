@@ -2,7 +2,7 @@
 .sidebar {
   margin: 0 !important;
   padding: 0 !important;
-  width: 15% !important;
+  width: 16% !important;
   font-family: "Roboto", sans-serif;
   background-color: #FAFAFA;
   color: #2B383E !important;
@@ -100,6 +100,8 @@
 
 .sidebar-first-item .Select-menu-outer {
     background-color: #F1B545 !important;
+    overflow: hidden;
+    height: 22rem !important;
 }
 
 .sidebar-dropdown>label {
@@ -201,7 +203,7 @@ span>#models-apply {
 .sidebar-bottom  #info-button {
     background-image: url("/dashboard/assets/images/Icon_Info.png");
     background-position: center;
-    width: 2.5vw;
+    width: 2.8vw;
 }
 
 .sidebar-bottom  #download-button {
@@ -254,7 +256,7 @@ span>#models-apply {
 
 /* Page content. The value of the margin-left property should match the value of the sidebar's width property */
 div.tab-parent {
-  margin-left: 15% !important;
+  margin-left: 16% !important;
   height: 100hv !important;
 }
 

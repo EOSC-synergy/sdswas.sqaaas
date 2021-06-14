@@ -174,23 +174,22 @@ def tab_forecast(window='models'):
             color="primary",
             style={ 'overflow': 'auto' }
         ),
-        html.Div(dbc.Container(
-                    id='graph-collection',
-                    children=[],
-                    fluid=True,
-                    )
-        ),
-#         html.Div(dbc.Spinner(
-#             id='loading-graph-collection',
-#             fullscreen=True,
-#             fullscreen_style={'opacity': '0.5'},
-#             children=[
-#                 dbc.Container(
+#         html.Div(dbc.Container(
 #                     id='graph-collection',
 #                     children=[],
 #                     fluid=True,
-#                     )]
-#         )),
+#                     )
+#         ),
+        html.Div(dbc.Spinner(
+            id='loading-graph-collection',
+            debounce=0,
+            children=[
+                dbc.Container(
+                    id='graph-collection',
+                    children=[],
+                    fluid=True,
+                    )]
+        )),
         html.Div(
             dcc.Interval(id='slider-interval',
                 interval=1000,
