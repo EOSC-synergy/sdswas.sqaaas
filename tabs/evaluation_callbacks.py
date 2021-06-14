@@ -16,7 +16,9 @@ from data_handler import MODELS
 from data_handler import OBS
 from data_handler import DEBUG
 from data_handler import DATES
+from data_handler import MODEBAR_CONFIG
 from data_handler import MODEBAR_CONFIG_TS
+from data_handler import MODEBAR_LAYOUT
 from data_handler import MODEBAR_LAYOUT_TS
 
 from utils import calc_matrix
@@ -359,6 +361,7 @@ def register_callbacks(app):
 
         fig = get_figure(model=None, var=DEFAULT_VAR)
         fig.add_trace(get_obs1d(sdate, edate, obs, DEFAULT_VAR))
+        fig.update_layout(MODEBAR_LAYOUT)
 
         if fig and relayoutdata:
             relayoutdata = {k: relayoutdata[k]
@@ -396,8 +399,10 @@ def register_callbacks(app):
             date = end_date
 
         fig_mod = get_figure(model=mod, var=DEFAULT_VAR, selected_date=date, tstep=0, hour=12)
+        fig_mod.update_layout(MODEBAR_LAYOUT)
         center = fig_mod['layout']['mapbox']['center']
         fig_obs = get_figure(model=obs, var=DEFAULT_VAR, selected_date=date, tstep=2, center=center)
+        fig_obs.update_layout(MODEBAR_LAYOUT)
 
         if fig_obs and relayoutdata_obs:
             relayoutdata_obs = {k: relayoutdata_obs[k]
@@ -442,7 +447,11 @@ def register_callbacks(app):
                 updatemode='bothdates',
             )]
 
-            eval_graph = [dbc.Spinner(get_graph(gid='graph-eval-aeronet', figure=get_figure()))]
+            eval_graph = [dbc.Spinner(
+                get_graph(
+                    gid='graph-eval-aeronet',
+                    figure=get_figure(),
+                    ))]
 
             style = { 'display': 'none' }
 
@@ -466,8 +475,19 @@ def register_callbacks(app):
             fig_obs = get_figure(model=obs, var=DEFAULT_VAR,
                     selected_date=end_date, tstep=2, center=center)
             graph_obs, graph_mod = [
-                    dbc.Spinner(get_graph(gid='graph-eval-modis-obs', figure=fig_obs)),
-                    dbc.Spinner(get_graph(gid='graph-eval-modis-mod', figure=fig_mod))]
+                    dbc.Spinner(
+                        get_graph(
+                            gid='graph-eval-modis-obs',
+                            figure=fig_obs,
+                            )
+                        ),
+                    dbc.Spinner(
+                        get_graph(
+                            gid='graph-eval-modis-mod',
+                            figure=fig_mod,
+                            )
+                        )
+                    ]
             eval_graph = [dbc.Row([
                     dbc.Col(graph_obs, width=6),
                     dbc.Col(graph_mod, width=6)

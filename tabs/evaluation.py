@@ -58,7 +58,7 @@ def tab_evaluation(window='nrt'):
     nrt_children = [
         html.Span(
             html.P(
-                "Near-real-time Comparison"
+                "Visual comparison"
                 ),
             className="description-title"
         ),
@@ -116,7 +116,7 @@ def tab_evaluation(window='nrt'):
     scores_children = [
         html.Span(
             html.P(
-                "Evaluation skill scores"
+                "Statistics"
                 ),
             className="description-title"
         ),
@@ -353,14 +353,14 @@ def sidebar_evaluation():
         className="sidebar-first-item",
     ),
     html.Div([
-        dbc.Button("Near-real-time comparison",
+        dbc.Button("Visual comparison",
             color="link",
             id='nrt-evaluation'
         )],
         className="sidebar-item",
     ),
     html.Div([
-        dbc.Button("Evaluation skill scores",
+        dbc.Button("Statistics",
             color="link",
             id='scores-evaluation'
         )],

@@ -13,13 +13,17 @@ from data_handler import ObsTimeSeriesHandler
 from data_handler import Observations1dHandler
 from data_handler import DEBUG
 from data_handler import DATES
+from data_handler import MODELS
 from dash_server import cache
 from utils import calc_matrix
 
 from datetime import datetime as dt
 from PIL import Image
+from wand.image import Image as wimage
 import tempfile
 import gif
+import os.path
+import subprocess
 
 start_date = DATES['start_date']
 end_date = DATES['end_date']
@@ -34,11 +38,19 @@ def get_composite(models, variable, curdate, tstep):
     
     row = col = 1
     xpos = ypos = 0
-    mod_fps = [tempfile.NamedTemporaryFile() for model in models]
 
     composite_img = None
-    for fp, model in zip(mod_fps, models):
+    for model in models:
+
+        download_dir = os.path.join(MODELS[model]['path'],
+                'images',
+                dt.strptime(curdate, '%Y%m%d').strftime('%Y'),
+                dt.strptime(curdate, '%Y%m%d').strftime('%m'))
         
+        fname = "{date}{tstep:02d}_{model}_{variable}.png".format(date=curdate, tstep=tstep, model=model, variable=variable)
+
+        filename = os.path.join(download_dir, fname)
+
         if col == ncols + 1:
             row += 1
             col = 1
@@ -46,9 +58,11 @@ def get_composite(models, variable, curdate, tstep):
             break
 
         if DEBUG: print('ROWCOL', row, col)
-        fig = get_figure(model, variable, curdate, hour=tstep, static=False)
-        fig.write_image(fp.name, format='png', engine='kaleido')
-        img = Image.open(fp.name)
+        if not os.path.exists(filename):
+            if DEBUG: print("MODEL", model, "NOT EXISTING")
+            fig = get_figure(model, variable, curdate, tstep=tstep, static=False)
+            fig.write_image(filename, format='png', engine='kaleido')
+        img = Image.open(filename)
         img_size = img.size
         if row == 1 and col == 1:
             composite_img = Image.new("RGB", (img_size[0]*ncols, img_size[1]*nrows), 'white')
@@ -66,41 +80,55 @@ def download_image(models, variable, curdate, tstep=0, anim=False):
     """ """
     if len(models) == 1:
         model = models[0]
+        download_dir = os.path.join(MODELS[model]['path'],
+                'images',
+                dt.strptime(curdate, '%Y%m%d').strftime('%Y'),
+                dt.strptime(curdate, '%Y%m%d').strftime('%m'))
         if anim:
-            frames = [get_gif_figure(model, variable, curdate, ts) for ts in range(21)]
             fname = "{date}_LOOP_{model}_{variable}.gif".format(date=curdate, model=model, variable=variable)
-            gif.save(frames, '/tmp/{}'.format(fname), duration=120)
+            filename = os.path.join(download_dir, fname)
+            if not os.path.exists(filename):
+                frames = [get_gif_figure(model, variable, curdate, ts) for ts in range(21)]
+                gif.save(frames, filename, duration=120)
             return dcc.send_file(
-                    '/tmp/{}'.format(fname),
-                    filename=fname)
+                    filename,
+                    filename=os.path.basename(filename))
 
-        fig = get_figure(model, variable, curdate, hour=tstep, static=False)
-        fname = "{date}{hour:02d}_{model}_{variable}.png".format(date=curdate, hour=tstep, model=model, variable=variable)
-        with tempfile.NamedTemporaryFile() as fp:
-            fig.write_image(fp.name, format='png', engine='kaleido')
-            if DEBUG: print('DOWNLOAD SINGLE PNG', fp.name)
-            return dcc.send_file(
-                    fp.name,
-                    filename=fname)
+        fname = "{date}{tstep:02d}_{model}_{variable}.png".format(date=curdate, tstep=tstep, model=model, variable=variable)
+        filename = os.path.join(download_dir, fname)
+        if not os.path.exists(filename):
+            fig = get_figure(model, variable, curdate, tstep=tstep, static=False)
+            fig.write_image(filename, format='png', engine='kaleido')
+        if DEBUG: print('DOWNLOAD SINGLE PNG', filename)
+#         return dcc.send_file(
+#                 filename,
+#                 filename=os.path.basename(filename))
     else:
         if anim:
+            fname = "{date}_LOOP_MULTIMODEL_{variable}.gif".format(date=curdate, variable=variable)
             frames = [get_composite(models, variable, curdate, ts) for ts in range(21)]
-            fname = "{date}_LOOP_MULTIMODEL_{variable}.png".format(date=curdate, variable=variable)
-            frames[0].save('/tmp/{}'.format(fname), save_all=True, append_images=frames[1:], duration=200, loop=0)
+            # fps = [tempfile.NamedTemporaryFile() for frame in frames]
+            fps = [open('/tmp/{:02d}.png'.format(n), 'w') for n in range(len(frames))]
+            fnames = []
+            for frame_fp, frame in zip(fps, frames):
+                frame.save(frame_fp.name)
+                fnames.append(frame_fp.name)
+            out = subprocess.call('/usr/bin/convert -delay 120 -loop 0 {} /tmp/loop.gif'.format(' '.join(fnames)), shell=True)
             return dcc.send_file(
-                    '/tmp/{}'.format(fname),
+                    '/tmp/loop.gif',
                     filename=fname)
 
         composite_fp = tempfile.NamedTemporaryFile()
         composite_img = get_composite(models, variable, curdate, tstep)
         if composite_img is not None:
-            composite_img.save(composite_fp.name + '.png')
+            composite_fp.name = composite_fp.name + '.png'
+            composite_img.save(composite_fp.name)
 
-        fname = "{date}{hour:02d}_MULTIMODEL_{variable}.png".format(date=curdate, hour=tstep, variable=variable)
+        fname = "{date}{tstep:02d}_MULTIMODEL_{variable}.png".format(date=curdate, tstep=tstep, variable=variable)
 
-        if DEBUG: print('DOWNLOAD PNG', composite_fp.name + '.png')
+        if DEBUG: print('DOWNLOAD PNG', composite_fp.name)
         return dcc.send_file(
-                composite_fp.name + '.png',
+                composite_fp.name,
                 filename=fname)
 
 def get_eval_timeseries(obs, start_date, end_date, var, idx, name):

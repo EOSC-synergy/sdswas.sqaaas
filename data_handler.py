@@ -68,7 +68,8 @@ STYLES = {
 MODEBAR_CONFIG = {
     "displayModeBar": True,
     "displaylogo": False,
-    "modeBarButtonsToRemove": ["pan2d",
+    "modeBarButtonsToRemove": ["toImage",
+                               "pan2d",
                                "select2d",
                                "lasso2d",
                                ],
@@ -292,8 +293,8 @@ class ObsTimeSeriesHandler(object):
             autosize=True,
             showlegend=True,
             plot_bgcolor='#F9F9F9',
+            font_size=12,
             hovermode="x",        # highlight closest point on hover
-            #margin={"r": 10, "t": 0, "l": 10, "b": 10},
             margin={"r": 10, "t": 35, "l": 10, "b": 10},
         )
         fig.update_xaxes(
@@ -442,6 +443,7 @@ class TimeSeriesHandler(object):
             autosize=True,
             showlegend=True,
             plot_bgcolor='#F9F9F9',
+            font_size=12,
             # hovermode="closest",        # highlight closest point on hover
             hovermode="x",        # highlight closest point on hover
             margin={"r": 10, "t": 35, "l": 10, "b": 10},
@@ -498,7 +500,7 @@ class FigureHandler(object):
                 rtime = rtime[:5]
             self.rdatetime = datetime.strptime("{} {}".format(rdate, rtime),
                                                "%Y-%m-%d %H:%M")
-            varlist = [var for var in self.input_file.variables if var.upper() in [f.upper() for f in self.filevars]]
+            varlist = [var for var in self.input_file.variables if var in self.filevars]
             self.xlon, self.ylat = np.meshgrid(lon, lat)
 
             if self.confvars is not None:
@@ -771,7 +773,7 @@ class FigureHandler(object):
 
         if DEBUG: print('Update layout ...')
         if varname:
-            fig_title=dict(text='<b>{}</b>'.format(self.get_title(varname, tstep)),
+            fig_title=dict(text='{}'.format(self.get_title(varname, tstep)),
                            xanchor='left',
                            yanchor='top',
                            x=0.01, y=0.95)
@@ -797,6 +799,7 @@ class FigureHandler(object):
             autosize=True,
             hovermode="closest",        # highlight closest point on hover
             mapbox=self.get_mapbox(zoom=2.8-(0.5*aspect[0]), center=center),
+            font_size=12,
             # width="100%",
             updatemenus=[
                 # get_animation_buttons(),
@@ -1002,7 +1005,7 @@ class VisFigureHandler(object):
 
         if DEBUG: print('Update layout ...', self.get_title(tstep))
         if tstep is not None:
-            fig_title=dict(text='<b>{}</b>'.format(self.get_title(tstep)),
+            fig_title=dict(text='{}'.format(self.get_title(tstep)),
                            xanchor='left',
                            yanchor='top',
                            x=0.01, y=0.95)
@@ -1015,6 +1018,7 @@ class VisFigureHandler(object):
             autosize=True,
             hovermode="closest",        # highlight closest point on hover
             mapbox=self.get_mapbox(zoom=2.8-(0.5*aspect[0]), center=center),
+            font_size=12,
             # width="100%",
             legend=dict(
                 x=0.01,
@@ -1311,7 +1315,7 @@ class ProbFigureHandler(object):
 
         if DEBUG: print('Update layout ...')
         if varname and os.path.exists(self.filepath):
-            fig_title=dict(text='<b>{}</b>'.format(self.get_title(varname, tstep)),
+            fig_title=dict(text='{}'.format(self.get_title(varname, tstep)),
                            xanchor='left',
                            yanchor='top',
                            x=0.01, y=0.95)
@@ -1332,6 +1336,7 @@ class ProbFigureHandler(object):
             autosize=True,
             hovermode="closest",        # highlight closest point on hover
             mapbox=self.get_mapbox(zoom=2.8-(0.5*aspect[0])),
+            font_size=12,
             # width="100%",
             updatemenus=[
                 # get_animation_buttons(),
@@ -1581,7 +1586,7 @@ class WasFigureHandler(object):
         self.fig.add_trace(self.generate_contour_tstep_trace(day))
         if DEBUG: print('Update layout ...')
         try:
-            fig_title=dict(text='<b>{}</b>'.format(self.get_title(day)),
+            fig_title=dict(text='{}'.format(self.get_title(day)),
                            xanchor='left',
                            yanchor='top',
                            x=0.01, y=0.95)
@@ -1598,6 +1603,7 @@ class WasFigureHandler(object):
             autosize=True,
             hovermode="closest",        # highlight closest point on hover
             mapbox=self.get_mapbox(zoom=6.5-(0.5*aspect[0])),
+            font_size=12,
             #height=800,
             margin={"r": 0, "t": 0, "l": 0, "b": 0},
         )

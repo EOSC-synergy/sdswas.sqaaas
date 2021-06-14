@@ -5,7 +5,8 @@
 	"image_scale": "/home/fbeninca/devel/interactive-forecast-viewer/assets/images/AOD.png",
         "bounds": [0.1, 0.2, 0.4, 0.8, 1.2, 1.6, 3.2, 6.4, 10],
         "mul": 1,
-        "title": "Dust Optical Depth (550nm)<br>Run: %(rhour)sh %(rday)s %(rmonth)s %(ryear)s<br>Valid: %(shour)sh %(sday)s %(smonth)s %(syear)s (H+%(step)s)"
+        "title": "Dust Optical Depth (550nm)<br>Run: %(rhour)sh %(rday)s %(rmonth)s %(ryear)s<br>Valid: %(shour)sh %(sday)s %(smonth)s %(syear)s (H+%(step)s)",
+	"models": "all"
     },
     "SCONC_DUST": {
         "name": "Dust Surface Concentration (µg/m³)",
@@ -13,6 +14,43 @@
 	"image_scale": "/home/fbeninca/devel/interactive-forecast-viewer/assets/images/SurfaceConcentration.png",
         "bounds": [5, 20, 50, 200, 500, 2000, 5000, 20000, 100000],
         "mul": 1e9,
-        "title": "Dust Surface Concentration (µg/m³)<br>Run: %(rhour)sh %(rday)s %(rmonth)s %(ryear)s<br>Valid: %(shour)sh %(sday)s %(smonth)s %(syear)s (H+%(step)s)"
+        "title": "Dust Surface Concentration (µg/m³)<br>Run: %(rhour)sh %(rday)s %(rmonth)s %(ryear)s<br>Valid: %(shour)sh %(sday)s %(smonth)s %(syear)s (H+%(step)s)",
+	"models": "all"
+    },
+    "DUST_DEPD": {
+        "name": "3h Acc. Dust Dry Deposition (mg/m²)",
+	"name_sidebar": "Dry deposition",
+	"image_scale": "/home/fbeninca/devel/interactive-forecast-viewer/assets/images/DryDeposition.png",
+        "bounds": [0.5, 5, 10, 50, 100, 400, 800, 1600, 10000],
+        "mul": 1e6,
+        "title": "3h Acc. Dust Dry Deposition (mg/m²)<br>Run: %(rhour)sh %(rday)s %(rmonth)s %(ryear)s<br>Valid: %(shour)sh %(sday)s %(smonth)s %(syear)s (H+%(step)s)",
+	"models": "['monarch']"
+    },
+    "DUST_DEPW": {
+        "name": "3h Acc. Dust Wet Deposition (mg/m²)",
+	"name_sidebar": "Wet deposition",
+	"image_scale": "/home/fbeninca/devel/interactive-forecast-viewer/assets/images/WetDeposition.png",
+        "bounds": [0.5, 5, 10, 50, 100, 400, 800, 1600, 10000],
+        "mul": 1e6,
+        "title": "3h Acc. Dust Wet Deposition (mg/m²)<br>Run: %(rhour)sh %(rday)s %(rmonth)s %(ryear)s<br>Valid: %(shour)sh %(sday)s %(smonth)s %(syear)s (H+%(step)s)",
+	"models": "['monarch']"
+    },
+    "DUST_LOAD": {
+        "name": "Dust load (g/m²)",
+	"name_sidebar": "Load",
+	"image_scale": "/home/fbeninca/devel/interactive-forecast-viewer/assets/images/DustLoad.png",
+        "bounds": [0.1, 0.2, 0.4, 0.8, 1.2, 1.6, 3.2, 6.4, 10],
+        "mul": 1e3,
+        "title": "Dust Load (g/m²)<br>Run: %(rhour)sh %(rday)s %(rmonth)s %(ryear)s<br>Valid: %(shour)sh %(sday)s %(smonth)s %(syear)s (H+%(step)s)",
+	"models": "['monarch']"
+    },
+    "DUST_EXT_SFC": {
+        "name": "Dust Surface Extinction (Mm⁻ⁱ)",
+	"name_sidebar": "Extinction",
+	"image_scale": "/home/fbeninca/devel/interactive-forecast-viewer/assets/images/SurfaceExtintion.png",
+        "bounds": [5, 10, 25, 100, 250, 1000, 2500, 10000, 100000],
+        "mul": 1e6,
+        "title": "Dust Surface Extinction (Mm⁻ⁱ)<br>Run: %(rhour)sh %(rday)s %(rmonth)s %(ryear)s<br>Valid: %(shour)sh %(sday)s %(smonth)s %(syear)s (H+%(step)s)",
+	"models": "['monarch']"
     }
 }

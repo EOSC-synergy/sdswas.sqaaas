@@ -60,7 +60,7 @@
 	"color": "#B2E964"
     },
     "median": {
-        "name": "MEDIAN",
+        "name": "MULTI-MODEL",
         "template": "_3H_MEDIAN",
         "path": "/data/interactive_test/models/median",
 	"color": "#303030"

@@ -73,6 +73,26 @@ def register_callbacks(app):
 
 
     @app.callback(
+        [Output('model-dropdown', 'value'),
+         Output('model-dropdown', 'options')],
+        [Input('variable-dropdown-forecast', 'value')],
+        )
+    def update_model_list(variable):
+        models = VARS[variable]['models']
+        options=[{
+            'label': MODELS[model]['name'],
+            'value': model,
+            'disabled': model not in models or models == 'all',
+            } for model in MODELS]
+        if len(options) == 1:
+            mod = options[0]['value']
+        else:
+            mod = options[-1]['value']
+        print('MOD', mod, 'OPTS', options)
+        return [mod], options
+
+
+    @app.callback(
         [Output('info-collapse', 'is_open'),
          Output('download-collapse', 'is_open')],
         [Input('info-button', 'n_clicks'),
@@ -200,7 +220,7 @@ def register_callbacks(app):
                 except:
                     curdate = date
 
-                return download_image(models, variable, curdate, tstep)
+                return download_image(models, variable, curdate, tstep=int(tstep/FREQ))
 
     @app.callback(
         Output('was-graph', 'children'),
@@ -263,12 +283,14 @@ def register_callbacks(app):
         [Output('prob-dropdown', 'options'),
          Output('prob-dropdown', 'value')],
         [Input('variable-dropdown-forecast', 'value')],
+        prevent_initial_call=True
     )
     def update_prob_dropdown(var):
         """ Update Prob maps dropdown """
-        opt_list = PROB[var]['prob_thresh']
-        units = PROB[var]['units']
-        return [{'label': '> {} {}'.format(prob, units), 'value': 'prob_{}'.format(prob)} for prob in opt_list], 'prob_{}'.format(opt_list[0])
+        if var in ['OD550_DUST','SCONC_DUST']:
+            opt_list = PROB[var]['prob_thresh']
+            units = PROB[var]['units']
+            return [{'label': '> {} {}'.format(prob, units), 'value': 'prob_{}'.format(prob)} for prob in opt_list], 'prob_{}'.format(opt_list[0])
 
 
     @app.callback(
@@ -429,7 +451,7 @@ def register_callbacks(app):
          State({'type': 'graph-with-slider', 'index': ALL}, 'figure'),
          State({'type': 'graph-with-slider', 'index': ALL}, 'id'),
          State('slider-interval', 'disabled')],
-        prevent_init_call=True
+        prevent_initial_call=True
         )
     def update_models_figure(n_clicks, variable, tstep, date, model, graphs, ids, static):
         """ Update mosaic of maps figures according to all parameters """

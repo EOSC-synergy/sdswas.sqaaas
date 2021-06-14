@@ -266,10 +266,9 @@ def sidebar_forecast(variables, default_var, models, default_model):
             value=default_var,
             clearable=False,
             searchable=False,
-            optionHeight=70,
+            # optionHeight=70,
         )],
         className="sidebar-first-item",
-        #style={ 'background-color': '#F1B545' },
     ),
     html.Div([
         dbc.Card([
@@ -309,7 +308,7 @@ def sidebar_forecast(variables, default_var, models, default_model):
         ),
         dbc.Card([
             dbc.CardHeader(html.H2(
-                dbc.Button("Probability Maps",
+                dbc.Button("Probability of exceedance",
                     color="link", id='group-2-toggle'),
             )),
             dbc.Collapse(
@@ -328,7 +327,7 @@ def sidebar_forecast(variables, default_var, models, default_model):
         ),
         dbc.Card([
             dbc.CardHeader(html.H2(
-                dbc.Button("Warning Advisory",
+                dbc.Button("Warning Advisory System",
                     color="link", id='group-3-toggle')
             )),
             dbc.Collapse(

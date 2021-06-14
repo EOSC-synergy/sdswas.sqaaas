@@ -76,7 +76,7 @@
 .sidebar-item {
     height: 2rem;
     margin: 1rem 0;
-    border-bottom: 1px solid lightgrey;
+    /*border-bottom: 1px solid lightgrey;*/
 }
 
 .sidebar-item>label {
