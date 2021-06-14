@@ -52,6 +52,8 @@ DATES = json.load(open(os.path.join(DIR_PATH, 'conf/dates.json')))
 
 STATS = OrderedDict({ 'bias': 'BIAS', 'corr': 'CORR', 'rmse': 'RMSE', 'frge': 'FRGE', 'totn': 'TOTAL CASES' })
 
+GRAPH_HEIGHT = 92
+
 # Frequency = 3 Hourly
 FREQ = 3
 
@@ -782,7 +784,7 @@ class FigureHandler(object):
         if DEBUG: print('ADD IMAGES')
         if varname and varname in VARS:
             ypos = 0.87-(aspect[0]/30)
-            size = 0.18+(aspect[0]/30)
+            size = 0.18+(aspect[0]/20)
             if DEBUG: print("YPOS", aspect[0], ypos)
             self.fig.add_layout_image(
                 dict(
@@ -1321,12 +1323,13 @@ class ProbFigureHandler(object):
                            x=0.01, y=0.95)
         else:
             fig_title={}
+        size = 0.18+(1./20),
         self.fig.add_layout_image(
             dict(
                 source=Image.open(PROB[varname]['image_scale']),
                 xref="paper", yref="paper",
                 x=0.01, y=1,
-                sizex=0.35, sizey=0.35,
+                sizex=size, sizey=size,
                 xanchor="left", yanchor="top",
                 layer='above',
             ))

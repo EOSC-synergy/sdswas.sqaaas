@@ -166,7 +166,7 @@ was_time_slider = html.Div([
 def tab_forecast(window='models'):
     models_children = [
         dbc.Alert(
-            "Please note that you cannot select more than 4 models at once",
+            "To ensure a better experience, please note that you cannot select more than 4 models at once.",
             id="alert-models-auto",
             is_open=False,
             duration=6000,

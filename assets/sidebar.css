@@ -141,6 +141,7 @@
 
 .card-header>h2>button.btn-link {
   float: left !important;
+  text-align: left !important;
   padding: 0.35rem 0.2rem;
 }
 

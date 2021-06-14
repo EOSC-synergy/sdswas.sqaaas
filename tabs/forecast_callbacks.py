@@ -459,6 +459,7 @@ def register_callbacks(app):
     @app.callback(
         [
          Output('btn-play', 'style'),
+         Output('btn-stop', 'style'),
          Output('graph-collection', 'children')],
         [Input('models-apply', 'n_clicks'),
          Input('slider-graph', 'value'),
@@ -537,7 +538,7 @@ def register_callbacks(app):
                 btn_style = { 'display': 'none' }
             else:
                 btn_style = { 'display': 'inline-block' }
-            return btn_style, figures
+            return btn_style, btn_style, figures
 
         ncols, nrows = calc_matrix(len(model))
         past_models = {mod['index']: figure for mod, figure in zip(ids, graphs)}
@@ -590,4 +591,4 @@ def register_callbacks(app):
             btn_style = { 'display': 'inline-block' }
 #         if len(model) > 4:
 #             return True, btn_style, res
-        return btn_style, res
+        return btn_style, btn_style, res

@@ -23,7 +23,9 @@ a.modebar-btn {
 .tab-content {
     background-color: #F0F1F2;
     height: -moz-fit-content;
-    height: 91vh !important;
+    height: 93.3vh !important;
+    position: relative;
+    bottom: 0;
     box-shadow: inset 5px 0px 5px lightgrey;
 }
 
@@ -49,31 +51,33 @@ a.modebar-btn {
 #graph-collection {
     padding: 0;
     margin: 0;
-    height: 91vh !important;
+    height: 92vh !important;
+    bottom: 0;
 }
 
 #prob-graph, #was-graph {
-    height: 91vh !important;
+    height: 92vh !important;
+    bottom: 0;
 }
 
 #obs-vis-graph {
-    height: 70vh !important;
+    height: 72vh !important;
     margin: 0 !important;
 }
 
 #obs-vis-graph .graph-with-slider {
-    height: 75vh !important;
+    height: 77vh !important;
     margin: 0 !important;
 }
 
 #graph-eval-aeronet, #graph-eval-modis-obs, #graph-eval-modis-mod {
     padding: 0;
     margin: 0;
-    height: 65vh !important;
+    height: 67vh !important;
 }
 
 #eval-tables {
-    height: 65vh !important;
+    height: 67vh !important;
     overflow: auto;
 }
 
@@ -198,7 +202,7 @@ div.SingleDatePickerInput {
 
 #rgb-image, #aod-image {
     vertical-align: baseline;
-    height: 65vh;
+    height: 67vh;
 }
 
 .timesliderline>button {
