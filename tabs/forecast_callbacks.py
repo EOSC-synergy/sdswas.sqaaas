@@ -65,7 +65,7 @@ def register_callbacks(app):
             if button_id == "group-1-toggle" and modbutton:
                 return var, tab_forecast('models'), not modopen, False, False
             elif button_id == "group-2-toggle" and probbutton:
-                return var, tab_forecast('prob'), False, not probopen, False
+                return var in ('OD550_DUST', 'SCONC_DUST') and var or 'SCONC_DUST', tab_forecast('prob'), False, not probopen, False
             elif button_id == "group-3-toggle" and wasbutton:
                 return 'SCONC_DUST', tab_forecast('was'), False, False, not wasopen
 
@@ -271,6 +271,8 @@ def register_callbacks(app):
             opt_list = PROB[var]['prob_thresh']
             units = PROB[var]['units']
             return [{'label': '> {} {}'.format(prob, units), 'value': 'prob_{}'.format(prob)} for prob in opt_list], 'prob_{}'.format(opt_list[0])
+
+        raise PreventUpdate
 
 
     @app.callback(

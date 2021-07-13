@@ -294,12 +294,12 @@ def sidebar_forecast(variables, default_var, models, default_model):
 #                             ],
 #                             className="sidebar-dropdown"
 #                             ),
-                        dcc.Checklist(
+                        dbc.Checklist(
                             id='model-dropdown',
                             options=[{'label': models[model]['name'],
                                       'value': model} for model in models],
                             value=[default_model,],
-                            className="sidebar-dropdown"
+                            className="sidebar-dropdown",
                         ),
                         html.Span([
                             html.Button('APPLY', id='models-apply', n_clicks=0),

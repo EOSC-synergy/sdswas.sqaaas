@@ -118,6 +118,26 @@
     font-size: small;
 }
 
+.custom-control {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.custom-control-label {
+    margin-left: 1rem;
+    margin-top: 0.5rem;
+    display: block;
+    font-size: small;
+}
+
+.custom-control-label::before,
+.custom-control-label::after {
+    left: unset;
+    right: 1rem;
+    float: right;
+    vertical-align: top;
+}
+
 .sidebar-dropdown>label>input[type=checkbox] {
     float: right;
     vertical-align: bottom;
