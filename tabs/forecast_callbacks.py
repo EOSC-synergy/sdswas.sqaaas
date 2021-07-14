@@ -426,17 +426,29 @@ def register_callbacks(app):
 
     @app.callback(
         [Output('alert-models-auto', 'is_open'),
+         Output('group-2-toggle', 'disabled'),
+         Output('group-3-toggle', 'disabled'),
          Output('model-dropdown', 'options'),
          Output('model-dropdown', 'value')],
         [Input('variable-dropdown-forecast', 'value'),
          Input('model-dropdown', 'value')],
         )
-    def update_model_list(variable, checked):
+    def update_menus_list(variable, checked):
         models = VARS[variable]['models']
         if models == 'all':
             models = list(MODELS.keys())
         else:
             models = eval(models)
+
+        if variable == 'SCONC_DUST':
+            prob_disabled = False
+            was_disabled = False
+        elif variable == 'OD550_DUST':
+            prob_disabled = False
+            was_disabled = True
+        else:
+            prob_disabled = True
+            was_disabled = True
 
         options = [{
             'label': MODELS[model]['name'],
@@ -453,9 +465,9 @@ def register_callbacks(app):
                 'disabled': model not in checked,
                 } for model in MODELS]
 
-            return True, options, checked
+            return True, prob_disabled, was_disabled, options, checked
 
-        return False, options, checked
+        return False, prob_disabled, was_disabled, options, checked
 
 
     @app.callback(

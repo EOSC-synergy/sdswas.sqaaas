@@ -281,19 +281,6 @@ def sidebar_forecast(variables, default_var, models, default_model):
                 is_open=True,
                 children=[
                     dbc.CardBody([
-#                         html.Div(
-#                             id='model-dropdown',
-#                             children=[
-#                             dcc.Checklist(
-#                                 id='{}-check'.format(model),
-#                                 options=[{'label': models[model]['name'],
-#                                           'value': model}],
-#                                 value=[],
-#                                 className='sidebar-check'
-#                             ) for model in models
-#                             ],
-#                             className="sidebar-dropdown"
-#                             ),
                         dbc.Checklist(
                             id='model-dropdown',
                             options=[{'label': models[model]['name'],
@@ -303,16 +290,6 @@ def sidebar_forecast(variables, default_var, models, default_model):
                         ),
                         html.Span([
                             html.Button('APPLY', id='models-apply', n_clicks=0),
-#                             dbc.Popover([
-#                                 dbc.PopoverBody(
-#                                     "Please note that the maps will take longer to load " +
-#                                     "if more than 4 models are selected at once."
-#                                 )],
-#                                 id="click-on-apply",
-#                                 target="models-apply",
-#                                 trigger="legacy",
-#                                 placement="right"
-#                             )
                         ],
                         )],
                     )
