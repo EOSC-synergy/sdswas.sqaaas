@@ -42,20 +42,21 @@ def register_callbacks(app):
     """ Registering callbacks """
 
     @app.callback(
-        [Output('variable-dropdown-forecast', 'value'),
-         Output('forecast-tab', 'children'),
+        [Output('forecast-tab', 'children'),
          Output('collapse-1', 'is_open'),
          Output('collapse-2', 'is_open'),
-         Output('collapse-3', 'is_open')],
+         Output('collapse-3', 'is_open'),
+         Output('group-2-toggle', 'disabled'),
+         Output('group-3-toggle', 'disabled')],
         [Input('group-1-toggle', 'n_clicks'),
          Input('group-2-toggle', 'n_clicks'),
-         Input('group-3-toggle', 'n_clicks')],
+         Input('group-3-toggle', 'n_clicks'),
+         Input('variable-dropdown-forecast', 'value')],
         [State('collapse-1', 'is_open'),
          State('collapse-2', 'is_open'),
-         State('collapse-3', 'is_open'),
-         State('variable-dropdown-forecast', 'value'),]
+         State('collapse-3', 'is_open'),]
     )
-    def render_forecast_tab(modbutton, probbutton, wasbutton, modopen, probopen, wasopen, var):
+    def render_forecast_tab(modbutton, probbutton, wasbutton, var, modopen, probopen, wasopen):
         """ Function rendering requested tab """
         ctx = dash.callback_context
 
@@ -63,13 +64,82 @@ def register_callbacks(app):
             button_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
             if button_id == "group-1-toggle" and modbutton:
-                return var, tab_forecast('models'), not modopen, False, False
+                if modopen is True:
+                    return dash.no_update, not modopen, False, False, dash.no_update, dash.no_update
+                return tab_forecast('models'), not modopen, False, False, dash.no_update, dash.no_update
             elif button_id == "group-2-toggle" and probbutton:
-                return var in ('OD550_DUST', 'SCONC_DUST') and var or 'SCONC_DUST', tab_forecast('prob'), False, not probopen, False
+                if probopen is True:
+                    return dash.no_update, False, not probopen, False, dash.no_update, dash.no_update
+                return tab_forecast('prob'), False, not probopen, False, dash.no_update, dash.no_update
             elif button_id == "group-3-toggle" and wasbutton:
-                return 'SCONC_DUST', tab_forecast('was'), False, False, not wasopen
+                if wasopen is True:
+                    return dash.no_update, False, False, not wasopen, dash.no_update, dash.no_update
+                return tab_forecast('was'), False, False, not wasopen, dash.no_update, dash.no_update
+
+        if var == 'SCONC_DUST':
+            # raise PreventUpdate
+            return dash.no_update, modopen, probopen, wasopen, False, False
+        elif var == 'OD550_DUST':
+            # only models and prob can be opened
+            if wasopen:
+                return tab_forecast('models'), True, False, False, False, True
+            return dash.no_update, modopen, probopen, wasopen, False, True
+        else:
+            if modopen:
+                return dash.no_update, True, False, False, True, True
+            return tab_forecast('models'), True, False, False, True, True
 
         raise PreventUpdate
+
+
+    @app.callback(
+        [Output('prob-dropdown', 'options'),
+         Output('prob-dropdown', 'value')],
+        [Input('variable-dropdown-forecast', 'value')],
+    )
+    def update_prob_dropdown(var):
+        """ Update Prob maps dropdown """
+        if var in ['OD550_DUST','SCONC_DUST']:
+            opt_list = PROB[var]['prob_thresh']
+            units = PROB[var]['units']
+            return [{'label': '> {} {}'.format(prob, units), 'value': 'prob_{}'.format(prob)} for prob in opt_list], 'prob_{}'.format(opt_list[0])
+
+        raise PreventUpdate
+
+
+    @app.callback(
+        [Output('alert-models-auto', 'is_open'),
+         Output('model-dropdown', 'options'),
+         Output('model-dropdown', 'value')],
+        [Input('variable-dropdown-forecast', 'value')],
+        [State('model-dropdown', 'value'),]
+        )
+    def update_models_dropdown(variable, checked):
+
+        models = VARS[variable]['models']
+        if models == 'all':
+            models = list(MODELS.keys())
+        else:
+            models = eval(models)
+
+        options = [{
+            'label': MODELS[model]['name'],
+            'value': model,
+            'disabled': model not in models,
+            } for model in MODELS]
+
+        checked = [c for c in models if c in checked or len(models)==1]
+        print('MODELS', models, 'OPTS', type(options), options)
+        if len(checked) >= 4:
+            options = [{
+                'label': MODELS[model]['name'],
+                'value': model,
+                'disabled': model not in checked,
+                } for model in MODELS]
+
+            return True, options, checked
+
+        return False, options, checked
 
 
     @app.callback(
@@ -232,15 +302,22 @@ def register_callbacks(app):
 
     @app.callback(
         Output('prob-graph', 'children'),
-        [Input('prob-date-picker', 'date'),
-         Input('prob-slider-graph', 'value'),
-         Input('variable-dropdown-forecast', 'value'),
-         Input('prob-dropdown', 'value'),],
+        [Input('prob-apply', 'n_clicks'),
+         Input('prob-date-picker', 'date'),
+         Input('prob-slider-graph', 'value')],
+        [State('prob-dropdown', 'value'),
+         State('variable-dropdown-forecast', 'value')],
     )
-    def update_prob_figure(date, day, var, prob):
+    def update_prob_figure(n_clicks, date, day, prob, var):
         """ Update Warning Advisory Systems maps """
         from tools import get_prob_figure
         print('PROB', date, day, var, prob)
+        ctx = dash.callback_context
+        if ctx.triggered:
+            button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+            if button_id != 'prob-apply' and var is None and day is None:
+                raise PreventUpdate
+
         if date is not None:
             date = date.split(' ')[0]
             try:
@@ -257,22 +334,6 @@ def register_callbacks(app):
             return get_graph(index=prob, figure=get_prob_figure(var, prob, day, selected_date=date))
         print("PROB figure " + date, prob, day)
         return get_graph(index='none', figure=get_prob_figure(var, selected_date=date))
-
-
-    @app.callback(
-        [Output('prob-dropdown', 'options'),
-         Output('prob-dropdown', 'value')],
-        [Input('variable-dropdown-forecast', 'value')],
-        prevent_initial_call=True
-    )
-    def update_prob_dropdown(var):
-        """ Update Prob maps dropdown """
-        if var in ['OD550_DUST','SCONC_DUST']:
-            opt_list = PROB[var]['prob_thresh']
-            units = PROB[var]['units']
-            return [{'label': '> {} {}'.format(prob, units), 'value': 'prob_{}'.format(prob)} for prob in opt_list], 'prob_{}'.format(opt_list[0])
-
-        raise PreventUpdate
 
 
     @app.callback(
@@ -336,6 +397,7 @@ def register_callbacks(app):
                 return figures
 
         raise PreventUpdate
+
 
     # retrieve timeseries according to coordinates selected
     @app.callback(
@@ -422,52 +484,6 @@ def register_callbacks(app):
             tstep = int(n)
         if DEBUG: print('SERVER: updating slider-graph ' + str(tstep*FREQ))
         return tstep*FREQ
-
-
-    @app.callback(
-        [Output('alert-models-auto', 'is_open'),
-         Output('group-2-toggle', 'disabled'),
-         Output('group-3-toggle', 'disabled'),
-         Output('model-dropdown', 'options'),
-         Output('model-dropdown', 'value')],
-        [Input('variable-dropdown-forecast', 'value'),
-         Input('model-dropdown', 'value')],
-        )
-    def update_menus_list(variable, checked):
-        models = VARS[variable]['models']
-        if models == 'all':
-            models = list(MODELS.keys())
-        else:
-            models = eval(models)
-
-        if variable == 'SCONC_DUST':
-            prob_disabled = False
-            was_disabled = False
-        elif variable == 'OD550_DUST':
-            prob_disabled = False
-            was_disabled = True
-        else:
-            prob_disabled = True
-            was_disabled = True
-
-        options = [{
-            'label': MODELS[model]['name'],
-            'value': model,
-            'disabled': model not in models,
-            } for model in MODELS]
-
-        checked = [c for c in checked if c in models]
-        print('MODELS', models, 'OPTS', type(options), options)
-        if len(checked) >= 4:
-            options = [{
-                'label': MODELS[model]['name'],
-                'value': model,
-                'disabled': model not in checked,
-                } for model in MODELS]
-
-            return True, prob_disabled, was_disabled, options, checked
-
-        return False, prob_disabled, was_disabled, options, checked
 
 
     @app.callback(

@@ -53,6 +53,13 @@
     border: none;
 }
 
+.sidebar-first-item .Select-menu-outer {
+    background-color: #F1B545 !important;
+    overflow: hidden;
+    max-height: none !important;
+    height: auto !important;
+}
+
 #evaluation-variable.sidebar-first-item, #observations-variable.sidebar-first-item {
     background-color: #6C7B82 !important;
 }
@@ -96,12 +103,6 @@
 .sidebar-item>button:hover, .sidebar-item>button:focus {
     font-weight: bold;
     color: #2B383E;
-}
-
-.sidebar-first-item .Select-menu-outer {
-    background-color: #F1B545 !important;
-    overflow: hidden;
-    height: 22rem !important;
 }
 
 .sidebar-dropdown>label {
@@ -192,7 +193,7 @@
     background-color: #EFEFEF !important;
 }
 
-#models-apply {
+#models-apply, #prob-apply {
   background-color: #2B383E;
   color: #FFFFFF;
   font-family: "Roboto", sans-serif !important;
@@ -206,7 +207,7 @@
   margin-right: 2vw;
 }
 
-span>#models-apply {
+span>#models-apply, span>#prob-apply {
   margin-bottom: 1rem;
 }
 

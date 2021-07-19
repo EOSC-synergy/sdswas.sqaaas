@@ -304,13 +304,17 @@ def sidebar_forecast(variables, default_var, models, default_model):
             dbc.Collapse(
                 id='collapse-2',
                 children=[
-                    dbc.CardBody(
+                    dbc.CardBody([
                         dcc.RadioItems(
                             id='prob-dropdown',
                             options=[],
                             value=None,
                             className="sidebar-dropdown"
-                        )
+                        ),
+                        html.Span([
+                            html.Button('APPLY', id='prob-apply', n_clicks=0),
+                        ]
+                        )]
                     )
                 ]
             )],
