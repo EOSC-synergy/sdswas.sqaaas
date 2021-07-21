@@ -8,6 +8,7 @@ from data_handler import FigureHandler
 from data_handler import WasFigureHandler
 from data_handler import ProbFigureHandler
 from data_handler import VisFigureHandler
+from data_handler import ScoresFigureHandler
 from data_handler import TimeSeriesHandler
 from data_handler import ObsTimeSeriesHandler
 from data_handler import Observations1dHandler
@@ -153,6 +154,12 @@ def get_obs1d(sdate, edate, obs, var):
     """ Retrieve 1D observation """
     obs_handler = Observations1dHandler(sdate, edate, obs)
     return obs_handler.generate_obs1d_tstep_trace(var)
+
+
+def get_scores_figure(network, model, statistic, selection=end_date):
+    """ Retrieve 1D observation """
+    fh = ScoresFigureHandler(network, statistic, selection)
+    return fh.retrieve_scores(model) 
 
 
 def get_prob_figure(var, prob=None, day=0, selected_date=end_date):

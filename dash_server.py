@@ -123,4 +123,5 @@ if __name__ == '__main__':
     import socket
     hostname = socket.gethostbyaddr(socket.gethostname())[0]
     app.run_server(debug=True, processes=4, threaded=False,
-                   host=hostname, port=7777)
+                   # host="212.128.97.31", port=80)
+                   host="172.24.36.31", port=7777)

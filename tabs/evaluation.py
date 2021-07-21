@@ -11,11 +11,68 @@ from data_handler import OBS
 from data_handler import STYLES
 from data_handler import DATES
 from data_handler import STATS
+from data_handler import MODEBAR_CONFIG
 
 from datetime import datetime as dt
 
 start_date = DATES['start_date']
 end_date = DATES['end_date']
+
+scores_maps = dbc.Spinner(
+    id='loading-scores-map-modal',
+    fullscreen=True,
+    fullscreen_style={'opacity': '0.5'},
+    children=[
+        html.Div(
+        id='open-scores-map',
+        children=[
+            dbc.Modal([
+                dbc.ModalBody([
+                    html.Span([
+                        html.Label("Models"),
+                        dcc.Dropdown(
+                            id='obs-models-dropdown-modal',
+                            options=[{'label': MODELS[model]['name'],
+                                      'value': model} for model in MODELS],
+                            value=DEFAULT_MODEL,
+                            clearable=False,
+                            searchable=False,
+                            className="sidebar-dropdown"
+                        ),
+                        ],
+                        style={ 'width': '10rem' },
+                        className="linetool",
+                    ),
+                    html.Span([
+                        html.Label("Statistics"),
+                        dcc.Dropdown(
+                            id='obs-statistics-dropdown-modal',
+                            options=[
+                                {'label': v, 'value': l} for l, v in STATS.items()
+                            ],
+                            value='bias',
+                            clearable=False,
+                            searchable=False,
+                            className="sidebar-dropdown"
+                        )
+                        ],
+                        style={ 'width': '10rem' },
+                        className="linetool",
+                    ),
+                    dcc.Graph(
+                        id='scores-map-modalbody',
+                        figure={},
+                        config={"displayModeBar": False}
+                    )]
+                )],
+                id='scores-map-modal',
+                size='xl',
+                centered=True,
+                is_open=False,
+            ),
+        ],),
+    ],
+)
 
 eval_time_series = dbc.Spinner(
     id='loading-ts-eval-modal',
@@ -149,15 +206,6 @@ def tab_evaluation(window='nrt'):
                     )
                 ],
             ),
-#             dcc.Dropdown(
-#                 id='obs-models-dropdown',
-#                 options=[{'label': MODELS[model]['name'],
-#                           'value': model} for model in MODELS],
-#                 placeholder='Select model',
-#                 clearable=False,
-#                 searchable=False,
-#                 multi=True,
-#             )
             ],
             #style={ 'width': '9.5rem' },
             className="linetool",
@@ -177,13 +225,6 @@ def tab_evaluation(window='nrt'):
                     )
                 ],
             ),
-#             dcc.Dropdown(
-#                 id='obs-statistics-dropdown',
-#                 placeholder='Select statistic',
-#                 clearable=False,
-#                 searchable=False,
-#                 multi=True,
-#             )
             ],
             className="linetool",
         ),
@@ -209,9 +250,6 @@ def tab_evaluation(window='nrt'):
             dcc.Dropdown(
                 id='obs-selection-dropdown',
                 options=[
-#                     {'label': '{}'.format(dt.strftime(dt.strptime(month, "%Y%m"), "%B %Y")),
-#                      'value': '{}'.format(month)}
-#                      for month in ['202010', '202011', '202012']
                 ],
                 placeholder='Select month',
                 # value='montly',
@@ -223,6 +261,10 @@ def tab_evaluation(window='nrt'):
         ),
         html.Span(
             html.Button('APPLY', id='scores-apply', n_clicks=0),
+            className="linetool",
+        ),
+        html.Span(
+            html.Button('VIEW MAP', id='scores-map-apply', n_clicks=0),
             className="linetool",
         ),
         html.Div([
@@ -305,7 +347,7 @@ def tab_evaluation(window='nrt'):
                 ],
                 merge_duplicate_headers=True,
             ) for score in STATS.keys()
-        ],
+        ] + [ scores_maps ],
         style={
                 'padding': '1rem 0.1rem 0.1rem 1rem',
                 'width': '95%',

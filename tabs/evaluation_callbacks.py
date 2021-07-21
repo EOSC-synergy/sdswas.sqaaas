@@ -155,6 +155,41 @@ def register_callbacks(app):
             i in stat]
         return columns, ret.replace('_', ' ', regex=True).to_dict('records'), { 'display': 'block' }
 
+
+    @app.callback(
+        [Output('scores-map-modalbody', 'figure'),
+         Output('scores-map-modal', 'is_open')],
+        [Input('scores-map-apply', 'n_clicks')],
+        [State('obs-network-dropdown', 'value'),
+         State('obs-selection-dropdown', 'value')],
+        prevent_initial_call=True
+    )
+    def scores_maps_retrieve(n_clicks, network, selection):
+        """ Read scores tables and plot maps """
+        from tools import get_scores_figure
+
+        ctx = dash.callback_context
+
+        if ctx.triggered:
+            button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+            if button_id != "scores-map-apply":
+                raise PreventUpdate
+
+            figure = get_scores_figure(network, DEFAULT_MODEL, 'bias', selection)
+            mb = MODEBAR_LAYOUT
+            figure.update_layout(mb)
+            return figure, True
+#            dbc.ModalBody(
+#                dcc.Graph(
+#                    id='score-map-modalbody',
+#                    figure=figure,
+#                    config=MODEBAR_CONFIG
+#                )
+#            ), True
+ 
+        return dash.no_update, False  # PreventUpdate
+
+
     @app.callback(
         extend_l([[Output('aeronet-scores-table-{}'.format(score), 'columns'),
            Output('aeronet-scores-table-{}'.format(score), 'data'),
@@ -257,6 +292,7 @@ def register_callbacks(app):
 
         print('LEN', len(tables))
         return tables
+
 
     @app.callback(
         [Output('ts-eval-modis-modal', 'children'),

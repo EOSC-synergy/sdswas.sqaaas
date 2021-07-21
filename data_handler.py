@@ -51,6 +51,29 @@ PROB = json.load(open(os.path.join(DIR_PATH, 'conf/prob.json')))
 DATES = json.load(open(os.path.join(DIR_PATH, 'conf/dates.json')))
 
 STATS = OrderedDict({ 'bias': 'BIAS', 'corr': 'CORR', 'rmse': 'RMSE', 'frge': 'FRGE', 'totn': 'TOTAL CASES' })
+STATS_CONF = OrderedDict(
+        { 
+            'bias': {
+                'max': 1,
+                'min': -1,
+                'cmap': 'RdBu',
+                },
+            'corr': {
+                'max': 1,
+                'min': -1,
+                'cmap': 'Viridis',
+                },
+            'rmse': {
+                'max': 2,
+                'min': 0,
+                'cmap': 'Viridis',
+                },
+            'frge': {
+                'max': 2,
+                'min': 0,
+                'cmap': 'Viridis',
+                }
+            })
 
 GRAPH_HEIGHT = 92
 
@@ -803,6 +826,163 @@ class FigureHandler(object):
             mapbox=self.get_mapbox(zoom=2.8-(0.5*aspect[0]), center=center),
             font_size=12-(0.5*aspect[0]),
             # width="100%",
+            updatemenus=[
+                # get_animation_buttons(),
+                # self.get_mapbox_style_buttons(),
+                # self.get_variable_dropdown_buttons(),
+            ],
+            margin={"r": 0, "t": 0, "l": 0, "b": 0},
+        )
+
+        # if DEBUG: print('Returning fig of size {}'.format(sys.getsizeof(self.fig)))
+        return self.fig
+
+
+class ScoresFigureHandler(object):
+    """ Class to manage the figure creation """
+
+    def __init__(self, network, statistic, selection=None):
+
+        self.sites = pd.read_table(os.path.join('./conf/',
+            OBS[network]['sites']), delimiter=r"\s+", engine='python')
+
+        filedir = OBS[network]['path']
+        filename = "{}_{}.h5".format(selection, statistic)
+        tab_name = "{}_{}".format(statistic, selection)
+        filepath = os.path.join(filedir, "h5", filename)
+        self.dframe = pd.read_hdf(filepath, tab_name).replace('_', ' ', regex=True)
+
+        months = ' - '.join([datetime.strptime(sel, '%Y%m').strftime("%B %Y") for sel in selection.split('_')])
+
+        self.title = """{model} {score}<br>{selection}""".format(
+                score=STATS[statistic], model='{model}', selection=months)
+        self.xlon = np.array([-25, 60])
+        self.ylat = np.array([0, 65])
+        self.stat = statistic
+
+    def get_mapbox_style_buttons(self):
+        """ Relayout map with different styles """
+        return dict(
+            direction="up",
+            buttons=list([self.get_mapbox(style, relayout=True) for style in
+                          STYLES.keys()]),
+            # pad={"r": 0, "t": 0},
+            showactive=True,
+            x=0.9,
+            y=0.09,
+            xanchor="right",
+            yanchor="top",
+        )
+
+    def get_mapbox(self, style='carto-positron', relayout=False, zoom=2.8, center=None):
+        """ Returns mapbox layout """
+        if center is None and hasattr(self, 'ylat'):
+            center = go.layout.mapbox.Center(
+                lat=(self.ylat.max()-self.ylat.min())/2 +
+                self.ylat.min(),
+                lon=(self.xlon.max()-self.xlon.min())/2 +
+                self.xlon.min(),
+            )
+        elif center is not None:
+            center = go.layout.mapbox.Center(center)
+        else:
+            center = go.layout.mapbox.Center({'lat': 30, 'lon': 15})
+        mapbox_dict = dict(
+            uirevision=True,
+            style=style,
+            bearing=0,
+            center=center,
+            pitch=0,
+            zoom=zoom
+        )
+
+        if not relayout:
+            return mapbox_dict
+
+        return dict(
+            args=["mapbox", mapbox_dict],
+            label=STYLES[style].capitalize(),
+            method="relayout"
+        )
+
+    def get_updated_trace(self, varname, tstep=0):
+        """ Get updated trace """
+        return dict(
+            args=["scattermapbox", self.generate_trace(varname,
+                                                       tstep)],
+            label=VARS[varname]['name'],
+            method="restyle"
+        )
+
+
+    def generate_trace(self, xlon, ylat, stats, vals):
+        """ Generate trace to be added to data, per variable and timestep """
+        name = 'scores'
+        return dict(
+            type='scattermapbox',
+            lon=xlon,
+            lat=ylat,
+            text=vals,
+            customdata=stats,
+            name=name,
+            hovertemplate="lon: %{lon:.2f}<br>lat: %{lat:.2f}<br>value: %{text}<br>station: %{customdata}",
+            opacity=0.7,
+            mode='markers',
+            showlegend=False,
+            marker=dict(
+                showscale=True,
+                colorscale=STATS_CONF[self.stat]['cmap'],
+                cmax=STATS_CONF[self.stat]['max'],
+                cmin=STATS_CONF[self.stat]['min'],
+                color=vals,
+                size=12,
+                colorbar=dict(
+                    x=1.,
+                    thickness=20,
+                )
+            ),
+        )
+
+    def retrieve_scores(self, model, aspect=(1,1), center=None):
+        """ run plot """
+
+        stations = [st for st in self.sites['SITE']]
+        for site in stations:
+            self.dframe.loc[self.dframe['station'] == site, 'lon'] = \
+                str(self.sites.loc[self.sites['SITE'] == site, 'LONGITUDE'].values[0].round(2))
+            self.dframe.loc[self.dframe['station'] == site, 'lat'] = \
+                str(self.sites.loc[self.sites['SITE'] == site, 'LATITUDE'].values[0].round(2))
+        self.dframe = self.dframe.replace('-', np.nan)
+        self.dframe.dropna(inplace=True)
+        print(self.dframe)
+        xlon, ylat, stats, vals = self.dframe[['lon', 'lat', 'station', model]].values.T
+
+        self.fig = go.Figure()
+        if DEBUG: print('Adding SCORES points ...', xlon, ylat, vals)
+        self.fig.add_trace(self.generate_trace(xlon.astype(float), ylat.astype(float), stats, vals.astype(float)))
+#        else:
+#            if DEBUG: print('Adding one point ...')
+#            self.fig.add_trace(self.generate_trace())
+
+        if DEBUG: print('Update layout ...', self.title.format(model=MODELS[model]['name']))
+        fig_title=dict(text='{}'.format(self.title.format(model=MODELS[model]['name'])),
+                       xanchor='left',
+                       yanchor='top',
+                       x=0.01, y=0.95)
+
+        self.fig.update_layout(
+            title=fig_title,
+            uirevision=True,
+            autosize=True,
+            hovermode="closest",        # highlight closest point on hover
+            mapbox=self.get_mapbox(zoom=2.8-(0.5*aspect[0]), center=center),
+            font_size=12-(0.5*aspect[0]),
+            # width="100%",
+            legend=dict(
+                x=0.01,
+                y=0.9,
+                bgcolor="rgba(0,0,0,0)"
+            ),
             updatemenus=[
                 # get_animation_buttons(),
                 # self.get_mapbox_style_buttons(),

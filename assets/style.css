@@ -126,7 +126,7 @@ a.modebar-btn {
   font-family: "Roboto", sans-serif !important;
 }
 
-#scores-apply {
+#scores-apply, #scores-map-apply {
   background-color: #2B383E;
   color: #FFFFFF;
   font-family: "Roboto", sans-serif !important;
@@ -136,6 +136,14 @@ a.modebar-btn {
   border-radius: 0;
   width: 5rem;
   text-align: center;
+}
+
+button#scores-map-apply {
+    background-image: url('/dashboard/assets/images/map_icon.png');
+    background-repeat: no-repeat;
+    background-position: .5rem;
+    text-align: right;
+    width: 6.5rem;
 }
 
 #forecast-footer {
