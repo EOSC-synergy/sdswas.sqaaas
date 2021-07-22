@@ -15,7 +15,7 @@ from data_handler import Observations1dHandler
 from data_handler import DEBUG
 from data_handler import DATES
 from data_handler import MODELS
-from dash_server import cache
+#from dash_server import cache
 from utils import calc_matrix
 
 from datetime import datetime as dt

@@ -48,7 +48,7 @@ scores_maps = dbc.Spinner(
                         dcc.Dropdown(
                             id='obs-statistics-dropdown-modal',
                             options=[
-                                {'label': v, 'value': l} for l, v in STATS.items()
+                                {'label': v, 'value': l} for l, v in STATS.items() if l != 'totn'
                             ],
                             value='bias',
                             clearable=False,

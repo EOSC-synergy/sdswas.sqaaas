@@ -159,34 +159,35 @@ def register_callbacks(app):
     @app.callback(
         [Output('scores-map-modalbody', 'figure'),
          Output('scores-map-modal', 'is_open')],
-        [Input('scores-map-apply', 'n_clicks')],
+        [Input('scores-map-apply', 'n_clicks'),
+         Input('obs-models-dropdown-modal', 'value'),
+         Input('obs-statistics-dropdown-modal', 'value'),],
         [State('obs-network-dropdown', 'value'),
          State('obs-selection-dropdown', 'value')],
         prevent_initial_call=True
     )
-    def scores_maps_retrieve(n_clicks, network, selection):
+    def scores_maps_retrieve(n_clicks, model, score, network, selection):
         """ Read scores tables and plot maps """
         from tools import get_scores_figure
+        mb = MODEBAR_LAYOUT
 
         ctx = dash.callback_context
 
+        print(':::', n_clicks, model, score, network, selection)
         if ctx.triggered:
             button_id = ctx.triggered[0]["prop_id"].split(".")[0]
             if button_id != "scores-map-apply":
+                if model is not None and score is not None:
+                    figure = get_scores_figure(network, model, score, selection)
+                    figure.update_layout(mb)
+                    return figure, True
+
                 raise PreventUpdate
 
             figure = get_scores_figure(network, DEFAULT_MODEL, 'bias', selection)
-            mb = MODEBAR_LAYOUT
             figure.update_layout(mb)
             return figure, True
-#            dbc.ModalBody(
-#                dcc.Graph(
-#                    id='score-map-modalbody',
-#                    figure=figure,
-#                    config=MODEBAR_CONFIG
-#                )
-#            ), True
- 
+
         return dash.no_update, False  # PreventUpdate
 
 

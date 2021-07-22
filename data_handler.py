@@ -843,8 +843,11 @@ class ScoresFigureHandler(object):
 
     def __init__(self, network, statistic, selection=None):
 
-        self.sites = pd.read_table(os.path.join('./conf/',
-            OBS[network]['sites']), delimiter=r"\s+", engine='python')
+        if network == 'aeronet':
+            self.sites = pd.read_table(os.path.join('./conf/',
+                OBS[network]['sites']), delimiter=r"\s+", engine='python')
+        else:
+            self.sites = None
 
         filedir = OBS[network]['path']
         filename = "{}_{}.h5".format(selection, statistic)
@@ -917,6 +920,10 @@ class ScoresFigureHandler(object):
 
     def generate_trace(self, xlon, ylat, stats, vals):
         """ Generate trace to be added to data, per variable and timestep """
+        if stats is None:
+            hovertemplate="lon: %{lon:.2f}<br>lat: %{lat:.2f}<br>value: %{text}"
+        else:
+            hovertemplate="lon: %{lon:.2f}<br>lat: %{lat:.2f}<br>value: %{text}<br>station: %{customdata}"
         name = 'scores'
         return dict(
             type='scattermapbox',
@@ -925,8 +932,8 @@ class ScoresFigureHandler(object):
             text=vals,
             customdata=stats,
             name=name,
-            hovertemplate="lon: %{lon:.2f}<br>lat: %{lat:.2f}<br>value: %{text}<br>station: %{customdata}",
-            opacity=0.7,
+            hovertemplate=hovertemplate,
+            opacity=0.5,
             mode='markers',
             showlegend=False,
             marker=dict(
@@ -935,7 +942,7 @@ class ScoresFigureHandler(object):
                 cmax=STATS_CONF[self.stat]['max'],
                 cmin=STATS_CONF[self.stat]['min'],
                 color=vals,
-                size=12,
+                size=10,
                 colorbar=dict(
                     x=1.,
                     thickness=20,
@@ -946,23 +953,25 @@ class ScoresFigureHandler(object):
     def retrieve_scores(self, model, aspect=(1,1), center=None):
         """ run plot """
 
-        stations = [st for st in self.sites['SITE']]
-        for site in stations:
-            self.dframe.loc[self.dframe['station'] == site, 'lon'] = \
-                str(self.sites.loc[self.sites['SITE'] == site, 'LONGITUDE'].values[0].round(2))
-            self.dframe.loc[self.dframe['station'] == site, 'lat'] = \
-                str(self.sites.loc[self.sites['SITE'] == site, 'LATITUDE'].values[0].round(2))
+        if self.sites is not None:
+            stations = [st for st in self.sites['SITE']]
+            for site in stations:
+                self.dframe.loc[self.dframe['station'] == site, 'lon'] = \
+                    str(self.sites.loc[self.sites['SITE'] == site, 'LONGITUDE'].values[0].round(2))
+                self.dframe.loc[self.dframe['station'] == site, 'lat'] = \
+                    str(self.sites.loc[self.sites['SITE'] == site, 'LATITUDE'].values[0].round(2))
         self.dframe = self.dframe.replace('-', np.nan)
         self.dframe.dropna(inplace=True)
         print(self.dframe)
-        xlon, ylat, stats, vals = self.dframe[['lon', 'lat', 'station', model]].values.T
+        if self.sites is not None:
+            xlon, ylat, stats, vals = self.dframe[['lon', 'lat', 'station', model]].values.T
+        else:
+            xlon, ylat, vals = self.dframe[['lon', 'lat', model]].values.T
+            stats = None
 
         self.fig = go.Figure()
         if DEBUG: print('Adding SCORES points ...', xlon, ylat, vals)
         self.fig.add_trace(self.generate_trace(xlon.astype(float), ylat.astype(float), stats, vals.astype(float)))
-#        else:
-#            if DEBUG: print('Adding one point ...')
-#            self.fig.add_trace(self.generate_trace())
 
         if DEBUG: print('Update layout ...', self.title.format(model=MODELS[model]['name']))
         fig_title=dict(text='{}'.format(self.title.format(model=MODELS[model]['name'])),

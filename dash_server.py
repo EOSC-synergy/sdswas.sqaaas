@@ -65,7 +65,7 @@ cache_config = {
     "CACHE_DIR": "/dev/shm",
 }
 
-cache = Cache(server, config=cache_config)
+# cache = Cache(server, config=cache_config)
 
 if DEBUG: print('SERVER: start creating app layout')
 app.layout = html.Div(
