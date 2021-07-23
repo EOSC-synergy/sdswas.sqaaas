@@ -962,7 +962,6 @@ class ScoresFigureHandler(object):
                     str(self.sites.loc[self.sites['SITE'] == site, 'LATITUDE'].values[0].round(2))
         self.dframe = self.dframe.replace('-', np.nan)
         self.dframe.dropna(inplace=True)
-        print(self.dframe)
         if self.sites is not None:
             xlon, ylat, stats, vals = self.dframe[['lon', 'lat', 'station', model]].values.T
         else:
