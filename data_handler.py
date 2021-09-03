@@ -933,7 +933,7 @@ class ScoresFigureHandler(object):
             customdata=stats,
             name=name,
             hovertemplate=hovertemplate,
-            opacity=0.5,
+            opacity=0.8,
             mode='markers',
             showlegend=False,
             marker=dict(
@@ -942,7 +942,7 @@ class ScoresFigureHandler(object):
                 cmax=STATS_CONF[self.stat]['max'],
                 cmin=STATS_CONF[self.stat]['min'],
                 color=vals,
-                size=10,
+                size=15,
                 colorbar=dict(
                     x=1.,
                     thickness=20,
@@ -1157,7 +1157,7 @@ class VisFigureHandler(object):
             marker=dict(
                 showscale=False,
                 color=color,
-                size=30,
+                size=15,
                 colorbar=None,
                 #symbol='triangle',
             ),
@@ -1736,15 +1736,11 @@ class WasFigureHandler(object):
             z=values,
             ids=locations,
             locations=locations,
-            #zmin=bounds[0],
-            #zmax=bounds[-1],
             showscale=False,
             showlegend=False,
             customdata=["Region: {}<br>Warning level: {}".format(name,
                 definition) for name, definition in zip(names, definitions)],
             hovertemplate="%{customdata}",
-            #hoverinfo='none',
-            #mode='markers',
             colorscale=get_colorscale(np.arange(len(colormap)-1)-0.5 , ListedColormap(colormap), True),
             marker=dict(
                 opacity=0.6,

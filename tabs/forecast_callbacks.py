@@ -112,7 +112,7 @@ def register_callbacks(app):
          Output('model-dropdown', 'options'),
          Output('model-dropdown', 'value')],
         [Input('variable-dropdown-forecast', 'value')],
-        [State('model-dropdown', 'value'),]
+        [Input('model-dropdown', 'value'),]
         )
     def update_models_dropdown(variable, checked):
 

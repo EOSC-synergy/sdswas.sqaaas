@@ -327,14 +327,18 @@ def sidebar_forecast(variables, default_var, models, default_model):
             dbc.Collapse(
                 id='collapse-3',
                 children=[
-                    dbc.CardBody(
+                    dbc.CardBody([
                         dcc.Checklist(
                             id='was-dropdown',
                             options=[{'label': 'BURKINA FASO',
                                       'value': 'burkinafaso'}],
                             value=['burkinafaso',],
                             className="sidebar-dropdown"
-                        )
+                        ),
+                        html.Span([
+                            html.Button('APPLY', id='was-apply', n_clicks=0),
+                        ]
+                        )]
                     )
                 ]
             )],
