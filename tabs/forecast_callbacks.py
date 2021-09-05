@@ -42,7 +42,7 @@ def register_callbacks(app):
     """ Registering callbacks """
 
     @app.callback(
-        [Output('forecast-tab', 'children'),
+        [#Output('forecast-tab', 'children'),
          Output('collapse-1', 'is_open'),
          Output('collapse-2', 'is_open'),
          Output('collapse-3', 'is_open'),
@@ -65,29 +65,40 @@ def register_callbacks(app):
 
             if button_id == "group-1-toggle" and modbutton:
                 if modopen is True:
-                    return dash.no_update, not modopen, False, False, dash.no_update, dash.no_update
-                return tab_forecast('models'), not modopen, False, False, dash.no_update, dash.no_update
+                    # return dash.no_update, not modopen, False, False, dash.no_update, dash.no_update
+                    return not modopen, False, False, dash.no_update, dash.no_update
+                # return tab_forecast('models'), not modopen, False, False, dash.no_update, dash.no_update
+                return not modopen, False, False, dash.no_update, dash.no_update
             elif button_id == "group-2-toggle" and probbutton:
                 if probopen is True:
-                    return dash.no_update, False, not probopen, False, dash.no_update, dash.no_update
-                return tab_forecast('prob'), False, not probopen, False, dash.no_update, dash.no_update
+                    # return dash.no_update, False, not probopen, False, dash.no_update, dash.no_update
+                    return False, not probopen, False, dash.no_update, dash.no_update
+                # return tab_forecast('prob'), False, not probopen, False, dash.no_update, dash.no_update
+                return False, not probopen, False, dash.no_update, dash.no_update
             elif button_id == "group-3-toggle" and wasbutton:
                 if wasopen is True:
-                    return dash.no_update, False, False, not wasopen, dash.no_update, dash.no_update
-                return tab_forecast('was'), False, False, not wasopen, dash.no_update, dash.no_update
+                    # return dash.no_update, False, False, not wasopen, dash.no_update, dash.no_update
+                    return False, False, not wasopen, dash.no_update, dash.no_update
+                # return tab_forecast('was'), False, False, not wasopen, dash.no_update, dash.no_update
+                return False, False, not wasopen, dash.no_update, dash.no_update
 
         if var == 'SCONC_DUST':
             # raise PreventUpdate
-            return dash.no_update, modopen, probopen, wasopen, False, False
+            # return dash.no_update, modopen, probopen, wasopen, False, False
+            return modopen, probopen, wasopen, False, False
         elif var == 'OD550_DUST':
             # only models and prob can be opened
             if wasopen:
-                return tab_forecast('models'), True, False, False, False, True
-            return dash.no_update, modopen, probopen, wasopen, False, True
+                # return tab_forecast('models'), True, False, False, False, True
+                return True, False, False, False, True
+            # return dash.no_update, modopen, probopen, wasopen, False, True
+            return modopen, probopen, wasopen, False, True
         else:
             if modopen:
-                return dash.no_update, True, False, False, True, True
-            return tab_forecast('models'), True, False, False, True, True
+                # return dash.no_update, True, False, False, True, True
+                return True, False, False, True, True
+            # return tab_forecast('models'), True, False, False, True, True
+            return True, False, False, True, True
 
         raise PreventUpdate
 
