@@ -172,14 +172,8 @@ def tab_forecast(window='models'):
             duration=6000,
             fade=True,
             color="primary",
-            style={ 'overflow': 'auto' }
+            style={ 'overflow': 'auto', 'margin-bottom': 0 }
         ),
-#         html.Div(dbc.Container(
-#                     id='graph-collection',
-#                     children=[],
-#                     fluid=True,
-#                     )
-#         ),
         html.Div(dbc.Spinner(
             id='loading-graph-collection',
             debounce=0,
@@ -208,6 +202,15 @@ def tab_forecast(window='models'):
     ]
 
     was_children = [
+        dbc.Alert(
+            "To ensure a better experience, please note that you cannot select more than 4 models at once.",
+            id="alert-models-auto",
+            is_open=False,
+            duration=6000,
+            fade=True,
+            color="primary",
+            style={ 'overflow': 'auto', 'margin-bottom': 0 }
+        ),
         dbc.Spinner(
             html.Div(
                 id='was-graph',
@@ -225,6 +228,15 @@ def tab_forecast(window='models'):
     ]
 
     prob_children = [
+        dbc.Alert(
+            "To ensure a better experience, please note that you cannot select more than 4 models at once.",
+            id="alert-models-auto",
+            is_open=False,
+            duration=6000,
+            fade=True,
+            color="primary",
+            style={ 'overflow': 'auto', 'margin-bottom': 0 }
+        ),
         dbc.Spinner(
             html.Div(
                 id='prob-graph',

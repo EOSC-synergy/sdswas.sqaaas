@@ -123,7 +123,8 @@ def register_callbacks(app):
          Output('model-dropdown', 'options'),
          Output('model-dropdown', 'value')],
         [Input('variable-dropdown-forecast', 'value')],
-        [Input('model-dropdown', 'value'),]
+        [Input('model-dropdown', 'value'),],
+        prevent_initial_call=True
         )
     def update_models_dropdown(variable, checked):
 
@@ -516,11 +517,11 @@ def register_callbacks(app):
 
             print("::::::::::::", len(curtab))
             out_tab = dash.no_update
-            if len(curtab) > 2:
+            if len(curtab) > 3:
                 curtab_name = 'models'
-            elif curtab[0]['props']['children']['props']['id'] == 'prob-graph':
+            elif curtab[1]['props']['children']['props']['id'] == 'prob-graph':
                 curtab_name = 'prob'
-            elif curtab[0]['props']['children']['props']['id'] == 'was-graph':
+            elif curtab[1]['props']['children']['props']['id'] == 'was-graph':
                 curtab_name = 'was'
 
             nexttab_name = button_id.replace('-apply', '')
@@ -558,7 +559,7 @@ def register_callbacks(app):
 
         if ctx.triggered:
             button_id = ctx.triggered[0]["prop_id"].split(".")[0]
-            if button_id != 'models-apply' and variable is None and tstep is None:
+            if button_id != 'models-apply' and tstep is None and date is None:
                 raise PreventUpdate
 
         # if DEBUG: print('SERVER: interval ' + str(n))
