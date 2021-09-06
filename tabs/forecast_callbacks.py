@@ -317,7 +317,8 @@ def register_callbacks(app):
          Input('prob-date-picker', 'date'),
          Input('prob-slider-graph', 'value')],
         [State('prob-dropdown', 'value'),
-         State('variable-dropdown-forecast', 'value')],
+         State('variable-dropdown-forecast', 'value'),
+         ],
     )
     def update_prob_figure(n_clicks, date, day, prob, var):
         """ Update Warning Advisory Systems maps """
@@ -498,6 +499,42 @@ def register_callbacks(app):
 
 
     @app.callback(
+        Output('forecast-tab', 'children'),
+        [Input('models-apply', 'n_clicks'),
+         Input('prob-apply', 'n_clicks'),
+         Input('was-apply', 'n_clicks')],
+        [State('forecast-tab', 'children')],
+        prevent_initial_call=True
+        )
+    def update_tab_content(models_clicks, prob_clicks, was_clicks, curtab):
+        ctx = dash.callback_context
+
+        if ctx.triggered:
+            button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+            if button_id not in ('models-apply', 'prob-apply', 'was-apply'):
+                raise PreventUpdate
+
+            print("::::::::::::", len(curtab))
+            out_tab = dash.no_update
+            if len(curtab) > 2:
+                curtab_name = 'models'
+            elif curtab[0]['props']['children']['props']['id'] == 'prob-graph':
+                curtab_name = 'prob'
+            elif curtab[0]['props']['children']['props']['id'] == 'was-graph':
+                curtab_name = 'was'
+
+            nexttab_name = button_id.replace('-apply', '')
+            if curtab_name != nexttab_name:
+                out_tab = tab_forecast(nexttab_name)
+
+            print("::::::::::::", curtab_name, nexttab_name)
+
+            return out_tab
+
+        raise PreventUpdate
+
+
+    @app.callback(
         [
          Output('btn-play', 'style'),
          Output('btn-stop', 'style'),
@@ -509,7 +546,8 @@ def register_callbacks(app):
          State('variable-dropdown-forecast', 'value'),
          State({'type': 'graph-with-slider', 'index': ALL}, 'figure'),
          State({'type': 'graph-with-slider', 'index': ALL}, 'id'),
-         State('slider-interval', 'disabled')],
+         State('slider-interval', 'disabled'),
+         ],
         prevent_initial_call=True
         )
     def update_models_figure(n_clicks, tstep, date, model, variable, graphs, ids, static):
@@ -630,6 +668,4 @@ def register_callbacks(app):
             btn_style = { 'display': 'none' }
         else:
             btn_style = { 'display': 'inline-block' }
-#         if len(model) > 4:
-#             return True, btn_style, res
         return btn_style, btn_style, res

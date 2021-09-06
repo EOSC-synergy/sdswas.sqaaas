@@ -15,6 +15,8 @@ from dash.dependencies import MATCH
 from dash.exceptions import PreventUpdate
 import flask
 from flask_caching import Cache
+from flask_caching.backends import FileSystemCache
+#from dash_extensions.callback import CallbackCache, Trigger
 
 from data_handler import DEFAULT_VAR
 from data_handler import DEFAULT_MODEL
@@ -86,6 +88,7 @@ app.layout = html.Div(
 
 if DEBUG: print('SERVER: stop creating app layout')
 
+# cc = CallbackCache(cache=FileSystemCache(cache_dir="cache"))
 
 @app.callback(
     Output('app-sidebar', 'children'),
