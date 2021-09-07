@@ -89,19 +89,26 @@ def register_callbacks(app):
     @app.callback(
         [Output('obs-aod-slider-interval', 'disabled'),
          Output('obs-aod-slider-interval', 'n_intervals')],
-        [Input('btn-obs-aod-play', 'n_clicks')],
+        [Input('btn-obs-aod-play', 'n_clicks'),
+         Input('btn-obs-aod-stop', 'n_clicks')],
         [State('obs-aod-slider-interval', 'disabled'),
          State('obs-aod-slider-graph', 'value')],
         prevent_initial_call=True
     )
-    def start_stop_obs_aod__autoslider(n, disabled, value):
+    def start_stop_obs_aod_autoslider(n_play, n_stop, disabled, value):
         """ Play/Pause map animation """
+        ctx = dash.callback_context
         if DEBUG: print("VALUE", value)
         if not value:
             value = 0
-        if n:
-            return not disabled, int(value)
-        return disabled, int(value)
+        if ctx.triggered:
+            button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+            if button_id == 'btn-obs-aod-play' and disabled:
+                return not disabled, int(value)
+            elif button_id == 'btn-obs-aod-stop' and not disabled:
+                return not disabled, int(value)
+
+        raise PreventUpdate
 
 
     @app.callback(
@@ -173,20 +180,26 @@ def register_callbacks(app):
     @app.callback(
         [Output('obs-slider-interval', 'disabled'),
          Output('obs-slider-interval', 'n_intervals')],
-        [Input('btn-obs-play', 'n_clicks')],
+        [Input('btn-obs-play', 'n_clicks'),
+         Input('btn-obs-stop', 'n_clicks')],
         [State('obs-slider-interval', 'disabled'),
          State('obs-slider-graph', 'value')],
         prevent_initial_call=True
     )
-    def start_stop_obs_autoslider(n, disabled, value):
+    def start_stop_obs_autoslider(n_play, n_stop, disabled, value):
         """ Play/Pause map animation """
+        ctx = dash.callback_context
         if DEBUG: print("VALUE", value)
         if not value:
             value = 0
-        if n:
-            return not disabled, int(value)
-        return disabled, int(value)
+        if ctx.triggered:
+            button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+            if button_id == 'btn-obs-play' and disabled:
+                return not disabled, int(value)
+            elif button_id == 'btn-obs-stop' and not disabled:
+                return not disabled, int(value)
 
+        raise PreventUpdate
 
     @app.callback(
         Output('obs-slider-graph', 'value'),

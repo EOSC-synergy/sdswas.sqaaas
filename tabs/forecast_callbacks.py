@@ -457,6 +457,7 @@ def register_callbacks(app):
         [Output('slider-interval', 'disabled'),
          Output('slider-interval', 'n_intervals'),
          Output('open-timeseries', 'style'),
+         Output('div-collection', 'children'),
          ],
         [Input('btn-play', 'n_clicks'),
          Input('btn-stop', 'n_clicks')],
@@ -471,14 +472,32 @@ def register_callbacks(app):
         if not value:
             value = 0
 
+        div_noanim = dbc.Spinner(
+            id='loading-graph-collection',
+            debounce=10,
+            show_initially=False,
+            children=[
+                dbc.Container(
+                    id='graph-collection',
+                    children=[],
+                    fluid=True,
+                    )]
+        )
+
+        div_anim = dbc.Container(
+            id='graph-collection',
+            children=[],
+            fluid=True,
+        )
+
         if ctx.triggered:
             button_id = ctx.triggered[0]["prop_id"].split(".")[0]
             if button_id == 'btn-play' and disabled:
                 ts_style = { 'display': 'none' }
-                return not disabled, int(value/FREQ), ts_style
+                return not disabled, int(value/FREQ), ts_style, div_anim
             elif button_id == 'btn-stop' and not disabled:
                 ts_style = { 'display': 'block' }
-                return not disabled, int(value/FREQ), ts_style
+                return not disabled, int(value/FREQ), ts_style, div_noanim
 
         raise PreventUpdate
 
@@ -607,10 +626,10 @@ def register_callbacks(app):
             else:
                 figures.append(
                     dbc.Row([
-                        dbc.Col([dbc.Spinner(
+                        dbc.Col([
                             get_graph(index='none', figure=fig,
                                 style={'height': '91vh'}
-                                ))
+                                )
                         ])
                     ])
                 )
@@ -642,13 +661,12 @@ def register_callbacks(app):
                 )
             else:
                 figures.append(
-                  dbc.Spinner(
                     get_graph(
                         index=mod,
                         figure=get_figure(mod, variable, date, tstep,
                             static=static, aspect=(nrows, ncols)),
                         style={'height': '{}vh'.format(int(91/nrows))}
-                    ))
+                    )
                 )
 
         res = [

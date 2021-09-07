@@ -41,9 +41,12 @@ def obs_time_slider(div='obs', start=0, end=23, step=1):
         className="timesliderline",
     )
 
-    play_button = html.Span(
-        html.Button('\u2023', title='Play/Stop',
+    play_button = html.Span(children=[
+        html.Button('\u2023', title='Play',
                     id='btn-{}-play'.format(div), n_clicks=0),
+        html.Button('\u25A0', title='Stop',
+                    id='btn-{}-stop'.format(div), n_clicks=0),
+        ],
         className="timesliderline",
     )
     
@@ -121,7 +124,7 @@ def tab_observations(window='rgb'):
         ),
         html.Div(
             dcc.Interval(id='obs-slider-interval',
-                interval=500,
+                interval=1000,
                 n_intervals=0,
                 disabled=True
         )),
@@ -153,7 +156,7 @@ def tab_observations(window='rgb'):
         ),
         html.Div(
             dcc.Interval(id='obs-aod-slider-interval',
-                interval=500,
+                interval=1000,
                 n_intervals=0,
                 disabled=True
         )),

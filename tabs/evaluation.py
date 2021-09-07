@@ -40,7 +40,7 @@ scores_maps = dbc.Spinner(
                             className="sidebar-dropdown"
                         ),
                         ],
-                        style={ 'width': '10rem' },
+                        style={ 'width': '12rem' },
                         className="linetool",
                     ),
                     html.Span([
