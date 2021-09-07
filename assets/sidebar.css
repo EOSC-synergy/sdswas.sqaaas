@@ -1,0 +1,306 @@
+/* The side navigation menu */
+.sidebar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 200px;
+  height: 100%;
+  font-family: "Roboto", sans-serif;
+  color: #2B383E !important;
+  background-color: #FAFAFA;
+  overflow: hidden;
+}
+
+.sidebar-first-item {
+    background-color: #F1B545 !important;
+}
+
+.sidebar-first-item>label {
+    padding-top: 0.3em;
+    padding-left: 0.5em;
+    margin-bottom: 0;
+}
+
+.sidebar-first-item .Select-control, .sidebar-first-item .Select-control .Select-multi-value-wrapper .Select-input {
+    background-color: #F1B545 !important;
+    color: grey;
+    font-weight: bold;
+    height: 2rem !important;
+    margin-top: 0;
+    padding-top: 0;
+    border-radius: 0px;
+    border: none;
+}
+
+#evaluation-variable.sidebar-first-item, #observations-variable.sidebar-first-item {
+    background-color: #6C7B82 !important;
+}
+
+#evaluation-variable.sidebar-first-item .dash-dropdown .Select .Select-control .Select-multi-value-wrapper .Select-value,
+#observations-variable.sidebar-first-item .dash-dropdown .Select .Select-control .Select-multi-value-wrapper .Select-value {
+    background-color: #6C7B82 !important;
+    color: #FFFFFF !important;
+}
+
+#evaluation-variable.sidebar-first-item .dash-dropdown .Select .Select-control .Select-multi-value-wrapper .Select-value .Select-value-label,
+#observations-variable.sidebar-first-item .dash-dropdown .Select .Select-control .Select-multi-value-wrapper .Select-value .Select-value-label {
+    background-color: #6C7B82 !important;
+    color: #FFFFFF !important;
+}
+
+.sidebar .card-header {
+    padding: .5rem .5rem;
+}
+
+.sidebar-item {
+    height: 2rem;
+    margin: 1rem 0;
+    /*border-bottom: 1px solid lightgrey;*/
+}
+
+.sidebar-item>label {
+    height: 1.5rem;
+}
+
+.sidebar-item>button {
+    height: 2rem;
+    display: table-cell;
+    outline: none;
+    text-align: left;
+    text-decoration: none !important;
+    vertical-align: middle;
+    margin-bottom: .6rem;
+}
+
+.sidebar-item>button:hover, .sidebar-item>button:focus {
+    font-weight: bold;
+    color: #2B383E;
+}
+
+.sidebar-first-item .Select-menu-outer {
+    background-color: #F1B545 !important;
+    overflow: hidden;
+    height: 22rem !important;
+}
+
+.sidebar-dropdown>label {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.78rem;
+}
+
+.sidebar>label {
+    margin-left: 1rem;
+    margin-top: 0.5rem;
+    display: block;
+    font-size: small;
+}
+
+/* Custom control: Classes recently added by Francesco */
+.custom-control {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.custom-control-label {
+    margin-left: 1rem;
+    margin-top: 0.5rem;
+    display: block;
+    font-size: small;
+}
+
+.custom-control-label::before,
+.custom-control-label::after {
+    left: unset;
+    right: 1rem;
+    float: right;
+    vertical-align: top;
+}
+/* --- */
+
+.sidebar-dropdown>label>input[type=checkbox] {
+    float: right;
+    vertical-align: bottom;
+}
+
+.sidebar-dropdown>label>input[type=radio] {
+    float: right;
+    vertical-align: bottom;
+}
+
+.custom-control-label {
+  margin-left: 1rem;
+  margin-top: 0.5rem;
+  display: block;
+  font-size: small;
+}
+
+.card-header {
+    display: block;
+}
+
+
+.card-header>h2>button.btn-link {
+  float: left !important;
+  text-align: left !important;
+  padding: 0.35rem 0.2rem;
+}
+
+.accordion>.card>.card-header:after {
+  font-family: FontAwesome;
+  content: "\f107";
+  float: right;
+  color: grey;
+}
+
+.accordion>.card>.card-header[aria-expanded="true"]:after {
+  content: "\f106";
+}
+
+.accordion .card {
+    border-radius: 0;
+    border-right: 0;
+}
+
+.sidebar-bottom {
+  position: absolute;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  bottom: 0px;
+}
+
+/* Info button on the sidebar bottom */
+.sidebar-bottom #info-button {
+  background-image: url("/dashboard/assets/images/Icon_Info.png");
+  background-position: center;
+  width: 52px !important;
+  height: 52px !important;
+}
+
+/* Download button on the sidebar bottom */
+.sidebar-bottom #download-button {
+  background-image: url("/dashboard/assets/images/Icon_Download.png");
+  background-position: 1rem;
+  background-color: #2B383E;
+  padding-left: 2rem;
+  width: 100%;
+  height: 100%;
+}
+
+#models-apply,
+#prob-apply,
+#was-apply {
+  background-color: #2B383E;
+    color: #FFFFFF;
+    font-family: "Roboto", sans-serif !important;
+    letter-spacing: 0;
+    height: 2rem;
+    border: none;
+    width: 100%;
+    text-align: center;
+}
+
+span#models-apply,
+span#prob-apply,
+span>#models-apply {
+  margin: 0.5rem 0;
+}
+
+.sidebar-bottom  .btn {
+    border-radius: 0;
+    background-repeat: no-repeat;
+    height: 2rem;
+    font-size: Medium;
+    margin: 0 !important;
+    width: -moz-fit-content;
+    width: fit-content;
+}
+
+.sidebar-bottom  #info-button {
+    background-image: url("/dashboard/assets/images/Icon_Info.png");
+    background-position: center;
+    width: 2.8vw;
+}
+
+.sidebar-bottom  #download-button {
+    background-image: url("/dashboard/assets/images/Icon_Download.png");
+    background-position: 1rem;
+    background-color: #2B383E;
+    padding-left: 2rem;
+    width: -webkit-fill-available;
+    width: -moz-available;
+}
+
+.sidebar-bottom .card-text>button.download-section {
+    background-image: url("/dashboard/assets/images/download.svg");
+    background-repeat: no-repeat;
+    background-position: 1rem;
+    display: block;
+    width: 8vw;
+    height: 4vh;
+    margin-bottom: 1rem;
+    padding-left: 1rem;
+    text-align: center;
+    color:  #2b383e;
+    border: 2px solid #2b383e;
+}
+
+.sidebar-bottom .card-text>p>a {
+    color:  #2b383e;
+    text-decoration: underline;
+}
+
+
+.collapsible-cards {
+    margin: 0 !important;
+}
+.collapsible-cards .col {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+.collapsible-cards .col .collapse .card {
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none;
+}
+.collapsible-cards .col .collapse .card .card-body {
+    height: 25vh !important;
+    overflow: auto;
+    font-size: Small;
+}
+
+.card-body {
+  padding: 1rem;
+}
+
+/* Remove icon on the bottom right corner */
+.js-plotly-plot .plotly .mapboxgl-ctrl-bottom-right {
+  display: none !important;
+}
+
+
+/* Page content. The value of the margin-left property should match the value of the sidebar's width property */
+div.tab-parent {
+  margin-left: 200px;
+  height: 100%;
+}
+
+/* On screens that are less than 700px wide, make the sidebar into a topbar */
+@media screen and (max-width: 700px) {
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: relative;
+  }
+  .sidebar a {float: left;}
+  div.content {margin-left: 0;}
+}
+
+/* On screens that are less than 400px, display the bar vertically, instead of horizontally */
+@media screen and (max-width: 400px) {
+  .sidebar a {
+    text-align: center;
+    float: none;
+  }
+}

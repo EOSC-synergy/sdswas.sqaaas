@@ -1,0 +1,427 @@
+a.modebar-btn {
+    font-size: 2rem !important;
+    margin: 1rem .2rem;
+}
+
+.modal-body>.dash-graph>.js-plotly-plot>.plot-container>.svg-container>.modebar-container>.modebar>.modebar-group>a.modebar-btn {
+    font-size: 1.2rem !important;
+    margin: .25rem .2rem;
+}
+
+.modal-body>.dash-graph>.js-plotly-plot>.plot-container>.svg-container>.modebar-container>.modebar {
+    top: 0;
+    margin-top: 0;
+    padding-top: 0;
+}
+
+.tab-container {
+    background-color: #2B383E !important;
+    height: 3.8rem;
+}
+
+.tab-content {
+    background-color: #F0F1F2;
+    height: -moz-fit-content;
+    height: 93.3vh !important;
+    position: relative;
+    bottom: 0;
+    box-shadow: inset 5px 0px 5px lightgrey;
+}
+
+:hover.tab.horizontal-menu>span, .tab.horizontal-menu.tab--selected>span {
+    color: #F1B545 !important;
+    border-bottom: 4px solid #F1B545 !important;
+    padding-bottom: 0.8rem !important;
+}
+
+.horizontal-menu {
+    background-color: #2B383E !important;
+    font-family: "Roboto", sans-serif;
+    font-weight: bold;
+    border: none !important;
+    color: white !important;
+    padding-bottom: 0 !important;
+    width: 136px !important;
+}
+
+.graph-with-slider {
+    height: 93vh; 
+}
+
+#graph-collection {
+    padding: 0;
+}
+
+#prob-graph, #was-graph {
+    height: 92vh !important;
+    bottom: 0;
+}
+
+#obs-vis-graph {
+    height: 72vh !important;
+    margin: 0 !important;
+}
+
+#obs-vis-graph .graph-with-slider {
+    height: 77vh !important;
+    margin: 0 !important;
+}
+
+#graph-eval-aeronet, #graph-eval-modis-obs, #graph-eval-modis-mod {
+    padding: 0;
+    margin: 0;
+    height: 65vh !important;
+    overflow: hidden;
+}
+
+#eval-tables {
+    height: 65vh !important;
+    overflow: auto;
+}
+
+.description-title>p {
+  height: 35px;
+  color: #2F4047;
+  font-family: "Libre Baskerville";
+  font-size: 24px;
+  font-weight: bold;
+  letter-spacing: 0;
+  line-height: 35px;
+  margin: 1rem;
+}
+
+.description-body>p {
+  height: 47px;
+  opacity: 0.8;
+  color: #2B383E;
+  font-family: "Roboto", sans-serif !important;
+  font-size: 14px;
+  letter-spacing: 0;
+  line-height: 22px;
+  margin: .5rem 1rem;
+}
+
+.btn-link {
+  color: #2B383E;
+  font-family: "Roboto", sans-serif !important;
+}
+
+#scores-apply, #scores-map-apply {
+  background-color: #2B383E;
+  color: #FFFFFF;
+  font-family: "Roboto", sans-serif !important;
+  letter-spacing: 0;
+  height: 36px;
+  border: none;
+  border-radius: 0;
+  text-align: center;
+}
+
+button#scores-apply {
+  width: 5rem;
+}
+
+button#scores-map-apply {
+    background-image: url('/dashboard/assets/images/map_icon.png');
+    background-repeat: no-repeat;
+    background-position: .5rem;
+    text-align: right;
+    width: 7.5rem;
+}
+
+#forecast-footer {
+    display: table-row;
+}
+
+.timesliderline #date {
+    color: #F1B545 !important;
+    font-family: "Roboto", sans-serif !important;
+    font-size: 0.8rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    padding: 0.8rem 0rem 0.8rem 1.5rem;
+    background-color: #2B383E !important;
+    border: none !important;
+    cursor: pointer;
+}
+
+.DateInput {
+    vertical-align: baseline;
+}
+
+.DateInput_input {
+    padding: 0;
+    margin: 0;
+    line-height: initial;
+}
+
+input.DateInput_input {
+    margin-right: 0;
+    padding-right: 0;
+}
+
+div.SingleDatePickerInput {
+    border: none;
+}
+
+#was-slider-graph, #prob-slider-graph, #obs-vis-slider-graph {
+    width: 10rem;
+    padding-right: 35px !important;
+}
+
+#slider-graph, #obs-slider-graph, #obs-aod-slider-graph {
+    width: 30rem;
+}
+
+.centered-image {
+    text-align: center !important;
+    text-align: -moz-center !important; 
+}
+
+.centered-image .layout-dropdown {
+    text-align: -webkit-center !important; 
+}
+
+.centered-image .timeslider {
+    position: relative !important;	
+    text-align: center !important;
+    text-align: -moz-center !important; 
+    text-align: -webkit-center !important; 
+    margin: auto !important;
+    left: 1rem;
+}
+
+#rgb-image, #aod-image {
+    vertical-align: baseline;
+    height: 67vh;
+}
+
+.timesliderline>button {
+    border-radius: 50%;
+    width: 34px;
+    height: 34px;
+    margin-right: 0.5rem;
+    border: none !important;
+    outline: none !important;
+}
+
+.timesliderline>button:hover {
+    background-color: #F1B545 !important;
+}
+
+#obs-dropdown, #obs-mod-dropdown {
+    min-width: 12rem;
+}
+
+#rgb-buttons {
+    display: block;
+    float: left;
+    margin: 1rem;
+    width: 1rem;
+}
+
+#rgb-buttons .btn {
+    display: block;
+    width: 8rem;
+    margin: 0.5rem;
+    border-radius: 0;
+    border: solid 3px #2B383E !important;
+    background-color: #FFFFFF !important;
+    color: #2B383E !important;
+}
+
+#rgb-buttons .btn:hover {
+    background-color: #2B383E !important;
+    color: #FFFFFF !important;
+}
+
+#rgb-buttons .active {
+    background-color: #2B383E !important;
+    color: #FFFFFF !important;
+}
+
+.linetool {
+    display: table-cell;
+    vertical-align: bottom;
+    padding: 1rem;
+}
+
+.linetool>label {
+    font-size: Small;
+    opacity: 0.8;
+    color: #2B383E;
+    font-family: "Roboto", sans-serif !important;
+    margin-bottom: 0;
+}
+
+.linetool .Select-control {
+    border-radius: 0; 
+    border: none; 
+}
+
+.linetool #eval-date-picker {
+    display: block !important;
+}
+
+.linetool .dropdown>button {
+    width: 9.5rem;
+    text-align: left;
+    border-radius: 0;
+    border: none;
+    color: #aaa;
+    background-color: #fff;
+}
+
+.linetool .dropdown .show {
+    padding-right: 1rem;
+    padding-left: 1rem;
+}
+
+.linetool .DateInput {
+    height: 36px;
+    line-height: 36px !important;
+}
+
+.linetool .DateInput_input {
+    line-height: 36px !important;
+    border-bottom: none;
+    padding-left: .5rem;
+}
+
+.linetool .DateRangePickerInput__withBorder {
+    border: none;
+    border-radius: 0;
+}
+
+.linetool .DateRangePickerInput_arrow {
+    display: none;
+}
+
+.CalendarDay__hovered_span, .CalendarDay__hovered_span:hover, .linetool .CalendarDay__selected_span {
+    background: #D8A443;
+    border: 1px double #D8A443;
+    color: #2B383E;
+}
+
+.CalendarDay__selected, .CalendarDay__selected:active, .CalendarDay__selected:hover {
+    background: #F1B545;
+    border: 1px double #F1B545;
+    color: #2B383E;
+}
+
+.timesliderline {
+    display: table-cell;
+    vertical-align: middle;
+    margin: 0;
+}
+
+.timeslider {
+    position: absolute;
+    width: 704px;
+    height: 100%;
+    padding: 0.2rem;
+    background-color: #2b383e;
+}
+
+/* Position the parent of the timeslider */
+.layout-dropdown {
+    position: absolute;
+    left: 0;
+    bottom: 8px;
+    width: 100%;
+    height: 48px;
+    padding: 0 2rem;
+}
+
+.layout-dropdown .dropdown, .layout-dropdown .timeslider {
+    z-index: 1002 !important;
+}
+
+.layout-dropdown #map-view-dropdown {
+    position: absolute;
+    left: 750px;
+    bottom: 0;
+    width: 122px;
+    height: 100%;
+}
+
+.layout-dropdown #map-layers-dropdown {
+    position: absolute;
+    left: 880px;
+    bottom: 0;
+    width: 127px;
+    height: 100%;
+}
+
+.btn-secondary {
+    box-shadow: none !important;
+    border: 0 !important;
+}
+
+.layout-dropdown #map-view-dropdown>button, .layout-dropdown #map-layers-dropdown>button {
+    border-radius: 0 !important;
+    background-color: #2B383E !important;
+    height: 1.75rem;
+    background-repeat: no-repeat;
+    background-position: 1rem;
+    text-align: right;
+    margin-left: .5rem;
+}
+
+.layout-dropdown #map-view-dropdown>button {
+    background-image: url('/dashboard/assets/images/map_icon.png');
+    width: 100%;
+    height: 100%;
+}
+
+.layout-dropdown #map-layers-dropdown>button {
+    background-image: url('/dashboard/assets/images/layers_icon.png');
+    width: 100%;
+    height: 100%;
+}
+
+.layout-dropdown #map-view-dropdown .dropdown-menu  {
+    min-width: 7.6rem;
+}
+
+.layout-dropdown #map-layers-dropdown .dropdown-menu  {
+    min-width: 8rem;
+}
+
+.layout-dropdown .dropdown-menu {
+    border-radius: 0 !important;
+    background-color: #6C7B82;
+    padding: 0;
+    margin-top: 0;
+}
+
+.layout-dropdown .dropdown-item {
+    text-align: center;
+    text-transform: uppercase;
+    font-size: smaller;
+    color: #FFFFFF;
+    padding: .25rem 0;
+    border-top: 1px solid #9ea8ad;
+}
+
+.dropdown-item:focus, .dropdown-item:hover {
+    background-color: #2B383E;
+}
+
+
+@media screen and (max-width: 1250px) {
+    .layout-dropdown #map-view-dropdown {
+        left: 24px;
+        bottom: 120%;
+        height: 80%;
+    }
+
+    .layout-dropdown #map-layers-dropdown {
+        left: 156px;
+        bottom: 120%;
+        height: 80%;
+    }
+
+    #slider-graph, #obs-slider-graph, #obs-aod-slider-graph { 
+    }
+}
