@@ -130,7 +130,7 @@ MODEBAR_LAYOUT_TS = {
     }
 }
 
-DISCLAIMER = html.P(html.B("""Dust data ©2021 WMO Barcelona Dust Regional Center."""))
+DISCLAIMER = html.P(html.B("""DISCLAIMER: Dust data ©2021 WMO Barcelona Dust Regional Center."""))
 
 GEOJSON_TEMPLATE = "{}/geojson/{}/{:02d}_{}_{}.geojson"
 NETCDF_TEMPLATE = "{}/netcdf/{}{}.nc"
