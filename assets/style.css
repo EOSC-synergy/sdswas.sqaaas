@@ -44,12 +44,89 @@ a.modebar-btn {
     width: 136px !important;
 }
 
-.graph-with-slider {
-    height: 93vh; 
+/* Position the parent of the timeslider */
+.layout-dropdown {
+    position: absolute;
+    left: 0;
+    bottom: 8px;
+    width: 100%;
+    height: 48px;
+    padding: 0 2rem;
 }
 
-#graph-collection {
+.layout-dropdown .dropdown, .layout-dropdown .timeslider {
+    z-index: 1002 !important;
+}
+
+.layout-dropdown #map-view-dropdown {
+    position: absolute;
+    left: 750px;
+    bottom: 0;
+    width: 122px;
+    height: 100%;
+}
+
+.layout-dropdown #map-layers-dropdown {
+    position: absolute;
+    left: 880px;
+    bottom: 0;
+    width: 127px;
+    height: 100%;
+}
+
+.btn-secondary {
+    box-shadow: none !important;
+    border: 0 !important;
+}
+
+.layout-dropdown #map-view-dropdown>button, .layout-dropdown #map-layers-dropdown>button {
+    border-radius: 0 !important;
+    background-color: #2B383E !important;
+    background-repeat: no-repeat;
+    background-position: 1rem;
+    height: 1.75rem;
+    text-align: right;
+    margin-left: .5rem;
+}
+
+.layout-dropdown #map-view-dropdown>button {
+    background-image: url('/dashboard/assets/images/map_icon.png');
+    width: 100%;
+    height: 100%;
+}
+
+.layout-dropdown #map-layers-dropdown>button {
+    background-image: url('/dashboard/assets/images/layers_icon.png');
+    width: 100%;
+    height: 100%;
+}
+
+.layout-dropdown #map-view-dropdown .dropdown-menu  {
+    min-width: 7.6rem;
+}
+
+.layout-dropdown #map-layers-dropdown .dropdown-menu  {
+    min-width: 8rem;
+}
+
+.layout-dropdown .dropdown-menu {
+    border-radius: 0 !important;
+    background-color: #6C7B82;
     padding: 0;
+    margin-top: 0;
+}
+
+.layout-dropdown .dropdown-item {
+    text-align: center;
+    text-transform: uppercase;
+    font-size: smaller;
+    color: #FFFFFF;
+    padding: .25rem 0;
+    border-top: 1px solid #9ea8ad;
+}
+
+.dropdown-item:focus, .dropdown-item:hover {
+    background-color: #2B383E;
 }
 
 #prob-graph, #was-graph {
@@ -63,14 +140,15 @@ a.modebar-btn {
 }
 
 #obs-vis-graph .graph-with-slider {
-    height: 77vh !important;
+    height: 80vh !important;
     margin: 0 !important;
+    margin-top: 2rem !important;
 }
 
 #graph-eval-aeronet, #graph-eval-modis-obs, #graph-eval-modis-mod {
     padding: 0;
     margin: 0;
-    height: 65vh !important;
+    height: 68vh !important;
     overflow: hidden;
 }
 
@@ -91,7 +169,7 @@ a.modebar-btn {
 }
 
 .description-body>p {
-  height: 47px;
+  /*height: 47px;*/
   opacity: 0.8;
   color: #2B383E;
   font-family: "Roboto", sans-serif !important;
@@ -173,46 +251,6 @@ div.SingleDatePickerInput {
     width: 30rem;
 }
 
-.centered-image {
-    text-align: center !important;
-    text-align: -moz-center !important; 
-}
-
-.centered-image .layout-dropdown {
-    text-align: -webkit-center !important; 
-}
-
-.centered-image .timeslider {
-    position: relative !important;	
-    text-align: center !important;
-    text-align: -moz-center !important; 
-    text-align: -webkit-center !important; 
-    margin: auto !important;
-    left: 1rem;
-}
-
-#rgb-image, #aod-image {
-    vertical-align: baseline;
-    height: 67vh;
-}
-
-.timesliderline>button {
-    border-radius: 50%;
-    width: 34px;
-    height: 34px;
-    margin-right: 0.5rem;
-    border: none !important;
-    outline: none !important;
-}
-
-.timesliderline>button:hover {
-    background-color: #F1B545 !important;
-}
-
-#obs-dropdown, #obs-mod-dropdown {
-    min-width: 12rem;
-}
-
 #rgb-buttons {
     display: block;
     float: left;
@@ -240,10 +278,57 @@ div.SingleDatePickerInput {
     color: #FFFFFF !important;
 }
 
+
+.centered-image {
+    /* text-align: center !important;
+    text-align: -moz-center !important; */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 50vh;
+}	
+
+.centered-image .layout-dropdown {
+    display: flex;
+    align-items: center !important;
+    justify-content: center !important;
+    bottom: 8px !important;
+}
+
+/*
+.centered-image .timeslider {
+    width: 100% !important;
+}
+
+*/ 
+#rgb-image, #aod-image {
+    /* height: 67vh; */
+    /* max-width: 50%; */
+    width: 35rem;
+}
+
+.timesliderline>button {
+    border-radius: 50%;
+    width: 34px;
+    height: 34px;
+    margin-right: 0.5rem;
+    border: none !important;
+    outline: none !important;
+}
+
+.timesliderline>button:hover {
+    background-color: #F1B545 !important;
+}
+
+#obs-dropdown, #obs-mod-dropdown {
+    min-width: 12rem;
+}
+
 .linetool {
-    display: table-cell;
-    vertical-align: bottom;
-    padding: 1rem;
+    display: block;
+    float: left;
+    padding: 1rem 0.5rem;
 }
 
 .linetool>label {
@@ -309,6 +394,11 @@ div.SingleDatePickerInput {
     color: #2B383E;
 }
 
+.eval-statistics-nav {
+    display: table-row;
+    margin-left: 0.5rem;
+}
+
 .timesliderline {
     display: table-cell;
     vertical-align: middle;
@@ -323,90 +413,25 @@ div.SingleDatePickerInput {
     background-color: #2b383e;
 }
 
-/* Position the parent of the timeslider */
-.layout-dropdown {
-    position: absolute;
-    left: 0;
-    bottom: 8px;
-    width: 100%;
-    height: 48px;
-    padding: 0 2rem;
+/* This targets the map in Forecast tab */
+#div-collection {
+    height: 93vh !important;
 }
 
-.layout-dropdown .dropdown, .layout-dropdown .timeslider {
-    z-index: 1002 !important;
+#graph-collection {
+    height: 93vh !important;
+    padding: 0 !important;
 }
 
-.layout-dropdown #map-view-dropdown {
-    position: absolute;
-    left: 750px;
-    bottom: 0;
-    width: 122px;
-    height: 100%;
+.graph-with-slider {
+    height: 93vh !important; 
 }
 
-.layout-dropdown #map-layers-dropdown {
-    position: absolute;
-    left: 880px;
-    bottom: 0;
-    width: 127px;
-    height: 100%;
+/*
+.dash-graph.graph-with-slider {
+    height: 93vh !important;
 }
-
-.btn-secondary {
-    box-shadow: none !important;
-    border: 0 !important;
-}
-
-.layout-dropdown #map-view-dropdown>button, .layout-dropdown #map-layers-dropdown>button {
-    border-radius: 0 !important;
-    background-color: #2B383E !important;
-    height: 1.75rem;
-    background-repeat: no-repeat;
-    background-position: 1rem;
-    text-align: right;
-    margin-left: .5rem;
-}
-
-.layout-dropdown #map-view-dropdown>button {
-    background-image: url('/dashboard/assets/images/map_icon.png');
-    width: 100%;
-    height: 100%;
-}
-
-.layout-dropdown #map-layers-dropdown>button {
-    background-image: url('/dashboard/assets/images/layers_icon.png');
-    width: 100%;
-    height: 100%;
-}
-
-.layout-dropdown #map-view-dropdown .dropdown-menu  {
-    min-width: 7.6rem;
-}
-
-.layout-dropdown #map-layers-dropdown .dropdown-menu  {
-    min-width: 8rem;
-}
-
-.layout-dropdown .dropdown-menu {
-    border-radius: 0 !important;
-    background-color: #6C7B82;
-    padding: 0;
-    margin-top: 0;
-}
-
-.layout-dropdown .dropdown-item {
-    text-align: center;
-    text-transform: uppercase;
-    font-size: smaller;
-    color: #FFFFFF;
-    padding: .25rem 0;
-    border-top: 1px solid #9ea8ad;
-}
-
-.dropdown-item:focus, .dropdown-item:hover {
-    background-color: #2B383E;
-}
+*/
 
 
 @media screen and (max-width: 1250px) {
@@ -422,6 +447,26 @@ div.SingleDatePickerInput {
         height: 80%;
     }
 
-    #slider-graph, #obs-slider-graph, #obs-aod-slider-graph { 
+    #slider-graph, #obs-slider-graph, #obs-aod-slider-graph {
+        
     }
+}
+
+@media screen and (max-width: 870px) {
+    
+    .tab.jsx-2137964197 {
+        display: block !important;
+        display: inline-block !important;
+    }
+
+    #forecast-tab, #evaluation-tab,  #observations-tab{
+        display: block !important;
+        display: inline-block !important;
+    }
+
+    .tab-container.jsx-4017309047 {
+        display: flex !important;
+        flex-flow: row !important;
+    }
+    
 }

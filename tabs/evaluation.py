@@ -125,38 +125,44 @@ def tab_evaluation(window='nrt'):
                 ),
             className="description-body"
         ),
-        html.Span([
-            html.Label("Network"),
-            dcc.Dropdown(
-                id='obs-dropdown',
-                options=[{'label': OBS[obs]['name'],
-                          'value': obs} for obs in OBS],
-                placeholder='Select network',
-                clearable=False,
-                searchable=False
-            )],
-            className="linetool",
-        ),
-        html.Span([
-            html.Label("Model"),
-            dcc.Dropdown(
-                id='obs-mod-dropdown',
-                options=[{'label': MODELS[model]['name'],
-                          'value': model} for model in MODELS],
-                placeholder='Select model',
-                clearable=False,
-                searchable=False,
-                value='median',
-                #style={ 'display': 'none' },
-            )],
-            id="obs-mod-dropdown-span",
-            className="linetool",
-            style={ 'display': 'none' }
-        ),
-        html.Span(
-            id='eval-date',
-            children=[],
-            className="linetool",
+        html.Div(
+            html.Div([
+                html.Span([
+                    html.Label("Network"),
+                    dcc.Dropdown(
+                        id='obs-dropdown',
+                        options=[{'label': OBS[obs]['name'],
+                                  'value': obs} for obs in OBS],
+                        placeholder='Select network',
+                        clearable=False,
+                        searchable=False
+                    )],
+                    className="linetool",
+                ),
+                html.Span([
+                    html.Label("Model"),
+                    dcc.Dropdown(
+                        id='obs-mod-dropdown',
+                        options=[{'label': MODELS[model]['name'],
+                                  'value': model} for model in MODELS],
+                        placeholder='Select model',
+                        clearable=False,
+                        searchable=False,
+                        value='median',
+                        #style={ 'display': 'none' },
+                    )],
+                    id="obs-mod-dropdown-span",
+                    className="linetool",
+                    style={ 'display': 'none' }
+                ),
+                html.Span(
+                    id='eval-date',
+                    children=[],
+                    className="linetool",
+                )],
+                className="statistics-inputs",
+            ),
+            className="eval-statistics-nav"
         ),
         html.Div(
             id='eval-graph',
@@ -179,93 +185,102 @@ def tab_evaluation(window='nrt'):
                 ]),
             className="description-body"
         ),
-        html.Span([
-            html.Label("Network"),
-            dcc.Dropdown(
-                id='obs-network-dropdown',
-                options=[{'label': OBS[obs]['name'],
-                          'value': obs} for obs in OBS],
-                placeholder='Select network',
-                clearable=False,
-                searchable=False
-            )],
-            style={ 'width': '12rem' },
-            className="linetool",
-        ),
-        html.Span([
-            html.Label("Models"),
-            dbc.DropdownMenu(
-                label="Select model",
-                children=[
-                    dcc.Checklist(
-                        id='obs-models-dropdown',
-                        options=[{'label': MODELS[model]['name'],
-                                  'value': model} for model in MODELS],
-                        #value=[default_model,],
-                        className="sidebar-dropdown"
-                    )
-                ],
-            ),
-            ],
-            #style={ 'width': '9.5rem' },
-            className="linetool",
-        ),
-        html.Span([
-            html.Label("Statistics"),
-            dbc.DropdownMenu(
-                label="Select statistics",
-                children=[
-                    dcc.Checklist(
-                        id='obs-statistics-dropdown',
-                        options=[
-                            {'label': v, 'value': l} for l, v in STATS.items()
+        html.Div([
+            html.Div([
+                html.Span([
+                    html.Label("Network"),
+                    dcc.Dropdown(
+                        id='obs-network-dropdown',
+                        options=[{'label': OBS[obs]['name'],
+                                  'value': obs} for obs in OBS],
+                        placeholder='Select network',
+                        clearable=False,
+                        searchable=False
+                    )],
+                    style={ 'width': '12rem' },
+                    className="linetool",
+                ),
+                html.Span([
+                    html.Label("Models"),
+                    dbc.DropdownMenu(
+                        label="Select model",
+                        children=[
+                            dcc.Checklist(
+                                id='obs-models-dropdown',
+                                options=[{'label': MODELS[model]['name'],
+                                          'value': model} for model in MODELS],
+                                #value=[default_model,],
+                                className="sidebar-dropdown"
+                            )
                         ],
-                        #value=[default_model,],
-                        className="sidebar-dropdown"
-                    )
-                ],
+                    ),
+                    ],
+                    #style={ 'width': '9.5rem' },
+                    className="linetool",
+                ),
+                html.Span([
+                    html.Label("Statistics"),
+                    dbc.DropdownMenu(
+                        label="Select statistics",
+                        children=[
+                            dcc.Checklist(
+                                id='obs-statistics-dropdown',
+                                options=[
+                                    {'label': v, 'value': l} for l, v in STATS.items()
+                                ],
+                                #value=[default_model,],
+                                className="sidebar-dropdown"
+                            )
+                        ],
+                    ),
+                    ],
+                    className="linetool",
+                ),
+                html.Span([
+                    html.Label("Timescale"),
+                    dcc.Dropdown(
+                        id='obs-timescale-dropdown',
+                        options=[
+                            {'label': 'Monthly', 'value': 'monthly'},
+                            {'label': 'Seasonal', 'value': 'seasonal'},
+                            {'label': 'Annual', 'value': 'annual'},
+                        ],
+                        placeholder='Select timescale',
+                        value='montly',
+                        clearable=False,
+                        searchable=False
+                    )],
+                    style={ 'width': '8rem' },
+                    className="linetool",
+                ),
+                html.Span([
+                    html.Label("Selection"),
+                    dcc.Dropdown(
+                        id='obs-selection-dropdown',
+                        options=[
+                        ],
+                        placeholder='Select month',
+                        # value='montly',
+                        clearable=False,
+                        searchable=False
+                    )],
+                    style={ 'width': '10rem'},
+                    className="linetool",
+                )],
+                className="statistics-inputs"
             ),
-            ],
-            className="linetool",
-        ),
-        html.Span([
-            html.Label("Timescale"),
-            dcc.Dropdown(
-                id='obs-timescale-dropdown',
-                options=[
-                    {'label': 'Monthly', 'value': 'monthly'},
-                    {'label': 'Seasonal', 'value': 'seasonal'},
-                    {'label': 'Annual', 'value': 'annual'},
-                ],
-                placeholder='Select timescale',
-                value='montly',
-                clearable=False,
-                searchable=False
+            html.Div([    
+                html.Span(
+                    html.Button('APPLY', id='scores-apply', n_clicks=0),
+                    className="linetool",
+                ),
+                html.Span(
+                    html.Button('VIEW MAP', id='scores-map-apply', n_clicks=0),
+                    className="linetool",
+                )],
+                className="statistics-ctas"
             )],
-            style={ 'width': '8rem' },
-            className="linetool",
-        ),
-        html.Span([
-            html.Label("Selection"),
-            dcc.Dropdown(
-                id='obs-selection-dropdown',
-                options=[
-                ],
-                placeholder='Select month',
-                # value='montly',
-                clearable=False,
-                searchable=False
-            )],
-            style={ 'width': '10rem'},
-            className="linetool",
-        ),
-        html.Span(
-            html.Button('APPLY', id='scores-apply', n_clicks=0),
-            className="linetool",
-        ),
-        html.Span(
-            html.Button('VIEW MAP', id='scores-map-apply', n_clicks=0),
-            className="linetool",
+            className="eval-statistics-nav"
         ),
         html.Div([
             dash_table.DataTable(
