@@ -7,6 +7,7 @@ from data_handler import FREQ
 from data_handler import VARS
 from data_handler import MODELS
 from data_handler import STYLES
+from data_handler import DISCLAIMER
 
 from datetime import datetime as dt
 
@@ -187,7 +188,10 @@ def tab_observations(window='rgb'):
                 start=0,
                 end=18,
                 step=6),
-            layout_view
+            layout_view,
+            # html.Br(),
+            # html.Br(),
+            # html.Div(html.Span(DISCLAIMER)),
             ],
             className="layout-dropdown",
         ),

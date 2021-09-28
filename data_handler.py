@@ -3,6 +3,7 @@
 
 # import plotly
 import plotly.graph_objs as go
+import dash_html_components as html
 from matplotlib.colors import ListedColormap
 import numpy as np
 from netCDF4 import Dataset as nc_file
@@ -128,6 +129,8 @@ MODEBAR_LAYOUT_TS = {
         'activecolor': '#A2B0B6',
     }
 }
+
+DISCLAIMER = html.P(html.B("""Dust data ©2021 WMO Barcelona Dust Regional Center."""))
 
 GEOJSON_TEMPLATE = "{}/geojson/{}/{:02d}_{}_{}.geojson"
 NETCDF_TEMPLATE = "{}/netcdf/{}{}.nc"

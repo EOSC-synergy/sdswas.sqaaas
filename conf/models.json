@@ -6,13 +6,13 @@
    	"color": "#FF5858"
     },
     "cams": {
-        "name": "CAMS-ECMWF",
+        "name": "CAMS-IFS",
         "template": "00_3H_MACC-ECMWF",
         "path": "/data/interactive_test/models/ECMWF",
 	"color": "#6BD7F8"
     },
     "dream8-macc": {
-        "name": "DREAM8-MACC",
+        "name": "DREAM8-CAMS",
         "template": "00_3H_DREAM8-MACC",
         "path": "/data/interactive_test/models/DREAM8-MACC",
 	"color": "#18B437"
@@ -24,7 +24,7 @@
 	"color": "#CD48A7"
     },
     "metoffice": {
-        "name": "UK-MO",
+        "name": "UK-MetOffice",
         "template": "00_3H_UKMET",
         "path": "/data/interactive_test/models/msg-metoffice",
 	"color": "#646FFB"

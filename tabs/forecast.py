@@ -10,6 +10,7 @@ from datetime import datetime as dt
 
 from data_handler import STYLES
 from data_handler import DATES
+from data_handler import DISCLAIMER
 
 start_date = DATES['start_date']
 end_date = DATES['end_date']
@@ -100,6 +101,7 @@ time_slider = html.Div([
         ),
         className="timesliderline",
     ),
+    html.Div(DISCLAIMER),
     ],
     className="timeslider"
 )
@@ -129,6 +131,7 @@ prob_time_slider = html.Div([
         ),
         className="timesliderline",
     ),
+    html.Div(DISCLAIMER),
     ],
     className="timeslider"
 )
@@ -158,6 +161,7 @@ was_time_slider = html.Div([
         ),
         className="timesliderline",
     ),
+    html.Div(DISCLAIMER),
     ],
     className="timeslider"
 )
