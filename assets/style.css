@@ -145,10 +145,17 @@ a.modebar-btn {
     margin-top: 2rem !important;
 }
 
-#graph-eval-aeronet, #graph-eval-modis-obs, #graph-eval-modis-mod {
+#graph-eval-aeronet {
     padding: 0;
     margin: 0;
-    height: 68vh !important;
+    height: 69vh !important;
+    overflow: hidden;
+}
+
+#graph-eval-modis-obs, #graph-eval-modis-mod {
+    padding: 0;
+    margin: 0;
+    height: 67vh !important;
     overflow: hidden;
 }
 
