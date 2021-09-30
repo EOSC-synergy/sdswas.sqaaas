@@ -3,7 +3,7 @@
 
 # import plotly
 import plotly.graph_objs as go
-import dash_html_components as html
+from dash import html
 from matplotlib.colors import ListedColormap
 import numpy as np
 from netCDF4 import Dataset as nc_file
@@ -58,14 +58,14 @@ STATS_CONF = OrderedDict(
                 'max': 0.10,
                 'min': -0.10,
                 'mid': 0,
-                'cmap': 'RdBu',
+                'cmap': 'RdBu_r',
                 'bounds': np.array([-0.10,-0.08,-0.06,-0.04,-0.02,0,0.02,0.04,0.06,0.08,0.10]),  # np.arange(-0.1, 0.12, 0.02)
                 },
             'corr': {
                 'max': 1,
                 'min': -1,
                 'mid': 0,
-                'cmap': 'RdBu',
+                'cmap': 'RdBu_r',
                 'bounds': np.array([-1,-0.80,-0.60,-0.40,-0.20,0,0.20,0.40,0.60,0.80,1]),  # np.arange(-1, 1.2, 0.2)
                 },
             'rmse': {

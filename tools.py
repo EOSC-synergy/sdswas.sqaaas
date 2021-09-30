@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """ Tools module with functions related to plots """
 
-import dash_core_components as dcc
+from dash import dcc
 
 from data_handler import FigureHandler
 from data_handler import WasFigureHandler
