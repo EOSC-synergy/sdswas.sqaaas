@@ -84,7 +84,7 @@ STATS_CONF = OrderedDict(
                 }
             })
 
-GRAPH_HEIGHT = 92.7
+GRAPH_HEIGHT = 92.8
 
 # Frequency = 3 Hourly
 FREQ = 3
