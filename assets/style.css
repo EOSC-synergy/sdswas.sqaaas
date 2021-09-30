@@ -179,6 +179,20 @@ a.modebar-btn {
   margin: .5rem 1rem;
 }
 
+.disclaimer>p {
+  opacity: 0.8;
+  color: #2B383E;
+  font-family: "Roboto", sans-serif !important;
+  font-size: 14px;
+  letter-spacing: 0;
+  line-height: 22px;
+  margin: .3rem .5rem;
+}
+
+.layout-dropdown .disclaimer>p {
+  margin: .3rem 0rem;
+}
+
 .btn-link {
   color: #2B383E;
   font-family: "Roboto", sans-serif !important;
@@ -326,8 +340,8 @@ div.SingleDatePickerInput {
 }
 
 .linetool {
-    display: block;
-    float: left;
+    display: table-cell;
+    /* float: left; */
     padding: 1rem 0.5rem;
 }
 
@@ -395,7 +409,6 @@ div.SingleDatePickerInput {
 }
 
 .eval-statistics-nav {
-    display: table-row;
     margin-left: 0.5rem;
 }
 

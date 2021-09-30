@@ -12,6 +12,7 @@ from data_handler import STYLES
 from data_handler import DATES
 from data_handler import STATS
 from data_handler import MODEBAR_CONFIG
+from data_handler import DISCLAIMER_MODELS
 
 from datetime import datetime as dt
 
@@ -62,8 +63,11 @@ scores_maps = dbc.Spinner(
                     dcc.Graph(
                         id='scores-map-modalbody',
                         figure={},
-                        config={"displayModeBar": False}
-                    )]
+                        config=MODEBAR_CONFIG,  # {"displayModeBar": False}
+                    ),
+                    html.Div(DISCLAIMER_MODELS,
+                        className='disclaimer')
+                    ]
                 )],
                 id='scores-map-modal',
                 size='xl',

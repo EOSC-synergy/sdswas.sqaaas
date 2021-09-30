@@ -51,28 +51,36 @@ WAS = json.load(open(os.path.join(DIR_PATH, 'conf/was.json')))
 PROB = json.load(open(os.path.join(DIR_PATH, 'conf/prob.json')))
 DATES = json.load(open(os.path.join(DIR_PATH, 'conf/dates.json')))
 
-STATS = OrderedDict({ 'bias': 'BIAS', 'corr': 'CORR', 'rmse': 'RMSE', 'frge': 'FRGE', 'totn': 'TOTAL CASES' })
+STATS = OrderedDict({ 'bias': 'BIAS', 'corr': 'CORR', 'rmse': 'RMSE', 'frge': 'FGE', 'totn': 'TOTAL CASES' })
 STATS_CONF = OrderedDict(
         { 
             'bias': {
-                'max': 1,
-                'min': -1,
+                'max': 0.10,
+                'min': -0.10,
+                'mid': 0,
                 'cmap': 'RdBu',
+                'bounds': np.array([-0.10,-0.08,-0.06,-0.04,-0.02,0,0.02,0.04,0.06,0.08,0.10]),  # np.arange(-0.1, 0.12, 0.02)
                 },
             'corr': {
                 'max': 1,
                 'min': -1,
-                'cmap': 'Viridis',
+                'mid': 0,
+                'cmap': 'RdBu',
+                'bounds': np.array([-1,-0.80,-0.60,-0.40,-0.20,0,0.20,0.40,0.60,0.80,1]),  # np.arange(-1, 1.2, 0.2)
                 },
             'rmse': {
-                'max': 2,
+                'max': 0.30,
                 'min': 0,
-                'cmap': 'Viridis',
+                'mid': None,
+                'cmap': 'viridis',
+                'bounds': np.array([0,0.02,0.04,0.06,0.08,0.10,0.12,0.15,0.20,0.25,0.30])
                 },
             'frge': {
                 'max': 2,
                 'min': 0,
-                'cmap': 'Viridis',
+                'mid': None,
+                'cmap': 'viridis',
+                'bounds': np.array([0,0.20,0.40,0.60,0.80,1.00,1.20,1.40,1.60,1.80,2])  # np.arange(0, 2.2, 0.2)
                 }
             })
 
@@ -130,7 +138,9 @@ MODEBAR_LAYOUT_TS = {
     }
 }
 
-DISCLAIMER = html.P(html.B("""DISCLAIMER: Dust data ©2021 WMO Barcelona Dust Regional Center."""))
+DISCLAIMER_MODELS = html.P("""DISCLAIMER: Dust data ©2021 WMO Barcelona Dust Regional Center.""")
+
+DISCLAIMER_OBS = html.P("""DISCLAIMER: Aerosol data ©2021 WMO Barcelona Dust Regional Center, NASA.""")
 
 GEOJSON_TEMPLATE = "{}/geojson/{}/{:02d}_{}_{}.geojson"
 NETCDF_TEMPLATE = "{}/netcdf/{}{}.nc"
@@ -849,8 +859,10 @@ class ScoresFigureHandler(object):
         if network == 'aeronet':
             self.sites = pd.read_table(os.path.join('./conf/',
                 OBS[network]['sites']), delimiter=r"\s+", engine='python')
+            self.size = 15
         else:
             self.sites = None
+            self.size = 7
 
         filedir = OBS[network]['path']
         filename = "{}_{}.h5".format(selection, statistic)
@@ -927,7 +939,7 @@ class ScoresFigureHandler(object):
             hovertemplate="lon: %{lon:.2f}<br>lat: %{lat:.2f}<br>value: %{text}"
         else:
             hovertemplate="lon: %{lon:.2f}<br>lat: %{lat:.2f}<br>value: %{text}<br>station: %{customdata}"
-        name = 'scores'
+        name = '{} score'.format(STATS[self.stat])
         return dict(
             type='scattermapbox',
             lon=xlon,
@@ -941,13 +953,19 @@ class ScoresFigureHandler(object):
             showlegend=False,
             marker=dict(
                 showscale=True,
-                colorscale=STATS_CONF[self.stat]['cmap'],
+                # colorscale=STATS_CONF[self.stat]['cmap'],
+                colorscale=get_colorscale(STATS_CONF[self.stat]['bounds'], STATS_CONF[self.stat]['cmap']),
                 cmax=STATS_CONF[self.stat]['max'],
                 cmin=STATS_CONF[self.stat]['min'],
+                cmid=STATS_CONF[self.stat]['mid'],
                 color=vals,
-                size=15,
+                size=self.size,
                 colorbar=dict(
-                    x=1.,
+                    x=0.94,
+                    y=0.45,
+                    len=0.9,
+                    tickmode='array',
+                    tickvals=STATS_CONF[self.stat]['bounds'],
                     thickness=20,
                 )
             ),
@@ -1718,7 +1736,7 @@ class WasFigureHandler(object):
                     "type": "FeatureCollection",
                     "features": []
                     }
-        colormap =  ['green'] + list(WAS[self.was]['colors'].keys())
+        colormap =  list(WAS[self.was]['colors'].keys())
         names, colors, definitions = self.get_regions_data(day=day)
         loc_val = [
             (
@@ -1730,8 +1748,11 @@ class WasFigureHandler(object):
         ]
         locations, values = np.array(loc_val).T if loc_val else ([], [])
         if DEBUG: print(locations, '--', values)
-        if DEBUG: print(colormap)
         # if DEBUG: print(varname, self.colormaps[varname], values)
+        # colormap function of values
+        uniques = np.unique(values)
+        colormap = [colormap[int(i)] for i in np.unique(values)]
+        if DEBUG: print(colormap)
         return dict(
             type='choroplethmapbox',
             name='',  # str(self.was)+'_contours',
@@ -1744,7 +1765,7 @@ class WasFigureHandler(object):
             customdata=["Region: {}<br>Warning level: {}".format(name,
                 definition) for name, definition in zip(names, definitions)],
             hovertemplate="%{customdata}",
-            colorscale=get_colorscale(np.arange(len(colormap)-1)-0.5 , ListedColormap(colormap), True),
+            colorscale=get_colorscale(np.arange(len(colormap)), ListedColormap(colormap), True),
             marker=dict(
                 opacity=0.6,
                 line_width=0.5,

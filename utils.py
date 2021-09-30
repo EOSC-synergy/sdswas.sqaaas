@@ -108,11 +108,15 @@ def calc_matrix(n):
 
 def magnitude(num):
     """ Calculate magnitude """
+    if num == 0:
+        num = 1
     return int(math.floor(math.log10(num)))
 
 
 def normalize_vals(vals, valsmin, valsmax, rnd=2):
     """ Normalize values to 0-1 scale """
+    if len(vals) == 1:
+        return np.array([0])
     vals = np.array(vals)
     if rnd < 2:
         rnd = 2
@@ -121,26 +125,38 @@ def normalize_vals(vals, valsmin, valsmax, rnd=2):
 
 def get_colorscale(bounds, colormap, discrete=True):
     """ Create colorscale """
+    if isinstance(colormap, str):
+        colormap = cm.get_cmap(colormap)
+
     bounds = np.array(bounds).astype('float32')
     magn = magnitude(bounds[-1])
     n_bounds = normalize_vals(bounds, bounds[0], bounds[-1], magn)
-    norm = mpl.colors.BoundaryNorm(bounds, len(bounds)-1, clip=True)
+    norm = mpl.colors.BoundaryNorm(bounds, colormap.N, clip=True)
     s_map = cm.ScalarMappable(norm=norm, cmap=colormap)
+
+    if DEBUG: print("::", bounds, "..", magn, "..", n_bounds)
+
+    norm_val = not (list(bounds) == list(n_bounds))
 
     colorscale = [[idx,
                    'rgba' + str(s_map.to_rgba(val,
                                               alpha=True,
                                               bytes=True,
-                                              norm=True))]
+                                              norm=norm_val))]
                   for idx, val in zip(n_bounds, bounds)]
 
-    if discrete:
+    if DEBUG: print('---', colorscale, '---')
+    if discrete is True:
         for item in colorscale.copy():
             if colorscale.index(item) < len(colorscale)-2:
                 colorscale.insert(colorscale.index(item)+1,
                                   [colorscale[colorscale.index(item)+1][0],
                                    colorscale[colorscale.index(item)][1]])
+            elif len(colorscale) == 1:
+                colorscale.insert(1, [1, colorscale[0][1]])
 
+
+    if DEBUG: print(':::', colorscale, ':::')
     return colorscale
 
 

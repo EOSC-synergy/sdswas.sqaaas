@@ -20,6 +20,8 @@ from data_handler import MODEBAR_CONFIG
 from data_handler import MODEBAR_CONFIG_TS
 from data_handler import MODEBAR_LAYOUT
 from data_handler import MODEBAR_LAYOUT_TS
+from data_handler import DISCLAIMER_MODELS
+from data_handler import DISCLAIMER_OBS
 
 from utils import calc_matrix
 from utils import get_graph
@@ -169,7 +171,7 @@ def register_callbacks(app):
     def scores_maps_retrieve(n_clicks, model, score, network, selection):
         """ Read scores tables and plot maps """
         from tools import get_scores_figure
-        mb = MODEBAR_LAYOUT
+        mb = MODEBAR_LAYOUT_TS
 
         ctx = dash.callback_context
 
@@ -488,7 +490,8 @@ def register_callbacks(app):
                 get_graph(
                     gid='graph-eval-aeronet',
                     figure=get_figure(),
-                    ))]
+                    )),
+                ]
 
             style = { 'display': 'none' }
 
@@ -512,18 +515,22 @@ def register_callbacks(app):
             fig_obs = get_figure(model=obs, var=DEFAULT_VAR,
                     selected_date=end_date, tstep=2, center=center)
             graph_obs, graph_mod = [
-                    dbc.Spinner(
+                    dbc.Spinner(html.Div([
                         get_graph(
                             gid='graph-eval-modis-obs',
                             figure=fig_obs,
-                            )
-                        ),
-                    dbc.Spinner(
+                            ),
+                        html.Div(DISCLAIMER_OBS,
+                            className='disclaimer')
+                        ])),
+                    dbc.Spinner(html.Div([
                         get_graph(
                             gid='graph-eval-modis-mod',
                             figure=fig_mod,
-                            )
-                        )
+                            ),
+                        html.Div(DISCLAIMER_MODELS,
+                            className='disclaimer')
+                        ])),
                     ]
             eval_graph = [dbc.Row([
                     dbc.Col(graph_obs, width=6),
