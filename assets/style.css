@@ -186,7 +186,8 @@ a.modebar-btn {
   font-size: 14px;
   letter-spacing: 0;
   line-height: 22px;
-  margin: .3rem .5rem;
+  margin-left: .5rem;
+  bottom: .3rem;
 }
 
 .layout-dropdown .disclaimer>p {
