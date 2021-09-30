@@ -13,7 +13,6 @@ from dash import dcc
 import dash_bootstrap_components as dbc
 from dash import html
 
-DEBUG = True
 
 TIMES = {
     'animation': 900,
@@ -58,11 +57,8 @@ def retrieve_timeseries(fname, lat, lon, variable, method='netcdf', forecast=Fal
             lat_col = 'latitude'
             lon_col = 'longitude'
 
-        #print("LAT LON", lat, lon)
         n_lon = find_nearest(df[lon_col].values, lon)
         n_lat = find_nearest(df[lat_col].values, lat)
-        #print("NLAT", df[lat_col] == n_lat)
-        #print("NLON", df[lon_col] == n_lon)
         ts = df.loc[(df[lat_col] == n_lat) &
                     (df[lon_col] == n_lon), 
                     ('time', variable)].set_index('time')
@@ -125,6 +121,7 @@ def normalize_vals(vals, valsmin, valsmax, rnd=2):
 
 def get_colorscale(bounds, colormap, discrete=True):
     """ Create colorscale """
+    from data_handler import DEBUG
     if isinstance(colormap, str):
         colormap = cm.get_cmap(colormap)
 
@@ -199,10 +196,14 @@ def get_animation_buttons():
     )
 
 
-def get_graph(index=None, figure={}, gid=None, style={ 'height': '92vh' }):
+def get_graph(index=None, figure={}, gid=None, style={}):
     """ Renders map graph """
     from data_handler import MODEBAR_CONFIG
     from data_handler import MODEBAR_LAYOUT
+    from data_handler import GRAPH_HEIGHT
+
+    if not style:
+        style = { 'height' : '{}vh'.format(GRAPH_HEIGHT) }
 
     if gid is None:
         gid = {

@@ -19,6 +19,7 @@ from data_handler import FREQ
 from data_handler import DEBUG
 from data_handler import DATES
 from data_handler import PROB 
+from data_handler import GRAPH_HEIGHT 
 from data_handler import MODEBAR_CONFIG_TS
 from data_handler import MODEBAR_LAYOUT_TS
 from utils import calc_matrix
@@ -618,7 +619,7 @@ def register_callbacks(app):
                     dbc.Row([
                         dbc.Col([
                             get_graph(index='none', figure=fig,
-                                style={'height': '91vh'}
+                                style={'height': '{}vh'.format(GRAPH_HEIGHT)}
                                 )
                         ])
                     ])
@@ -628,7 +629,7 @@ def register_callbacks(app):
                     dbc.Row([
                         dbc.Col([
                             get_graph(index='none', figure=fig,
-                                style={'height': '91vh'}
+                                style={'height': '{}vh'.format(GRAPH_HEIGHT)}
                                 )
                         ])
                     ])
@@ -656,7 +657,7 @@ def register_callbacks(app):
                         index=mod,
                         figure=get_figure(mod, variable, date, tstep,
                             static=static, aspect=(nrows, ncols)),
-                        style={'height': '{}vh'.format(int(91/nrows))}
+                        style={'height': '{}vh'.format(int(GRAPH_HEIGHT)/nrows)}
                     )
                 )
             else:
@@ -665,7 +666,7 @@ def register_callbacks(app):
                         index=mod,
                         figure=get_figure(mod, variable, date, tstep,
                             static=static, aspect=(nrows, ncols)),
-                        style={'height': '{}vh'.format(int(91/nrows))}
+                        style={'height': '{}vh'.format(int(GRAPH_HEIGHT)/nrows)}
                     )
                 )
 
