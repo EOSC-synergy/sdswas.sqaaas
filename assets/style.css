@@ -44,91 +44,6 @@ a.modebar-btn {
     width: 136px !important;
 }
 
-/* Position the parent of the timeslider */
-.layout-dropdown {
-    position: absolute;
-    left: 0;
-    bottom: 30px;
-    width: 100%;
-    height: 48px;
-    padding: 0 2rem;
-}
-
-.layout-dropdown .dropdown, .layout-dropdown .timeslider {
-    z-index: 1002 !important;
-}
-
-.layout-dropdown #map-view-dropdown {
-    position: absolute;
-    left: 750px;
-    bottom: 0;
-    width: 122px;
-    height: 100%;
-}
-
-.layout-dropdown #map-layers-dropdown {
-    position: absolute;
-    left: 880px;
-    bottom: 0;
-    width: 127px;
-    height: 100%;
-}
-
-.btn-secondary {
-    box-shadow: none !important;
-    border: 0 !important;
-}
-
-.layout-dropdown #map-view-dropdown>button, .layout-dropdown #map-layers-dropdown>button {
-    border-radius: 0 !important;
-    background-color: #2B383E !important;
-    background-repeat: no-repeat;
-    background-position: 1rem;
-    height: 1.75rem;
-    text-align: right;
-    margin-left: .5rem;
-}
-
-.layout-dropdown #map-view-dropdown>button {
-    background-image: url('/dashboard/assets/images/map_icon.png');
-    width: 100%;
-    height: 100%;
-}
-
-.layout-dropdown #map-layers-dropdown>button {
-    background-image: url('/dashboard/assets/images/layers_icon.png');
-    width: 100%;
-    height: 100%;
-}
-
-.layout-dropdown #map-view-dropdown .dropdown-menu  {
-    min-width: 7.6rem;
-}
-
-.layout-dropdown #map-layers-dropdown .dropdown-menu  {
-    min-width: 8rem;
-}
-
-.layout-dropdown .dropdown-menu {
-    border-radius: 0 !important;
-    background-color: #6C7B82;
-    padding: 0;
-    margin-top: 0;
-}
-
-.layout-dropdown .dropdown-item {
-    text-align: center;
-    text-transform: uppercase;
-    font-size: smaller;
-    color: #FFFFFF;
-    padding: .25rem 0;
-    border-top: 1px solid #9ea8ad;
-}
-
-.dropdown-item:focus, .dropdown-item:hover {
-    background-color: #2B383E;
-}
-
 #prob-graph, #was-graph {
     height: 92vh !important;
     bottom: 0;
@@ -276,8 +191,8 @@ div.SingleDatePickerInput {
 #rgb-buttons {
     display: block;
     float: left;
-    margin: 1rem;
-    width: 1rem;
+    margin: 0.5rem;
+    /* width: 1rem; */
 }
 
 #rgb-buttons .btn {
@@ -304,18 +219,17 @@ div.SingleDatePickerInput {
 .centered-image {
     /* text-align: center !important;
     text-align: -moz-center !important; */
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     width: 100%;
-    height: 50vh;
 }	
 
 .centered-image .layout-dropdown {
     display: flex;
     align-items: center !important;
     justify-content: center !important;
-    bottom: 8px !important;
+    bottom: 18px !important;
 }
 
 /*
@@ -325,9 +239,11 @@ div.SingleDatePickerInput {
 
 */ 
 #rgb-image, #aod-image {
-    /* height: 67vh; */
-    /* max-width: 50%; */
-    width: 35rem;
+    position: relative;
+    top: 1rem;
+    max-width: 60%;
+    /* height: 55vh; */
+    /* width: 35rem; */
 }
 
 .timesliderline>button {
@@ -416,10 +332,6 @@ div.SingleDatePickerInput {
     color: #2B383E;
 }
 
-.eval-statistics-nav {
-    margin-left: 0.5rem;
-}
-
 .timesliderline {
     display: table-cell;
     vertical-align: middle;
@@ -434,6 +346,90 @@ div.SingleDatePickerInput {
     background-color: #2b383e;
 }
 
+/* Position the parent of the timeslider */
+.layout-dropdown {
+    position: absolute;
+    left: 0;
+    bottom: 30px;
+    width: 100%;
+    height: 48px;
+    padding: 0 2rem;
+}
+
+.layout-dropdown .dropdown, .layout-dropdown .timeslider {
+    z-index: 1002 !important;
+}
+
+.layout-dropdown #map-view-dropdown {
+    position: absolute;
+    left: 750px;
+    bottom: 0;
+    width: 122px;
+    height: 100%;
+}
+
+.layout-dropdown #map-layers-dropdown {
+    position: absolute;
+    left: 880px;
+    bottom: 0;
+    width: 127px;
+    height: 100%;
+}
+
+.btn-secondary {
+    box-shadow: none !important;
+    border: 0 !important;
+}
+
+.layout-dropdown #map-view-dropdown>button, .layout-dropdown #map-layers-dropdown>button {
+    border-radius: 0 !important;
+    background-color: #2B383E !important;
+    background-repeat: no-repeat;
+    background-position: 1rem;
+    height: 1.75rem;
+    text-align: right;
+    margin-left: .5rem;
+}
+
+.layout-dropdown #map-view-dropdown>button {
+    background-image: url('/dashboard/assets/images/map_icon.png');
+    width: 100%;
+    height: 100%;
+}
+
+.layout-dropdown #map-layers-dropdown>button {
+    background-image: url('/dashboard/assets/images/layers_icon.png');
+    width: 100%;
+    height: 100%;
+}
+
+.layout-dropdown #map-view-dropdown .dropdown-menu  {
+    min-width: 7.6rem;
+}
+
+.layout-dropdown #map-layers-dropdown .dropdown-menu  {
+    min-width: 8rem;
+}
+
+.layout-dropdown .dropdown-menu {
+    border-radius: 0 !important;
+    background-color: #6C7B82;
+    padding: 0;
+    margin-top: 0;
+}
+
+.layout-dropdown .dropdown-item {
+    text-align: center;
+    text-transform: uppercase;
+    font-size: smaller;
+    color: #FFFFFF;
+    padding: .25rem 0;
+    border-top: 1px solid #9ea8ad;
+}
+
+.dropdown-item:focus, .dropdown-item:hover {
+    background-color: #2B383E;
+}
 /* This targets the map in Forecast tab */
 #div-collection {
     height: 93vh !important;
@@ -453,6 +449,37 @@ div.SingleDatePickerInput {
     height: 93vh !important;
 }
 */
+
+.eval-statistics-nav {
+    display: flex;
+    flex-flow: wrap;
+    max-width: 94%;
+    padding: 0.8rem 0 0 0.8rem;
+}
+
+.statistics-inputs {
+    display: inline-flex;
+    flex-flow: wrap;
+}
+
+.statistics-inputs .linetool {
+    display: block !important; 
+    float: none !important;
+    padding: 0 !important;
+    margin: 0.2rem;
+}
+
+.statistics-ctas {
+    display: inline-flex;
+    padding-top: 1.5rem;
+}
+
+.statistics-ctas .linetool { 
+    display: block !important; 
+    float: none !important;
+    padding: 0 !important;
+    margin: 0.2rem;
+}
 
 
 @media screen and (max-width: 1250px) {
