@@ -173,7 +173,7 @@
 
 /* Info button on the sidebar bottom */
 .sidebar-bottom #info-button {
-  background-image: url("/dashboard/assets/images/Icon_Info.png");
+  background-image: url("/daily_dashboard/assets/images/Icon_Info.png");
   background-position: center;
   width: 52px !important;
   height: 52px !important;
@@ -181,7 +181,7 @@
 
 /* Download button on the sidebar bottom */
 .sidebar-bottom #download-button {
-  background-image: url("/dashboard/assets/images/Icon_Download.png");
+  background-image: url("/daily_dashboard/assets/images/Icon_Download.png");
   background-position: 1rem;
   background-color: #2B383E;
   padding-left: 2rem;
@@ -219,13 +219,13 @@ span>#models-apply {
 }
 
 .sidebar-bottom  #info-button {
-    background-image: url("/dashboard/assets/images/Icon_Info.png");
+    background-image: url("/daily_dashboard/assets/images/Icon_Info.png");
     background-position: center;
     width: 2.8vw;
 }
 
 .sidebar-bottom  #download-button {
-    background-image: url("/dashboard/assets/images/Icon_Download.png");
+    background-image: url("/daily_dashboard/assets/images/Icon_Download.png");
     background-position: 1rem;
     background-color: #2B383E;
     padding-left: 2rem;
@@ -234,7 +234,7 @@ span>#models-apply {
 }
 
 .sidebar-bottom .card-text>button.download-section {
-    background-image: url("/dashboard/assets/images/download.svg");
+    background-image: url("/daily_dashboard/assets/images/download.svg");
     background-repeat: no-repeat;
     background-position: 0.5rem;
     display: block;

@@ -25,7 +25,7 @@ np.set_printoptions(precision=2)
 DIR_PATH = os.path.abspath(os.path.dirname(__file__))
 MODELS = json.load(open(os.path.join(DIR_PATH, '../conf/models.json')))
 WAS = json.load(open(os.path.join(DIR_PATH, '../conf/was.json')))
-NETCDF_TEMPLATE = "{}/netcdf/{}{}.nc"
+NETCDF_TEMPLATE = "{}/archive/{}{}.nc"
 
 DEBUG = True
 
@@ -56,6 +56,9 @@ class WasTables(object):
                 selected_date,
                 MODELS[self.model]['template']
             )
+            if not os.path.exists(filepath):
+                sys.exit(0)
+
             self.input_file = nc_file(filepath)
             if 'lon' in self.input_file.variables:
                 lon = self.input_file.variables['lon'][:]

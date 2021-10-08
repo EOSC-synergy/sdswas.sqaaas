@@ -1,68 +1,80 @@
 {
+    "bsc_dream": {
+        "name": "BSC-DREAM8b",
+        "template": "_BSC_DREAM8b_V2",
+        "path": "/data/products/BSC-DREAM8b",
+   	"color": "#FF5858"
+    },
     "monarch": {
         "name": "MONARCH",
-        "template": "12_3H_NMMB-BSC",
-        "path": "/data/interactive_test/models/NMMB-BSC",
+        "template": "12_3H_SDSWAS_NMMB-BSC-v2_OPER",
+        "path": "/data/products/NMMB-BSC",
    	"color": "#FF5858"
     },
     "cams": {
         "name": "CAMS-IFS",
         "template": "00_3H_MACC-ECMWF",
-        "path": "/data/interactive_test/models/ECMWF",
+        "path": "/data/products/ECMWF",
 	"color": "#6BD7F8"
     },
     "dream8-macc": {
         "name": "DREAM8-CAMS",
         "template": "00_3H_DREAM8-MACC",
-        "path": "/data/interactive_test/models/DREAM8-MACC",
+        "path": "/data/products/DREAM8-MACC",
 	"color": "#18B437"
     },
     "nasa-geos": {
         "name": "NASA-GEOS",
         "template": "_NASA-GEOS",
-        "path": "/data/interactive_test/models/NASA-GEOS",
+        "path": "/data/products/NASA-GEOS",
 	"color": "#CD48A7"
     },
     "metoffice": {
         "name": "UK-MetOffice",
         "template": "00_3H_UKMET",
-        "path": "/data/interactive_test/models/msg-metoffice",
+        "path": "/data/products/msg-metoffice",
 	"color": "#646FFB"
     },
     "ncep-gefs": {
         "name": "NCEP-GEFS",
         "template": "_NCEP-NGAC",
-        "path": "/data/interactive_test/models/NCEP-NGAC",
+        "path": "/data/products/NCEP-NGAC",
 	"color": "#AE771D"
     },
     "ema-regcm4": {
         "name": "EMA-RegCM4",
         "template": "_EMA-RegCM4",
-        "path": "/data/interactive_test/models/EMA-RegCM4",
+        "path": "/data/products/EMA-RegCM4",
 	"color": "#F895DC"
     },
     "silam": {
         "name": "SILAM",
         "template": "00_SILAM",
-        "path": "/data/interactive_test/models/SILAM",
+        "path": "/data/products/SILAM",
 	"color": "#3BEDC3"
     },
     "lotos-euros": {
         "name": "LOTOS-EUROS",
         "template": "00_3H_LOTOSEUROS",
-        "path": "/data/interactive_test/models/LOTOS-EUROS",
+        "path": "/data/products/LOTOS-EUROS",
 	"color": "#0D5BA0"
     },
     "icon-art": {
         "name": "ICON-ART",
         "template": "00_ICON-ART",
-        "path": "/data/interactive_test/models/ICON-ART",
+        "path": "/data/products/ICON-ART",
 	"color": "#B2E964"
+    },
+    "aladin": {
+        "name": "ALADIN",
+        "template": "1200_3H_ALADIN_DUST",
+        "path": "/data/products/ALADIN",
+   	"color": "#FF5858"
     },
     "median": {
         "name": "MULTI-MODEL",
         "template": "_3H_MEDIAN",
-        "path": "/data/interactive_test/models/median",
+        "path": "/data/products/median",
 	"color": "#303030"
     }
 }

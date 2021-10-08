@@ -7,13 +7,14 @@ from dash import dcc
 from dash import html
 
 from datetime import datetime as dt
+from datetime import timedelta
 
 from data_handler import STYLES
 from data_handler import DATES
 from data_handler import DISCLAIMER_MODELS
 
 start_date = DATES['start_date']
-end_date = DATES['end_date']
+end_date = DATES['end_date'] or (dt.now() - timedelta(days=1)).strftime("%Y%m%d")
 
 forecast_days = ('Today', 'Tomorrow')
 
@@ -445,7 +446,7 @@ def sidebar_forecast(variables, default_var, models, default_model):
                         html.P("""This button allows you to get selected models netCDF files."""),
                         html.P([
                             """To get access to the forecast archive please click """,
-                            dcc.Link('here', href="https://earth.bsc.es/thredds/catalog/exp/monarch/a2in/regional/catalog.html"),
+                            dcc.Link('here', href="https://dust03.bsc.es/thredds"),
                             ]),
                     ],
                     className="card-text",

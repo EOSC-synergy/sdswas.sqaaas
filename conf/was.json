@@ -1,10 +1,10 @@
 {
     "burkinafaso": 
         {
-            "shp": "/home/fbeninca/devel/interactive-forecast-viewer/conf/was/burkinafaso/shp/BFA_adm1.shp",
+            "shp": "/home/fbeninca/interactive-forecast-viewer/conf/was/burkinafaso/shp/BFA_adm1.shp",
             "model": "median",
             "var": "SCONC_DUST",
-	    "path": "/data/interactive_test/was/{was}/h5/{date}",
+	    "path": "/data/daily_dashboard/was/{was}/h5/{date}",
 	    "template": "{date}_{var}.h5",
             "colors": {
                 "green"     : "Normal",

@@ -71,6 +71,8 @@ def retrieve_timeseries(fname, lat, lon, variable, method='netcdf', forecast=Fal
         ds = xr.open_dataset(fname)
     else:
         ds = xr.open_mfdataset(fname, concat_dim='time', combine='nested', preprocess=preprocess)
+    if variable not in ds.variables:
+        variable = variable.lower()
     if 'lat' in ds.variables:
         da = ds[variable].sel(lon=lon, lat=lat, method='nearest')
         return da['lat'].values, da['lon'].values, da.indexes['time'], da

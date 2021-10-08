@@ -421,6 +421,10 @@ class TimeSeriesHandler(object):
             else:
                 variable = self.variable
 
+            if not os.path.exists(fpath):
+                if DEBUG: print("NOT restrieving", fpath, "File doesn't exist.")
+                continue
+
             if DEBUG: print('Retrieving *** FPATH ***', fpath)
             ts_lat, ts_lon, ts_index, ts_values = retrieve_timeseries(
                     fpath, lat, lon, variable, method=method, forecast=forecast)
@@ -518,12 +522,24 @@ class FigureHandler(object):
                 MODELS[self.model]['template']
             )
         else:
+            self.model = None
             self.filedir = None
             self.filevars = None
             self.confvars = None
             filepath = None
+            self.bounds = None
 
-        if filepath is not None:
+        if DEBUG: print("FILEPATH", filepath)
+        if not os.path.exists(filepath):
+            self.filedir = None
+            self.filevars = None
+            self.confvars = None
+            filepath = None
+            self.bounds = None
+            self.varlist = None
+            self.rdatetime = None
+            self.tim = [0]
+        elif filepath is not None:
             self.input_file = nc_file(filepath)
             if 'lon' in self.input_file.variables:
                 lon = self.input_file.variables['lon'][:]
@@ -538,25 +554,30 @@ class FigureHandler(object):
                 rtime = rtime[:5]
             self.rdatetime = datetime.strptime("{} {}".format(rdate, rtime),
                                                "%Y-%m-%d %H:%M")
-            varlist = [var for var in self.input_file.variables if var in self.filevars]
+            varlist = [var for var in self.input_file.variables if var.upper() in self.filevars]
+            self.varlist = varlist
+            if DEBUG: print('VARLIST', varlist)
             self.xlon, self.ylat = np.meshgrid(lon, lat)
 
-            if self.confvars is not None:
-                self.bounds = {
-                    varname: np.array(VARS[confvar]['bounds']).astype('float32')
-                    for varname, confvar in zip(self.filevars, self.confvars) if varname in varlist
-                }
-            else:
-                self.bounds = {
-                    varname: np.array(VARS[varname]['bounds']).astype('float32')
-                    for varname in varlist
-                }
+        if not self.varlist:
+            self.varlist = VARS.keys()
 
-            self.colormaps = {
-                varname: get_colorscale(self.bounds[varname], COLORMAP)
-                for varname in varlist
+        if self.confvars is not None:
+            self.bounds = {
+                varname.upper(): np.array(VARS[confvar]['bounds']).astype('float32')
+                for varname, confvar in zip(self.filevars, self.confvars) if varname.upper() in self.varlist
             }
-            # print(varlist, self.confvars, self.filevars, self.bounds, self.colormaps)
+        else:
+            self.bounds = {
+                varname.upper(): np.array(VARS[varname.upper()]['bounds']).astype('float32')
+                for varname in self.varlist
+            }
+
+        self.colormaps = {
+            varname.upper(): get_colorscale(self.bounds[varname.upper()], COLORMAP)
+            for varname in self.varlist
+        }
+        # print(varlist, self.confvars, self.filevars, self.bounds, self.colormaps)
 
         if selected_date:
             self.selected_date_plain = selected_date
@@ -564,7 +585,12 @@ class FigureHandler(object):
             self.selected_date = datetime.strptime(
                 selected_date, "%Y%m%d").strftime("%Y-%m-%d")
 
+        if not self.rdatetime:
+            self.rdatetime = datetime.strptime(selected_date, "%Y%m%d")
+            self.what = 'hours'
+
         self.fig = None
+        if DEBUG: print("FILEDIR", self.filedir)
 
     def get_mapbox_style_buttons(self):
         """ Relayout map with different styles """
@@ -626,7 +652,9 @@ class FigureHandler(object):
             mul = VARS[OBS[self.model]['mod_var']]['mul']
         else:
             mul = VARS[varname]['mul']
-        var = self.input_file.variables[varname][tstep]*mul
+
+        realvar = [var for var in self.varlist if var.upper()==varname][0]
+        var = self.input_file.variables[realvar][tstep]*mul
         idx = np.where(var.ravel() >= self.bounds[varname][0])  # !=-9.e+33)
         xlon = self.xlon.ravel()[idx]
         ylat = self.ylat.ravel()[idx]
@@ -668,7 +696,10 @@ class FigureHandler(object):
         else:
             name = VARS[varname]['name']
         # if DEBUG: print(self.bounds)
-        bounds = self.bounds[varname]
+        if self.bounds:
+            bounds = self.bounds[varname]
+        else:
+            bounds = [0, 1]
         loc_val = [
             (
                 feature['id'],
@@ -791,13 +822,13 @@ class FigureHandler(object):
         if DEBUG: print('VARNAME', varname)
 
         self.fig = go.Figure()
-        if varname:
+        if varname and self.filedir:
             if DEBUG: print('Adding contours ...')
             self.fig.add_trace(self.generate_contour_tstep_trace(varname, tstep))
         else:
             if DEBUG: print('Adding one point ...')
             self.fig.add_trace(self.generate_var_tstep_trace())
-        if varname and static:
+        if varname and static and self.filedir:
             if DEBUG: print('Adding points ...')
             self.fig.add_trace(self.generate_var_tstep_trace(varname, tstep))
 
@@ -810,27 +841,30 @@ class FigureHandler(object):
         # )
 
         if DEBUG: print('Update layout ...')
-        if varname:
+        if not varname or not self.filedir:
+            fig_title=dict(text='<b>DATA NOT AVAILABLE</b>',
+                           xanchor='center',
+                           yanchor='middle',
+                           x=0.5, y=0.5)
+        else:
             fig_title=dict(text='{}'.format(self.get_title(varname, tstep)),
                            xanchor='left',
                            yanchor='top',
                            x=0.01, y=0.95)
-        else:
-            fig_title={}
-        if DEBUG: print('ADD IMAGES')
-        if varname and varname in VARS:
-            ypos = 0.9-(aspect[0]/30)
-            size = 0.18+(aspect[0]/6)
-            if DEBUG: print("YPOS", aspect[0], ypos)
-            self.fig.add_layout_image(
-                dict(
-                    source=Image.open(VARS[varname]['image_scale']),
-                    xref="paper", yref="paper",
-                    x=0.01, y=ypos,
-                    sizex=size, sizey=size,
-                    xanchor="left", yanchor="top",
-                    layer='above',
-                ))
+            if DEBUG: print('ADD IMAGES')
+            if varname and varname in VARS:
+                ypos = 0.9-(aspect[0]/30)
+                size = 0.18+(aspect[0]/6)
+                if DEBUG: print("YPOS", aspect[0], ypos)
+                self.fig.add_layout_image(
+                    dict(
+                        source=Image.open(VARS[varname]['image_scale']),
+                        xref="paper", yref="paper",
+                        x=0.01, y=ypos,
+                        sizex=size, sizey=size,
+                        xanchor="left", yanchor="top",
+                        layer='above',
+                    ))
         self.fig.update_layout(
             title=fig_title,
             uirevision='forecast-multimodel',  # True,
@@ -1029,7 +1063,7 @@ class VisFigureHandler(object):
 
     def __init__(self, selected_date=None):
 
-        self.path_tpl = '/data/interactive_test/obs/visibility/{year}/{month}/{year}{month}{day}{tstep0:02d}{tstep1:02d}_visibility.csv'
+        self.path_tpl = '/data/daily_dashboard/obs/visibility/{year}/{month}/{year}{month}{day}{tstep0:02d}{tstep1:02d}_visibility.csv'
         self.title = """Visibility reduced by airborne dust<br>{date} {tstep0:02d}-{tstep1:02d} UTC"""
         self.xlon = np.array([-25, 60])
         self.ylat = np.array([0, 65])

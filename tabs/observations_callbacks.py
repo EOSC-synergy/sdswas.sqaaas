@@ -24,13 +24,14 @@ from tabs.observations import tab_observations
 # from tabs.evaluation import STATS
 
 from datetime import datetime as dt
+from datetime import timedelta
 import pandas as pd
 import os.path
 import math
 
 
 start_date = DATES['start_date']
-end_date = DATES['end_date']
+end_date = DATES['end_date'] or dt.now().strftime("%Y%m%d")
 
 
 def register_callbacks(app):
@@ -159,11 +160,11 @@ def register_callbacks(app):
         if DEBUG: print('BUTTONS', button_id)
 
         if button_id == 'btn-middleeast':
-            path_tpl = 'eumetsat/MiddleEast/{date}/MET8_RGBDust_MiddleEast_{date}{tstep:02d}00.gif'
+            path_tpl = 'eumetsat/MiddleEast/archive/{date}/MET8_RGBDust_MiddleEast_{date}{tstep:02d}00.gif'
             btn_fulldisc_active = False
             btn_middleeast_active = True
         elif button_id == 'btn-fulldisc':
-            path_tpl = 'eumetsat/FullDiscHD/{date}/FRAME_OIS_RGB-dust-all_{date}{tstep:02d}00.gif'
+            path_tpl = 'eumetsat/FullDiscHD/archive/{date}/FRAME_OIS_RGB-dust-all_{date}{tstep:02d}00.gif'
             btn_fulldisc_active = True
             btn_middleeast_active = False
 
@@ -172,7 +173,7 @@ def register_callbacks(app):
         except:
             pass
         path = path_tpl.format(date=date, tstep=tstep)
-        print('......', path)
+        if DEBUG: print('......', path)
         return app.get_asset_url(path), btn_fulldisc_active, btn_middleeast_active
 
 

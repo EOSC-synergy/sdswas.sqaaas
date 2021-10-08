@@ -19,6 +19,7 @@ from data_handler import MODELS
 from utils import calc_matrix
 
 from datetime import datetime as dt
+from datetime import timedelta
 from PIL import Image
 from wand.image import Image as wimage
 import tempfile
@@ -27,7 +28,7 @@ import os.path
 import subprocess
 
 start_date = DATES['start_date']
-end_date = DATES['end_date']
+end_date = DATES['end_date'] or (dt.now() - timedelta(days=1)).strftime("%Y%m%d")
 
 @gif.frame
 def get_gif_figure(model, variable, curdate, tstep):

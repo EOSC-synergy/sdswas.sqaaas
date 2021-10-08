@@ -46,7 +46,7 @@ app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP,
                                                 dbc.themes.GRID,
                                                 fontawesome
                                                 ],
-                url_base_pathname='/dashboard/',
+                url_base_pathname='/daily_dashboard/',
                 server=srv)
 app.css.config.serve_locally = True
 app.scripts.config.serve_locally = True
@@ -56,7 +56,7 @@ app.config.update({
 
     # the front-end will prefix this string to the requests
     # that are made to the proxy server
-    'requests_pathname_prefix': '/dashboard/'
+    'requests_pathname_prefix': '/daily_dashboard/'
 })
 app.config.suppress_callback_exceptions = True
 server = app.server

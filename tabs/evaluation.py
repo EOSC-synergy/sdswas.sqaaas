@@ -15,9 +15,10 @@ from data_handler import MODEBAR_CONFIG
 from data_handler import DISCLAIMER_MODELS
 
 from datetime import datetime as dt
+from datetime import timedelta
 
 start_date = DATES['start_date']
-end_date = DATES['end_date']
+end_date = DATES['end_date'] or (dt.now() - timedelta(days=1)).strftime("%Y%m%d")
 
 scores_maps = dbc.Spinner(
     id='loading-scores-map-modal',

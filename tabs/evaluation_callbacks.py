@@ -30,13 +30,14 @@ from tabs.evaluation import tab_evaluation
 from tabs.evaluation import STATS
 
 from datetime import datetime as dt
+from datetime import timedelta
 import pandas as pd
 import os.path
 
 
 SCORES = list(STATS.keys())
 start_date = DATES['start_date']
-end_date = DATES['end_date']
+end_date = DATES['end_date'] or (dt.now() - timedelta(days=1)).strftime("%Y%m%d")
 
 
 def extend_l(l):

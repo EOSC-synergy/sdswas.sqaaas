@@ -52,15 +52,29 @@ def nc2geojson(outdir='.', filelist=[], outfile_tpl=''):
 
         for variable in VARS:
 
+            if VARS[variable]['models'] != 'all':
+                continue
+
             mul = VARS[variable]['mul']
             levels = VARS[variable]['bounds']
 
             # loop over timesteps
             for t, m in enumerate(timevals):
 
+                outfile = '{:02d}_{}_{}.geojson'.format(t, newdate.lower(),
+                                                        variable)
+                newdir = os.path.join(outdir, newdate)
+                newfile = os.path.join(newdir, outfile)
+                if os.path.exists(newfile):
+                    print("File", newfile, "already exists. Skipping.")
+                    continue
+
                 features = []
 
-                current_var = fp.variables[variable]
+                try:
+                    current_var = fp.variables[variable]
+                except:
+                    current_var = fp.variables[variable.lower()]
 
                 values = current_var[t]*mul
 
@@ -81,10 +95,7 @@ def nc2geojson(outdir='.', filelist=[], outfile_tpl=''):
                     for feat in features[1:]:
                         merged['features'] += json.loads(feat)['features']
 
-                    outfile = '{:02d}_{}_{}.geojson'.format(t, newdate.lower(),
-                                                            variable)
                     outfiles.append(outfile)
-                    newdir = os.path.join(outdir, newdate)
                     try:
                         os.makedirs(newdir)
                     except:

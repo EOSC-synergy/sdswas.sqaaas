@@ -28,6 +28,7 @@ from tabs.forecast import tab_forecast
 
 import pandas as pd
 from datetime import datetime as dt
+from datetime import timedelta
 from io import BytesIO
 from PIL import Image
 import zipfile
@@ -36,7 +37,7 @@ import os.path
 import math
 
 start_date = DATES['start_date']
-end_date = DATES['end_date']
+end_date = DATES['end_date'] or (dt.now() - timedelta(days=1)).strftime("%Y%m%d")
 
 
 def register_callbacks(app):
@@ -373,7 +374,7 @@ def register_callbacks(app):
                         figures['data'].remove(trace)
                         return figures
 
-                fname = "/data/interactive_test/obs/airports/airports.dat"
+                fname = "/data/daily_dashboard/obs/airports/airports.dat"
                 df = pd.read_csv(fname)
                 clon = df['Longitude']
                 clat = df['Latitude']

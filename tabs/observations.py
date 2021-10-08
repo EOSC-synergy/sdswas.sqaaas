@@ -6,13 +6,15 @@ from data_handler import DEFAULT_MODEL
 from data_handler import FREQ
 from data_handler import VARS
 from data_handler import MODELS
+from data_handler import DATES
 from data_handler import STYLES
 from data_handler import DISCLAIMER_MODELS
 
 from datetime import datetime as dt
+from datetime import timedelta
 
-start_date = "20201001"
-end_date = "20201231"
+start_date = DATES["start_date"]
+end_date = DATES['end_date'] or dt.now().strftime("%Y%m%d")
 
 
 layout_view = html.Div([
@@ -148,6 +150,7 @@ def tab_observations(window='rgb'):
         html.Div([
             html.Img(
                 id='aod-image',
+                alt='UK METOFFICE AOD - NOT AVAILABLE',
                 ),
             html.Div(
                 obs_time_slider(div='obs-aod'),
