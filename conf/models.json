@@ -65,6 +65,18 @@
         "path": "/data/products/ICON-ART",
 	"color": "#B2E964"
     },
+    "noa": {
+        "name": "NOA",
+        "template": "12_NOA-WRF-CHEM",
+        "path": "/data/products/NOA",
+	"color": "#B2E964"
+    },
+    "wrf-nemo": {
+        "name": "WRF-NEMO",
+        "template": "00_1H_WRF-NEMO-CAMx.nc",
+        "path": "/data/products/WRF-NEMO",
+	"color": "#B2E964"
+    },
     "aladin": {
         "name": "ALADIN",
         "template": "1200_3H_ALADIN_DUST",

@@ -38,7 +38,7 @@ def obs_time_slider(div='obs', start=0, end=23, step=1):
             max_date_allowed=dt.strptime(end_date, "%Y%m%d"),
             initial_visible_month=dt.strptime(end_date, "%Y%m%d"),
             display_format='DD MMM YYYY',
-            date=end_date,
+            date=(dt.strptime(end_date, "%Y%m%d") - timedelta(days=1)).strftime("%Y%m%d"),
             with_portal=True,
         ),
         className="timesliderline",

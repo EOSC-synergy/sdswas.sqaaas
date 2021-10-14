@@ -35,6 +35,9 @@ from tabs.observations import tab_observations
 from tabs.observations import sidebar_observations
 from tabs.observations_callbacks import register_callbacks as obs_callbacks
 
+import socket
+
+HOSTNAME = socket.gethostbyaddr(socket.gethostname())[0]
 
 TIMEOUT = 10
 
@@ -67,7 +70,7 @@ cache_config = {
     "CACHE_DIR": "/dev/shm",
 }
 
-# cache = Cache(server, config=cache_config)
+cache = Cache(server, config=cache_config)
 
 if DEBUG: print('SERVER: start creating app layout')
 app.layout = html.Div(
@@ -123,7 +126,5 @@ obs_callbacks(app)
 
 
 if __name__ == '__main__':
-    import socket
-    hostname = socket.gethostbyaddr(socket.gethostname())[0]
     app.run_server(debug=True, processes=4, threaded=False,
-                   host=hostname, port=7777)
+                   host=HOSTNAME, port=7777)

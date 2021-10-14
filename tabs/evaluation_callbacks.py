@@ -441,7 +441,7 @@ def register_callbacks(app):
         fig_mod = get_figure(model=mod, var=DEFAULT_VAR, selected_date=date, tstep=0, hour=12)
         fig_mod.update_layout(MODEBAR_LAYOUT)
         center = fig_mod['layout']['mapbox']['center']
-        fig_obs = get_figure(model=obs, var=DEFAULT_VAR, selected_date=date, tstep=2, center=center)
+        fig_obs = get_figure(model=obs, var=DEFAULT_VAR, selected_date=date, tstep=0, center=center)
         fig_obs.update_layout(MODEBAR_LAYOUT)
 
         if fig_obs and relayoutdata_obs:

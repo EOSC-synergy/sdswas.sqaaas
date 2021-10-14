@@ -49,13 +49,14 @@ def convert2timeseries(model, obs=None, fmt='feather', months=None):
 
     mod_path = os.path.join(MODELS[model]['path'], 'netcdf', '{}.nc'.format(MODELS[model]['template']))
     # dest = os.path.join(MODELS[model]['path'], fmt)
-    mod_dest = './tmp/{}-{}_interp'.format(model, fmt)
-    if not os.path.exists(mod_dest):
-        os.makedirs(mod_dest)
+#    mod_dest = './tmp/{}-{}_interp'.format(model, fmt)
+#    if not os.path.exists(mod_dest):
+#        os.makedirs(mod_dest)
 
     if obs:
         obs_path = os.path.join(OBS[obs]['path'], 'netcdf', '{}.nc'.format(OBS[obs]['template']))
-        obs_dest = './tmp/{}-{}_interp'.format(obs, fmt)
+        obs_dest = os.path.join(OBS[obs]['path'], fmt)  # , '{}-{}_interp'.format(obs, fmt)
+        mod_dest = obs_dest
         if not os.path.exists(obs_dest):
             os.makedirs(obs_dest)
 
@@ -74,7 +75,7 @@ def convert2timeseries(model, obs=None, fmt='feather', months=None):
     for mpath, opath, month in zip(mod_paths, obs_paths, months):
         fnames = glob(mpath)
         if not fnames:
-            print('No files correspondence to path', cpath)
+            print('No files correspondence to path', mpath)
             continue
 
         try:

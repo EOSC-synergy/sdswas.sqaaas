@@ -143,7 +143,7 @@ def register_callbacks(app):
             } for model in MODELS]
 
         checked = [c for c in models if c in checked or len(models)==1]
-        print('MODELS', models, 'OPTS', type(options), options)
+        if DEBUG: print('MODELS', models, 'OPTS', type(options), options)
         if len(checked) >= 4:
             options = [{
                 'label': MODELS[model]['name'],
@@ -435,6 +435,7 @@ def register_callbacks(app):
         lat = lon = None
         for click, elem in zip(cdata, element):
             if elem['index'] in model and click:
+                if DEBUG: print(click)
                 lat = click['points'][0]['lat']
                 lon = click['points'][0]['lon']
                 break
@@ -536,7 +537,7 @@ def register_callbacks(app):
             if button_id not in ('models-apply', 'prob-apply', 'was-apply'):
                 raise PreventUpdate
 
-            print("::::::::::::", len(curtab))
+            if DEBUG: print("::::::::::::", len(curtab))
             out_tab = dash.no_update
             if len(curtab) > 3:
                 curtab_name = 'models'
@@ -549,7 +550,7 @@ def register_callbacks(app):
             if curtab_name != nexttab_name:
                 out_tab = tab_forecast(nexttab_name)
 
-            print("::::::::::::", curtab_name, nexttab_name)
+            if DEBUG: print("::::::::::::", curtab_name, nexttab_name)
 
             return out_tab
 

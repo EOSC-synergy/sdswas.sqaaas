@@ -16,6 +16,7 @@ import os
 import os.path
 import sys
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
 
 np.set_printoptions(precision=2)
 
@@ -41,8 +42,15 @@ def nc2geojson(outdir='.', filelist=[], outfile_tpl=''):
         fp = nc.Dataset(filename)
         tim = fp.variables['time']
         timevals = tim[:].copy()
-        _, _, date, _ = tim.units.split()[:4]
-        newdate = datetime.strptime(date, "%Y-%m-%d").strftime("%Y%m%d")
+        what, _, date, _ = tim.units.split()[:4]
+        if what.lower() == 'hours':
+            date = datetime.strptime(date, "%Y-%m-%d") + relativedelta(hours=int(timevals[0]))
+        elif what.lower() == 'days':
+            date = datetime.strptime(date, "%Y-%m-%d") + relativedelta(days=int(timevals[0]))
+        else:
+            date = datetime.strptime(date, "%Y-%m-%d")
+
+        newdate = date.strftime("%Y%m%d")
         if 'lat' in fp.variables:
             lats = np.round(fp.variables['lat'][:], decimals=2)
             lons = np.round(fp.variables['lon'][:], decimals=2)

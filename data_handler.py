@@ -15,6 +15,7 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from collections import OrderedDict
 from PIL import Image
+from urllib.request import urlopen
 import calendar
 import os
 
@@ -281,6 +282,8 @@ class ObsTimeSeriesHandler(object):
         dict_idx = dict(zip(new_indexes, old_indexes))
         fig = go.Figure()
         for mod, df in zip([self.obs]+self.model, self.dataframe):
+            if df is None:
+                continue
             if DEBUG: print("MOD", mod, "COLS", df.columns)
             timeseries = \
                 df[df['station']==dict_idx[idx]].set_index('time')
@@ -530,7 +533,7 @@ class FigureHandler(object):
             self.bounds = None
 
         if DEBUG: print("FILEPATH", filepath)
-        if not os.path.exists(filepath):
+        if filepath is None or not os.path.exists(filepath):
             self.filedir = None
             self.filevars = None
             self.confvars = None
@@ -562,6 +565,8 @@ class FigureHandler(object):
         if not self.varlist:
             self.varlist = VARS.keys()
 
+        if DEBUG: print('VARLIST', self.varlist, 'CONFVAR', self.confvars)
+
         if self.confvars is not None:
             self.bounds = {
                 varname.upper(): np.array(VARS[confvar]['bounds']).astype('float32')
@@ -585,9 +590,9 @@ class FigureHandler(object):
             self.selected_date = datetime.strptime(
                 selected_date, "%Y%m%d").strftime("%Y-%m-%d")
 
-        if not self.rdatetime:
-            self.rdatetime = datetime.strptime(selected_date, "%Y%m%d")
-            self.what = 'hours'
+            if not self.rdatetime:
+                self.rdatetime = datetime.strptime(selected_date, "%Y%m%d")
+                self.what = 'hours'
 
         self.fig = None
         if DEBUG: print("FILEDIR", self.filedir)
@@ -654,13 +659,14 @@ class FigureHandler(object):
             mul = VARS[varname]['mul']
 
         realvar = [var for var in self.varlist if var.upper()==varname][0]
+        if DEBUG: print("***", mul, realvar, "***")
         var = self.input_file.variables[realvar][tstep]*mul
         idx = np.where(var.ravel() >= self.bounds[varname][0])  # !=-9.e+33)
         xlon = self.xlon.ravel()[idx]
         ylat = self.ylat.ravel()[idx]
         var = var.ravel()[idx]
-
-        return xlon, ylat, var
+        if DEBUG: print("***", xlon.shape, ylat.shape, var.shape, "***")
+        return xlon.data, ylat.data, var.data
 
     def retrieve_cdatetime(self, tstep=0):
         """ Retrieve data from NetCDF file """
@@ -679,13 +685,25 @@ class FigureHandler(object):
 
     def generate_contour_tstep_trace(self, varname, tstep=0):
         """ Generate trace to be added to data, per variable and timestep """
-        geojson_file = GEOJSON_TEMPLATE.format(self.filedir,
+        from dash_server import app
+        from dash_server import HOSTNAME
+        HOSTNAME = 'http://bscesdust03.bsc.es:9000'
+
+#        geojson_file = GEOJSON_TEMPLATE.format(self.filedir,
+#                self.selected_date_plain, tstep, self.selected_date_plain, varname)
+
+        mod_name = 'geojsons/{}'.format(os.path.basename(self.filedir))
+        geojson_file = GEOJSON_TEMPLATE.format(mod_name,
                 self.selected_date_plain, tstep, self.selected_date_plain, varname)
 
-        if os.path.exists(geojson_file):
-            geojson = json.load(open(geojson_file))
-        else:
-            if DEBUG: print('ERROR', geojson_file, 'not available')
+        try:
+        #if os.path.exists(geojson_file):
+            #geojson = json.load(open(geojson_file))
+            geojson_url = '{}{}'.format(HOSTNAME, app.get_asset_url(geojson_file))
+            if DEBUG: print('GEOJSON_URL', geojson_url)
+            geojson = json.load(urlopen(geojson_url))
+        except:
+            if DEBUG: print('ERROR', geojson_url, 'not available')
             geojson = {
                     "type": "FeatureCollection",
                     "features": []
@@ -752,6 +770,7 @@ class FigureHandler(object):
             name = OBS[self.model]['name']
         else:
             name = MODELS[self.model]['name']
+        if DEBUG: print("***", name, "***")
         return dict(
             type='scattermapbox',
             below='',
@@ -829,8 +848,10 @@ class FigureHandler(object):
             if DEBUG: print('Adding one point ...')
             self.fig.add_trace(self.generate_var_tstep_trace())
         if varname and static and self.filedir:
-            if DEBUG: print('Adding points ...')
-            self.fig.add_trace(self.generate_var_tstep_trace(varname, tstep))
+            if DEBUG: print('Adding points ...', varname, tstep)
+            points_trace = self.generate_var_tstep_trace(varname, tstep)
+            if DEBUG: print(points_trace)
+            self.fig.add_trace(points_trace)
 
         # axis_style = dict(
         #     zeroline=False,
@@ -841,7 +862,12 @@ class FigureHandler(object):
         # )
 
         if DEBUG: print('Update layout ...')
-        if not varname or not self.filedir:
+        if not varname:
+            fig_title=dict(text='',
+                           xanchor='center',
+                           yanchor='middle',
+                           x=0.5, y=0.5)
+        elif varname and not self.filedir:
             fig_title=dict(text='<b>DATA NOT AVAILABLE</b>',
                            xanchor='center',
                            yanchor='middle',

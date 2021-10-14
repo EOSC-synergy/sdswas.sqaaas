@@ -12,6 +12,7 @@ import feather
 from dash import dcc
 import dash_bootstrap_components as dbc
 from dash import html
+import os.path
 
 
 TIMES = {
@@ -21,13 +22,15 @@ TIMES = {
 }
 
 
-
 def concat_dataframes(fname_tpl, months, variable, rename_from=None, notnans=None):
     """ Concatenate monthly dataframes """
 
     # build feather files paths
     opaths = [fname_tpl.format(month, variable)
-        for month in months]
+        for month in months if os.path.exists(fname_tpl.format(month, variable))]
+
+    if not opaths:
+        return None, None
 
     # read monthly dataframes and concatenate into one
     if rename_from:
