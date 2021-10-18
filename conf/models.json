@@ -79,7 +79,7 @@
     },
     "aladin": {
         "name": "ALADIN",
-        "template": "1200_3H_ALADIN_DUST",
+        "template": "00_3H_ALADIN_DUST",
         "path": "/data/products/ALADIN",
    	"color": "#FF5858"
     },

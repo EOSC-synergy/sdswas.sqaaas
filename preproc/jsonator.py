@@ -95,7 +95,7 @@ def contourf(lon, lat, values, levels=None, cmap=None, cmap_file=None, cmap_rev=
                 else:
                     coords = []
                     for c in poly.tolist():
-                        p = [round(v, 6) for v in c]
+                        p = [round(v, 2) for v in c]
                         coords.append(p)
 
                 # Guarda el poligono

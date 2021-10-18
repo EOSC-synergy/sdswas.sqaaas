@@ -26,6 +26,7 @@ from utils import calc_matrix
 from utils import get_graph
 from tabs.forecast import tab_forecast
 
+import requests
 import pandas as pd
 from datetime import datetime as dt
 from datetime import timedelta
@@ -40,8 +41,9 @@ start_date = DATES['start_date']
 end_date = DATES['end_date'] or (dt.now() - timedelta(days=1)).strftime("%Y%m%d")
 
 
-def register_callbacks(app):
+def register_callbacks(app, cache, cache_timeout):
     """ Registering callbacks """
+
 
     @app.callback(
         [#Output('forecast-tab', 'children'),
@@ -180,32 +182,62 @@ def register_callbacks(app):
         if DEBUG: print('clicked NONE', False, False)
         raise PreventUdate
 
+#    @app.callback(
+#        Output('netcdf-download', 'data'),
+#        [Input('downloaded-data', 'data')]
+#        prevent_initial_call=True,
+#    )
+#    def download_data(nc_data):
+
     @app.callback(
-        Output('netcdf-download', 'data'),
-        [Input('btn-netcdf-download', 'n_clicks')],
-        [State('model-dropdown', 'value'),
+        [Output('login-modal', 'is_open'),
+         Output('alert-login-error', 'is_open'),
+         Output('alert-login-wrong', 'is_open'),
+         Output('netcdf-download', 'data')],
+        [Input('btn-netcdf-download', 'n_clicks'),
+         Input('submit-login', 'n_clicks')],
+        [State('input_username', 'value'),
+         State('input_password', 'value'),
+         State('model-dropdown', 'value'),
          State('model-date-picker', 'date')],
-         prevent_initial_call=True,
+        prevent_initial_call=True,
     )
-    def download_netcdf(btn, models, date):
+    def download_netcdf(btn_download, btn_login, username, password, models, date):
         ctx = dash.callback_context
 
         if ctx.triggered:
             button_id = ctx.triggered[0]["prop_id"].split(".")[0]
-            if button_id == 'btn-netcdf-download':
-                if DEBUG: print('NC', btn, models, date)
+            if DEBUG: print(':::::', ctx.triggered)
+            if DEBUG: print(':::::', button_id)
+            if button_id == 'btn-netcdf-download' and btn_download > 0:
+                return True, False, False, dash.no_update
+
+            if button_id == 'submit-login':
+                res = requests.get('http://bscesdust03.bsc.es/@users/{}'.format(username),
+                        headers={'Accept': 'application/json'},
+                        auth=(username, password))
+                if res.status_code != 200:
+                    return True, True, False, dash.no_update
+
+                user_data = res.json()
+                roles = user_data['roles']
+
+                if DEBUG: print('NC', btn_login, models, date)
                 try:
                     curdate = dt.strptime(date, '%Y-%m-%d').strftime('%Y%m%d')
                 except:
                     curdate = date
 
+                if curdate == (dt.today() - timedelta(days=1)).strftime('%Y%m%d') and not any(r in roles for r in ('Restricted', 'Manager')):
+                    return True, False, True, dash.no_update
+                    
                 if len(models) == 1:
                     model = models[0]
                     tpl = MODELS[model]['template']
                     mod_path = MODELS[model]['path']
                     final_path = os.path.join(mod_path, 'netcdf', '{date}{tpl}.nc'.format(date=curdate, tpl=tpl))
                     if DEBUG: print('DOWNLOAD', final_path)
-                    return dcc.send_file(
+                    return False, False, False, dcc.send_file(
                             final_path,
                             filename=os.path.basename(final_path),
                             type='application/x-netcdf')
@@ -226,10 +258,12 @@ def register_callbacks(app):
                             fname = os.path.basename(final_path)
                             zf.write(final_path, fname)
                     if DEBUG: print('DOWNLOAD', fp.name)
-                    return dcc.send_file(
+                    return False, False, False, dcc.send_file(
                             fp.name,
                             filename='{}_DUST_MODELS.zip'.format(date),
                             type='application/zip')
+
+        raise PreventUpdate
 
     @app.callback(
         Output('anim-download', 'data'),
@@ -573,6 +607,7 @@ def register_callbacks(app):
          ],
         prevent_initial_call=True
         )
+    @cache.memoize(timeout=cache_timeout)
     def update_models_figure(n_clicks, tstep, date, model, variable, graphs, ids, static):
         """ Update mosaic of maps figures according to all parameters """
         from tools import get_figure

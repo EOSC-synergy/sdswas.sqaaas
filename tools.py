@@ -15,7 +15,7 @@ from data_handler import Observations1dHandler
 from data_handler import DEBUG
 from data_handler import DATES
 from data_handler import MODELS
-from dash_server import cache
+#from dash_server import cache
 from utils import calc_matrix
 
 from datetime import datetime as dt
@@ -103,8 +103,12 @@ def download_image(models, variable, curdate, tstep=0, anim=False):
         fname = "{date}{tstep:02d}_{model}_{variable}.png".format(date=curdate, tstep=tstep, model=model, variable=variable)
         filename = os.path.join(download_dir, fname)
         if not os.path.exists(filename):
-            fig = get_figure(model, variable, curdate, tstep=tstep, static=False)
-            fig.write_image(filename, format='png', engine='kaleido')
+            try:
+                fig = get_figure(model, variable, curdate, tstep=tstep, static=False)
+                fig.write_image(filename, format='png', engine='kaleido')
+            except Exception as e:
+                if DEBUG: print('PNG IMAGE GENERATION: ERROR', str(e))
+
         if DEBUG: print('DOWNLOAD SINGLE PNG', filename)
         return dcc.send_file(
                 filename,

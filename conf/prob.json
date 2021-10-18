@@ -1,7 +1,7 @@
 {
     "SCONC_DUST": {
 	"prob_thresh": ["50", "100", "200", "500"], 
-	"image_scale": "/home/fbeninca/devel/interactive-forecast-viewer/assets/images/Prob.png",
+	"image_scale": "/home/fbeninca/interactive-forecast-viewer/assets/images/Prob.png",
         "netcdf_path": "/data/daily_dashboard/prob/sconc_dust/{prob}/netcdf/{date}",
         "geojson_path": "/data/daily_dashboard/prob/sconc_dust/{prob}/geojson/{date}",
 	"netcdf_template": "{date}_{var}_Prob{prob}.nc",
@@ -11,7 +11,7 @@
     },
     "OD550_DUST": {
 	"prob_thresh": ["0.1", "0.2", "0.5", "0.8"], 
-	"image_scale": "/home/fbeninca/devel/interactive-forecast-viewer/assets/images/Prob.png",
+	"image_scale": "/home/fbeninca/interactive-forecast-viewer/assets/images/Prob.png",
         "netcdf_path": "/data/daily_dashboard/prob/od550_dust/{prob}/netcdf/{date}",
         "geojson_path": "/data/daily_dashboard/prob/od550_dust/{prob}/geojson/{date}",
 	"netcdf_template": "{date}_{var}_Prob{prob}.nc",

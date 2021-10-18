@@ -489,6 +489,11 @@ div.SingleDatePickerInput {
     margin: 0.2rem;
 }
 
+#login-modal .modal-content .modal-body>input,
+#login-modal .modal-content .modal-body>button {
+    margin: 0.5rem;
+}
+
 
 @media screen and (max-width: 1250px) {
     .layout-dropdown #map-view-dropdown {

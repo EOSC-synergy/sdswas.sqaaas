@@ -11,7 +11,7 @@
     "modis": {
 	"obs_var": "od550aero",
 	"mod_var": "OD550_DUST",
-	"template" : "{}_{}12",
+	"template" : "{}_{}",
 	"path" : "/data/daily_dashboard/obs/modis/",
 	"name": "MODIS DeepBlue",
 	"title": "Optical Depth (550nm)<br>for %(shour)sh %(sday)s %(smonth)s %(syear)s"

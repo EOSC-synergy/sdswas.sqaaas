@@ -6,6 +6,7 @@
 
 import xarray as xr
 import numpy as np
+import pandas as pd
 import json
 import os
 import sys
@@ -24,6 +25,7 @@ DTYPE = 'float32'
 
 def save_to_timeseries(df, fname, dest, fmt='feather'):
     df = df.to_dataframe()
+    print(df)
     dest = os.path.join(dest, fname)
     if fmt == 'parquet':
         print('saving to parquet ...')
@@ -91,6 +93,29 @@ def convert2timeseries(model, obs=None, fmt='feather', months=None):
             obs_ds = None
             if opath:
                 obs_ds = xr.open_dataset(opath)
+                if obs_ds:
+                    if 'longitude' in obs_ds.variables:
+                        obs_lon = 'longitude'
+                        obs_lat = 'latitude'
+                    else:
+                        obs_lon = 'lon'
+                        obs_lat = 'lat'
+                if obs == 'aeronet':
+                    sites = pd.read_table(os.path.join('../conf/',
+                        OBS[obs]['sites']), delimiter=r"\s+", engine='python')
+
+                    print(obs_ds['station_name'])
+                    idxs, station_names = np.array([[idx, st_name.data.tobytes().decode('utf-8').rstrip(' \t\r\n\0')]
+                                          for idx, st_name in
+                                          enumerate(obs_ds['station_name'])
+                                          if st_name.data.tobytes().decode('utf-8').rstrip(' \t\r\n\0').upper() in map(str.upper, sites['SITE'])]
+                                          ).T
+                    idxs = idxs.astype(int)
+                else:
+                    idxs = [(obs_ds[obs_lat]>-10) & (obs_ds[obs_lat]<65), (obs_ds[obs_lon]>-30) & (obs_ds[obs_lon]<70)]
+                    print('******')
+                    #print(idxs)
+                    print('******')
         except Exception as err:
             print('Error', str(err))
             continue
@@ -104,26 +129,39 @@ def convert2timeseries(model, obs=None, fmt='feather', months=None):
                     continue
                 print('observation', OBS[obs]['obs_var'])
                 fname = "{}-{}-{}_interp".format(month, obs, variable)
-                save_to_timeseries(obs_ds[OBS[obs]['obs_var']], fname, obs_dest, fmt)
+                fpath = os.path.join(obs_dest, fname)
+                if not os.path.exists(fpath):
+                    if obs == 'aeronet':
+                        save_to_timeseries(obs_ds[OBS[obs]['obs_var']][:, idxs], fname, obs_dest, fmt)
+                    else:
+                        save_to_timeseries(obs_ds[OBS[obs]['obs_var']][:, idxs[0], :][:, :, idxs[1]], fname, obs_dest, fmt)
             print('variable', variable)
-            fname = "{}-{}-{}_interp".format(month, model, variable)
-            if variable in mod_ds.variables:
+            for var in mod_ds.variables:
+                if var.upper() != variable:
+                    continue
+                fname = "{}-{}-{}_interp".format(month, model, variable)
+                fpath = os.path.join(obs_dest, fname) + '.ft'
+                print('-----', fpath)
                 if obs_ds:
-                    if 'longitude' in obs_ds.variables:
-                        obs_lon = 'longitude'
-                        obs_lat = 'latitude'
-                    else:
-                        obs_lon = 'lon'
-                        obs_lat = 'lat'
                     print('interpolating to observations ...')
-                    if 'longitude' in mod_ds.variables:
-                        mod_interp = mod_ds[variable].interp(longitude=obs_ds[obs_lon], latitude=obs_ds[obs_lat])
+                    mod_da = mod_ds[var].dropna('time', 'all')
+                    if obs == 'aeronet':
+                        if 'longitude' in mod_ds.variables:
+                            mod_interp = mod_da.interp(longitude=obs_ds[obs_lon][idxs], latitude=obs_ds[obs_lat][idxs])
+                        else:
+                            mod_interp = mod_da.interp(lon=obs_ds[obs_lon][idxs], lat=obs_ds[obs_lat][idxs])
                     else:
-                        mod_interp = mod_ds[variable].interp(lon=obs_ds[obs_lon], lat=obs_ds[obs_lat])
+                        if 'longitude' in mod_ds.variables:
+                            mod_interp = mod_da.interp(longitude=obs_ds[obs_lon][idxs[1]], latitude=obs_ds[obs_lat][idxs[0]])
+                        else:
+                            mod_interp = mod_da.interp(lon=obs_ds[obs_lon][idxs[1]], lat=obs_ds[obs_lat][idxs[0]])
                     print('converting to df with name {} ...'.format(fname))
                 else:
-                    mod_interp = mod_ds[variable]
+                    mod_interp = mod_ds[var]
                     print('converting dataset to df ...')
+                print(mod_interp.shape)
+                mod_interp = mod_interp.dropna('time', 'all')
+                print(mod_interp.shape)
                 save_to_timeseries(mod_interp, fname, obs_dest, fmt)
 
         if obs_ds:

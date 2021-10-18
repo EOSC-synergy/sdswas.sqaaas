@@ -11,6 +11,11 @@ import os
 import sys
 import shutil
 import datetime as dt
+from glob import glob
+
+DEBUG = True
+
+# DATE = '20211001'
 
 # ProbabilityMaps class plots probability maps for D+1 and D+2 daily
 # maximum of a given parameter (AOD and "SCONC_DUST") from a interpolated
@@ -20,12 +25,13 @@ import datetime as dt
 
 class ProbabilityMaps(object):
 
-    def __init__(self, mWDict, inputDir, outputDir, parameterName, threshold):
+    def __init__(self, curdate, mWDict, inputDir, outputDir, parameterName, threshold):
         self._mWDict = mWDict
         self._inputDir = inputDir
         self._outputDir = outputDir
         self._parameterName = parameterName
         self._threshold = threshold
+        self.curdate = curdate
     @property
     def mWDict (self):
         return self._mWDict
@@ -48,17 +54,17 @@ class ProbabilityMaps(object):
         parameterMax48ProbList = []
         parameterMean24ProbList = []
         parameterMean48ProbList = []
-        inputFileList = os.listdir(self.inputDir)
+        inputFileList = glob('{}/{}*nc'.format(self.inputDir, self.curdate))
         print ("inputFileList...", inputFileList)
         weightSum= 0.
         for f in inputFileList:
-            key = '_'.join(f.split('_')[-2:])
+            key = '_'.join(f.split('_')[-1:])
             if key not in self.mWDict:
                 continue
             print(f, "Weight", self.mWDict[key])
             weight = self.mWDict[key]
             weightSum += weight
-            f = self.inputDir+f
+            #f = self.inputDir+f
             #ff = netCDF4.MFDataset(f)
             ff = netCDF4.Dataset(os.path.join(inputDir, f))  # , format="NETCDF3")
             #print (ff.variables.keys())
@@ -104,7 +110,7 @@ class ProbabilityMaps(object):
             parameterMax48ProbList.append(np.array(parameterMax48Prob))
             parameterMean48Prob = (parameterMean48 >self.threshold*conversionFactor)*1*weight
             parameterMean48ProbList.append(np.array(parameterMean48Prob))
-        ff.close()
+            ff.close()
         print ("Done reading nc files")
         # We add all the matrix for each model
         # and divide by the number of models to get probability
@@ -121,8 +127,10 @@ class ProbabilityMaps(object):
         Ds  = str(D.day).zfill(2) +"/"+ str(D.month).zfill(2) + "/" +str(D.year)
         dayForecastList = ["D+1", "D+2"] #this is for the image file name
         DDMMYYYYList = [D1s, D2s]
+        # print(parameterMaxProbListList, dayForecastList, DDMMYYYYList)
 
-        for parameterMaxProbList, dayForecast, DDMMYYYY in zip(parameterMaxProbListList, dayForecastList, DDMMYYYYList):
+        for parameterMaxProbList, dayForecast, DDMMYYYY, curD in zip(parameterMaxProbListList, dayForecastList, DDMMYYYYList, [D1, D2]):
+            print('::::', parameterMaxProbList, dayForecast, DDMMYYYY)
             result1=np.array(parameterMaxProbList[0])
             dataListLen = np.array(parameterMaxProbList).shape[0]
             for m in range(1, dataListLen):
@@ -144,15 +152,21 @@ class ProbabilityMaps(object):
             print (self.parameterName)
             ##we can ad after 'lon': 'time': ["23/03/2021"]*(len(lat)*len(lon)),
             ##https://stackoverflow.com/questions/57006443/how-do-i-add-the-time-to-the-netcdf-file
-            df_multiindex = pd.DataFrame({'time':[D1]*(len(lat)*len(lon)),
+            df_multiindex = pd.DataFrame({'time':[curD]*(len(lat)*len(lon)),
                                            'lat': np.tile(lat,(len(lon),1)).flatten('F'),
                                            'lon': np.tile(lon,len(lat)),
-                                            self.parameterName+"_P"+str(threshold): np.array(data1).flatten() })
+                                            self.parameterName: np.array(data1).flatten() })
+                                            # self.parameterName+"_P"+str(threshold): np.array(data1).flatten() })
             df_multiindex = df_multiindex.set_index(['time','lat','lon'])
             xr = df_multiindex.to_xarray()
             print (df_multiindex)
             print(xr)
-            xr.to_netcdf("{}{}{}_{}_Prob{}.nc".format(str(D.year),
+            os.makedirs(os.path.join(self._outputDir, self.curdate), exist_ok=True)
+            prob_file = "{}/{}/{}{}{}_{}_Prob{}.nc".format(self._outputDir, self.curdate, str(D.year),
+                str(D.month).zfill(2), str(D.day).zfill(2), self.parameterName,
+                str(threshold))
+            if DEBUG: print('*****', prob_file)
+            xr.to_netcdf(prob_file.format(
                 str(D.month).zfill(2), str(D.day).zfill(2), self.parameterName,
                 str(threshold)))
                 # +'_'+self.parameterName+'_Prob'+str(threshold)+'_Canarias.nc')
@@ -219,6 +233,7 @@ if __name__ == "__main__":
     # makes daily directories where the maps will be stored #before 20200715: Sahel_prova...
     today = dt.datetime.today().strftime('%Y%m%d')
     print (today)
+    curdate = sys.argv[1]
     # clean OLD Directories
 #     try:
 #         y = dt.datetime.today()- dt.timedelta(days=30)
@@ -250,7 +265,7 @@ if __name__ == "__main__":
                         'NCEP-NGAC',    'NMMB-BSC',    'NOA-WRF-CHEM',
                         'SILAM',          'UKMET',       'ICON-ART' ]
 
-    allModelNameListInterpolated = ["{}_interp.nc".format(mod) for mod in allModelNameList]
+    allModelNameListInterpolated = ["{}.nc".format(mod) for mod in allModelNameList]
     #[0.3, 0.3,    0.1, 1,    0.3, 1,    0.3, 1, 1,      0.3, 1 ]
     weightListDustSfcConc = [1, 1, 0.1,
                              1, 1, 1,
@@ -299,28 +314,32 @@ if __name__ == "__main__":
 #         ProbabilityMaps(modelWeightDict, inputDir, outputDirList[3], parameterName, threshold).doIt(conversionFactor, units, parameterNameTitle)
     # Probability Maps for Regional SCONC_SFC
     # Input threshold Regional
-    thresholdList = [20, 35, 50, 75, 100, 150, 200, 250, 350, 400, 450, 500, 600, 800, 1000]
+    thresholdList = [50, 100, 200, 500]
     conversionFactor = 10**-9
     units = u"\u03bcg/m3"
     # Input parameter-netcdf-name
     parameterName = "SCONC_DUST"
     parameterNameTitle = "Dust\: SFC\: Concentration"
     # Input nc files
-    inputDir = "/data/interactive_test/prob/tmp_current/"
+    inputDir = "/data/daily_dashboard/prob/tmp/interpolated/"
+    # /data/daily_dashboard/prob/sconc_dust/50/netcdf/20211002/20211002_SCONC_DUST_Prob50.nc
     for threshold in thresholdList:
-        ProbabilityMaps(modelWeightDustSfcConcDict, inputDir, "", parameterName, threshold).doIt(conversionFactor, units, parameterNameTitle)
+        outDir = "/data/daily_dashboard/prob/{}/{}/netcdf/".format(parameterName.lower(), threshold)
+        ProbabilityMaps(curdate, modelWeightDustSfcConcDict, inputDir, outDir, parameterName, threshold).doIt(conversionFactor, units, parameterNameTitle)
     # Probability Maps for Regional AOD
     # Input threshold Regional
-    thresholdList = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+    # thresholdList = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+    thresholdList = [0.1, 0.2, 0.5, 0.8]
     conversionFactor = 1
     units = ""
     # Input parameter-netcdf-name
     parameterName = "OD550_DUST"
     parameterNameTitle = "Dust\: AOD"
     # Input nc files
-    inputDir = "/data/interactive_test/prob/tmp_current/"
+    inputDir = "/data/daily_dashboard/prob/tmp/interpolated/"
     for threshold in thresholdList:
-        ProbabilityMaps(modelWeightAodDict, inputDir, "", parameterName, threshold).doIt(conversionFactor, units, parameterNameTitle)
+        outDir = "/data/daily_dashboard/prob/{}/{}/netcdf/".format(parameterName.lower(), threshold)
+        ProbabilityMaps(curdate, modelWeightAodDict, inputDir, outDir, parameterName, threshold).doIt(conversionFactor, units, parameterNameTitle)
 #     # Probability Maps for Europa SCONC_SFC
 #     # Input threshold Europa
 #     thresholdList = [20,35,50,75,100,150,250,350,450,500,600,800,1000]

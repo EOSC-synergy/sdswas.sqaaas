@@ -169,6 +169,7 @@
   margin: 0;
   padding: 0;
   bottom: 0px;
+  z-index: 1002 !important;
 }
 
 /* Info button on the sidebar bottom */

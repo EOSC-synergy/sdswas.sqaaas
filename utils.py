@@ -76,12 +76,16 @@ def retrieve_timeseries(fname, lat, lon, variable, method='netcdf', forecast=Fal
         ds = xr.open_mfdataset(fname, concat_dim='time', combine='nested', preprocess=preprocess)
     if variable not in ds.variables:
         variable = variable.lower()
+    # print('TIMESERIES', fname, variable, lon, lat)
     if 'lat' in ds.variables:
         da = ds[variable].sel(lon=lon, lat=lat, method='nearest')
-        return da['lat'].values, da['lon'].values, da.indexes['time'], da
+        clat = 'lat'
+        clon = 'lon'
     else:
         da = ds[variable].sel(longitude=lon, latitude=lat, method='nearest')
-        return da['latitude'].values, da['longitude'].values, da.indexes['time'], da
+        clat = 'latitude'
+        clon = 'longitude'
+    return da[clat].values, da[clon].values, da.indexes['time'], da
 
 
 def find_nearest(array, value):

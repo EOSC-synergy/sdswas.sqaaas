@@ -2,28 +2,42 @@
 # -*- coding: utf-8 -*-
 
 import os
+import subprocess
+from glob import glob
 
 class InterpolateNetcdf(object):
 
-    def __init__(self, ncModelsDir, main_output_path, lonlat):
+    def __init__(self, curdate, ncModelsDir, main_output_path, lonlat):
 
-        inputFileList = os.listdir(ncModelsDir)
+        dates = curdate
+        inputFileDir = os.listdir(ncModelsDir)
         scriptClean =   "rm -rvf "+main_output_path+"/*.nc"
         subprocess.call(scriptClean, shell=True)
-        print (inputFileList)
-        for ifile in inputFileList:
-            script =  "cdo -s -sellonlatbox,"+lonlat+" -remapbil,global_0.5  "+ncModelsDir+ifile+" "+main_output_path+"interpolated"+ifile
-            print (script)
-            subprocess.call(script, shell=True)
+        for ifileDir in inputFileDir:
+            if ifileDir == 'NMMB-BSC':
+                tpl = '*OPER.nc'
+            elif ifileDir == 'median':
+                tpl = '*MEDIAN.nc'
+            else:
+                tpl = '*.nc'
+            print (ifileDir)
+            for ifile in glob('{}/archive/{}{}'.format('/data/products/'+ifileDir, dates, tpl)):
+                if os.path.exists(main_output_path+"interpolated/"+os.path.basename(ifile)):
+                    print(main_output_path+"interpolated/"+os.path.basename(ifile), 'exists. Exit.')
+                    continue
+                script =  "cdo -L -s -sellonlatbox,"+lonlat+" -remapbil,global_0.5  "+ifile+" "+main_output_path+"interpolated/"+os.path.basename(ifile)
+                print (script)
+                subprocess.call(script, shell=True)
 
 if __name__=="__main__":
-
+    import sys
     #ncModelsDir = "/home/administrador/webpolvo/DustEpsgrams/ncModelFiles/"
-    ncModelsDir = "../DustEpsgrams/ncModelFiles/"
+    ncModelsDir = "/data/thredds/models-repos/"
     #LonW, LonE, LatN, LatS
     lonlatRegional = "-25,60,0,65"
-    main_output_path = 'InterpolatedNcModelFiles/Regional/'
-    InterpolateNetcdf(ncModelsDir, main_output_path, lonlatRegional)
+    main_output_path = '/data/daily_dashboard/prob/tmp/'
+    curdate = sys.argv[1]
+    InterpolateNetcdf(curdate, ncModelsDir, main_output_path, lonlatRegional)
 
 #     lonlatCanarias = "-21,-5,22,32"
 #     main_output_path = 'InterpolatedNcModelFiles/Canarias/'

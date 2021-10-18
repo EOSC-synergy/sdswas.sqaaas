@@ -167,12 +167,28 @@ class Observations1dHandler(object):
         self.varlist = [var for var in self.input_file.variables if var == OBS[obs]['obs_var']]
         if DEBUG: print('VARLIST', self.varlist)
 
-        self.station_names = np.array([st_name[~st_name.mask].tostring().decode('utf-8')
-                              for st_name in
-                              self.input_file.variables['station_name'][:]])
+        sites = pd.read_table(os.path.join('./conf/',
+            OBS[obs]['sites']), delimiter=r"\s+", engine='python')
+
+        idxs, self.station_names = np.array([[idx, st_name[~st_name.mask].tostring().decode('utf-8')]
+                              for idx, st_name in
+                              enumerate(self.input_file.variables['station_name'][:])
+                              if st_name[~st_name.mask].tostring().decode('utf-8').upper() in map(str.upper, sites['SITE'])]
+                              ).T
+#        idxs, self.station_names = np.array([[idx, st_name]
+#                              for idx, st_name in
+#                              enumerate(sites['SITE'][:])
+#                              if st_name[~st_name.mask].tostring().decode('utf-8').upper() in map(str.upper, sites['SITE'])]
+#                              ).T
+
+        if DEBUG: print('IDXS', idxs)
+        if DEBUG: print('ST_NAMES', self.station_names)
+
+        self.clon = self.lon[idxs.astype(int)]
+        self.clat = self.lat[idxs.astype(int)]
 
         self.values = {
-            varname: self.input_file.variables[varname][:]
+            varname: self.input_file.variables[varname][:, idxs.astype(int)]
             for varname in self.varlist
         }
 
@@ -208,8 +224,8 @@ class Observations1dHandler(object):
         varname = self.varlist[0]
         #val = self.values[varname][0]
         notnan = (np.array([i for i in range(self.values[varname].shape[1]) if not self.values[varname][:,i].mask.all()]),)
-        clon = self.lon[notnan]
-        clat = self.lat[notnan]
+        clon = self.clon[notnan]
+        clat = self.clat[notnan]
         cstations = self.station_names[notnan]
         if DEBUG: print(len(clon), len(clat), len(cstations))
         name = 'Aeronet Station'
@@ -285,6 +301,8 @@ class ObsTimeSeriesHandler(object):
             if df is None:
                 continue
             if DEBUG: print("MOD", mod, "COLS", df.columns)
+            if df.columns[-1].upper() == self.variable:
+                df = df.rename(columns = { df.columns[-1]: self.variable })
             timeseries = \
                 df[df['station']==dict_idx[idx]].set_index('time')
 
@@ -429,8 +447,12 @@ class TimeSeriesHandler(object):
                 continue
 
             if DEBUG: print('Retrieving *** FPATH ***', fpath)
-            ts_lat, ts_lon, ts_index, ts_values = retrieve_timeseries(
-                    fpath, lat, lon, variable, method=method, forecast=forecast)
+            try:
+                ts_lat, ts_lon, ts_index, ts_values = retrieve_timeseries(
+                        fpath, lat, lon, variable, method=method, forecast=forecast)
+            except Exception as e:
+                if DEBUG: print("NOT restrieving", fpath, "ERROR:", str(e))
+                continue
 
             if isinstance(ts_lat, np.ndarray):
                 ts_lat = float(ts_lat)
@@ -557,7 +579,7 @@ class FigureHandler(object):
                 rtime = rtime[:5]
             self.rdatetime = datetime.strptime("{} {}".format(rdate, rtime),
                                                "%Y-%m-%d %H:%M")
-            varlist = [var for var in self.input_file.variables if var.upper() in self.filevars]
+            varlist = [var for var in self.input_file.variables if (var.upper() in self.filevars) or (var in self.filevars)]
             self.varlist = varlist
             if DEBUG: print('VARLIST', varlist)
             self.xlon, self.ylat = np.meshgrid(lon, lat)
@@ -570,7 +592,7 @@ class FigureHandler(object):
         if self.confvars is not None:
             self.bounds = {
                 varname.upper(): np.array(VARS[confvar]['bounds']).astype('float32')
-                for varname, confvar in zip(self.filevars, self.confvars) if varname.upper() in self.varlist
+                for varname, confvar in zip(self.filevars, self.confvars) if (varname.upper() in self.varlist) or (varname in self.varlist)
             }
         else:
             self.bounds = {
@@ -658,10 +680,10 @@ class FigureHandler(object):
         else:
             mul = VARS[varname]['mul']
 
-        realvar = [var for var in self.varlist if var.upper()==varname][0]
+        realvar = [var for var in self.varlist if var.upper()==varname.upper()][0]
         if DEBUG: print("***", mul, realvar, "***")
         var = self.input_file.variables[realvar][tstep]*mul
-        idx = np.where(var.ravel() >= self.bounds[varname][0])  # !=-9.e+33)
+        idx = np.where(var.ravel() >= self.bounds[varname.upper()][0])  # !=-9.e+33)
         xlon = self.xlon.ravel()[idx]
         ylat = self.ylat.ravel()[idx]
         var = var.ravel()[idx]
@@ -687,12 +709,15 @@ class FigureHandler(object):
         """ Generate trace to be added to data, per variable and timestep """
         from dash_server import app
         from dash_server import HOSTNAME
-        HOSTNAME = 'http://bscesdust03.bsc.es:9000'
+        HOSTNAME = 'http://{}:9000'.format(HOSTNAME)
 
 #        geojson_file = GEOJSON_TEMPLATE.format(self.filedir,
 #                self.selected_date_plain, tstep, self.selected_date_plain, varname)
 
+        if self.filedir[-1] == '/':
+            self.filedir = self.filedir[:-1]
         mod_name = 'geojsons/{}'.format(os.path.basename(self.filedir))
+        if DEBUG: print('****', mod_name, self.filedir)
         geojson_file = GEOJSON_TEMPLATE.format(mod_name,
                 self.selected_date_plain, tstep, self.selected_date_plain, varname)
 
@@ -715,7 +740,7 @@ class FigureHandler(object):
             name = VARS[varname]['name']
         # if DEBUG: print(self.bounds)
         if self.bounds:
-            bounds = self.bounds[varname]
+            bounds = self.bounds[varname.upper()]
         else:
             bounds = [0, 1]
         loc_val = [
@@ -737,7 +762,7 @@ class FigureHandler(object):
             locations=locations,
             zmin=bounds[0],
             zmax=bounds[-1],
-            colorscale=self.colormaps[varname],
+            colorscale=self.colormaps[varname.upper()],
             showscale=False,
             showlegend=False,
             hoverinfo='none',
@@ -788,9 +813,9 @@ class FigureHandler(object):
                 color=val,
                 # opacity=0.6,
                 size=0,
-                colorscale=self.colormaps[varname],
-                cmin=self.bounds[varname][0],
-                cmax=self.bounds[varname][-1],
+                colorscale=self.colormaps[varname.upper()],
+                cmin=self.bounds[varname.upper()][0],
+                cmax=self.bounds[varname.upper()][-1],
                 colorbar=None,
             ),
         )
@@ -877,8 +902,8 @@ class FigureHandler(object):
                            xanchor='left',
                            yanchor='top',
                            x=0.01, y=0.95)
-            if DEBUG: print('ADD IMAGES')
             if varname and varname in VARS:
+                if DEBUG: print('ADD IMAGES')
                 ypos = 0.9-(aspect[0]/30)
                 size = 0.18+(aspect[0]/6)
                 if DEBUG: print("YPOS", aspect[0], ypos)
@@ -1585,24 +1610,56 @@ class ProbFigureHandler(object):
         # )
 
         if DEBUG: print('Update layout ...')
-        if varname and os.path.exists(self.filepath):
+        if not varname:
+            if DEBUG: print('ONE')
+            fig_title=dict(text='',
+                           xanchor='center',
+                           yanchor='middle',
+                           x=0.5, y=0.5)
+        elif varname and not os.path.exists(self.filepath):
+            if DEBUG: print('TWO')
+            fig_title=dict(text='<b>DATA NOT AVAILABLE</b>',
+                           xanchor='center',
+                           yanchor='middle',
+                           x=0.5, y=0.5)
+        else:
+            if DEBUG: print('THREE')
             fig_title=dict(text='{}'.format(self.get_title(varname, tstep)),
                            xanchor='left',
                            yanchor='top',
                            x=0.01, y=0.95)
-        else:
-            fig_title={}
-        size = 0.5
-        ypos = 1.05
-        self.fig.add_layout_image(
-            dict(
-                source=Image.open(PROB[varname]['image_scale']),
-                xref="paper", yref="paper",
-                x=0.01, y=ypos,
-                sizex=size, sizey=size,
-                xanchor="left", yanchor="top",
-                layer='above',
-            ))
+            if DEBUG: print('ADD IMAGES')
+            if varname and varname in VARS:
+                ypos = 0.9-(aspect[0]/30)
+                size = 0.18+(aspect[0]/6)
+                if DEBUG: print("YPOS", aspect[0], ypos)
+                self.fig.add_layout_image(
+                    dict(
+                        source=Image.open(PROB[varname]['image_scale']),
+                        xref="paper", yref="paper",
+                        x=0.01, y=ypos,
+                        sizex=size, sizey=size,
+                        xanchor="left", yanchor="top",
+                        layer='above',
+                    ))
+#        if varname and os.path.exists(self.filepath):
+#            fig_title=dict(text='{}'.format(self.get_title(varname, tstep)),
+#                           xanchor='left',
+#                           yanchor='top',
+#                           x=0.01, y=0.95)
+#        else:
+#            fig_title={}
+#        size = 0.5
+#        ypos = 1.05
+#        self.fig.add_layout_image(
+#            dict(
+#                source=Image.open(PROB[varname]['image_scale']),
+#                xref="paper", yref="paper",
+#                x=0.01, y=ypos,
+#                sizex=size, sizey=size,
+#                xanchor="left", yanchor="top",
+#                layer='above',
+#            ))
         self.fig.update_layout(
             title=fig_title,
             uirevision=True,

@@ -151,7 +151,7 @@ def convert2timeseries(model, obs=None, months=None):
     print(models_ds)
     print(model)
     for mod_idx, (mod_ds, mod) in enumerate(zip(models_ds, model)):
-        print('IDX', mod_idx)
+        print('MOD', mod, 'IDX', mod_idx)
         if variable in mod_ds.variables:
             if obs_ds:
                 print('interpolating to observations ...')
@@ -164,7 +164,8 @@ def convert2timeseries(model, obs=None, months=None):
                 mod_interp = mod_ds[variable]
                 print('converting dataset to df ...')
 
-            obs_timesteps = obs_ds[OBS[obs]['obs_var']][obs_ds[OBS[obs]['obs_var']].time.isin(mod_interp.time)].time
+            obs_timesteps = np.unique(obs_ds[OBS[obs]['obs_var']][obs_ds[OBS[obs]['obs_var']].time.isin(mod_interp.time)].time)
+            print("timesteps", obs_timesteps, type(obs_timesteps))
             obs_da = obs_ds[OBS[obs]['obs_var']].sel(time=obs_timesteps)
             print(obs_da)
             mod_da = mod_interp.sel(time=obs_timesteps)

@@ -18,6 +18,51 @@ end_date = DATES['end_date'] or (dt.now() - timedelta(days=1)).strftime("%Y%m%d"
 
 forecast_days = ('Today', 'Tomorrow')
 
+login_modal = html.Div(
+    id='open-login',
+    children=[
+        dbc.Modal([
+            dbc.ModalBody([
+                dbc.Alert(
+                    "Wrong username and/or password. Try agai or just clik outside this window to close it.",
+                    id="alert-login-error",
+                    is_open=False,
+                    duration=6000,
+                    fade=True,
+                    color="primary",
+                    style={ 'overflow': 'auto', 'margin-bottom': 0 }
+                ),
+                dbc.Alert(
+                    "You don't have correct privileges to download latest forecast. Please download previous forecasts, insert correct username and password or just clik outside this window to close it.",
+                    id="alert-login-wrong",
+                    is_open=False,
+                    duration=6000,
+                    fade=True,
+                    color="primary",
+                    style={ 'overflow': 'auto', 'margin-bottom': 0 }
+                ),
+                dcc.Input(
+                    id="input_username",
+                    type="text",
+                    placeholder="username",
+                ),
+                dcc.Input(
+                    id="input_password",
+                    type="password",
+                    placeholder="password",
+                ),
+                html.Button('Login', id='submit-login', n_clicks=0),
+            ]
+            )],
+            id='login-modal',
+            size='sm',
+            centered=True,
+            is_open=False,
+        ),
+    ]
+    #style={'display': 'none'},
+)
+
 time_series = html.Div(
     id='open-timeseries',
     children=[
@@ -173,6 +218,7 @@ was_time_slider = html.Div([
 
 def tab_forecast(window='models'):
     models_children = [
+        login_modal,
         dbc.Alert(
             "To ensure a better experience, please note that you cannot select more than 4 models at once.",
             id="alert-models-auto",
@@ -446,7 +492,7 @@ def sidebar_forecast(variables, default_var, models, default_model):
                         html.P("""This button allows you to get selected models netCDF files."""),
                         html.P([
                             """To get access to the forecast archive please click """,
-                            dcc.Link('here', href="https://dust03.bsc.es/thredds"),
+                            dcc.Link('here', href="https://dust03.bsc.es/products/data-download"),
                             ]),
                     ],
                     className="card-text",

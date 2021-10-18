@@ -22,15 +22,32 @@ np.set_printoptions(precision=2)
 
 CURRENT_PATH = os.path.abspath(os.path.dirname(__file__))
 
-VARS = json.load(open(os.path.join(CURRENT_PATH, '../conf/vars.json')))
-# BOUNDS = VARS['OD550_DUST']['bounds']  # range(10, 110, 10)
-# VARS = ['od550aero',]
+# DATATYPE = ''
 
-def nc2geojson(outdir='.', filelist=[], outfile_tpl=''):
+
+def nc2geojson(datatype='', outdir='.', filelist=[], outfile_tpl=''):
     """ NetCDF(s) to geojson converter """
 
-    print("Converting netCDF(s) ...")
+    VARS = json.load(open(os.path.join(CURRENT_PATH, '../conf/vars.json')))
+
+    print("Converting netCDF(s) with DATATYPE ...", datatype)
+    if datatype == 'MODIS':
+        # MODIS
+        bounds = VARS['OD550_DUST']['bounds'] 
+        mul = 1
+        VARS = ['od550aero',]
+    elif datatype == 'PROB':
+        # PROBABILITY MAPS
+        bounds = range(10, 110, 10)
+        mul = None
+    else:
+        bounds = None
+        mul = None
+
     outfiles = []
+
+    print('xxx MUL', mul)
+    print('xxx bounds', bounds)
 
     if isinstance(filelist, str):
         # file is global
@@ -42,7 +59,11 @@ def nc2geojson(outdir='.', filelist=[], outfile_tpl=''):
         fp = nc.Dataset(filename)
         tim = fp.variables['time']
         timevals = tim[:].copy()
-        what, _, date, _ = tim.units.split()[:4]
+        try:
+            what, _, date, _ = tim.units.split()[:4]
+        except:
+            print("File", filename, "time units exception. Skipping.")
+            continue
         if what.lower() == 'hours':
             date = datetime.strptime(date, "%Y-%m-%d") + relativedelta(hours=int(timevals[0]))
         elif what.lower() == 'days':
@@ -60,11 +81,29 @@ def nc2geojson(outdir='.', filelist=[], outfile_tpl=''):
 
         for variable in VARS:
 
-            if VARS[variable]['models'] != 'all':
+            print('VARIABLE', variable)
+
+#            if datatype not in ('MODIS', 'PROB') and VARS[variable]['models'] != 'all':
+#                print('continue-1')
+#                continue
+
+            if variable not in fp.variables and variable.lower() not in fp.variables:
+                print('continue-2')
                 continue
 
-            mul = VARS[variable]['mul']
-            levels = VARS[variable]['bounds']
+            print('MUL', mul)
+            if mul is None:
+                mult = VARS[variable]['mul']
+            else:
+                mult = mul
+
+            if bounds is None:
+                levels = VARS[variable]['bounds']
+            else:
+                levels = bounds
+
+            print('MULT', mult)
+            print('BOUNDS', levels)
 
             # loop over timesteps
             for t, m in enumerate(timevals):
@@ -73,7 +112,7 @@ def nc2geojson(outdir='.', filelist=[], outfile_tpl=''):
                                                         variable)
                 newdir = os.path.join(outdir, newdate)
                 newfile = os.path.join(newdir, outfile)
-                if os.path.exists(newfile):
+                if os.path.exists(newfile) and os.path.getsize(newfile) > 42:
                     print("File", newfile, "already exists. Skipping.")
                     continue
 
@@ -84,7 +123,7 @@ def nc2geojson(outdir='.', filelist=[], outfile_tpl=''):
                 except:
                     current_var = fp.variables[variable.lower()]
 
-                values = current_var[t]*mul
+                values = current_var[t]*mult
 
                 # metadata = {
                 #    'value': values,
@@ -115,8 +154,9 @@ def nc2geojson(outdir='.', filelist=[], outfile_tpl=''):
 
 
 if __name__ == "__main__":
-    outdir = sys.argv[1]
-    filenames = sys.argv[2:]
+    datatype = sys.argv[1]
+    outdir = sys.argv[2]
+    filenames = sys.argv[3:]
     print('outdir', outdir)
     print('fnames', filenames)
-    nc2geojson(outdir, filenames)
+    nc2geojson(datatype, outdir, filenames)

@@ -117,13 +117,14 @@ def convert2timeseries(model, obs=None, months=None):
             if obs else ''
             for month in months]
 
-    flt_paths = [obs_path.format(OBS[obs]['flt_var'], month)
-            if obs else ''
-            for month in months]
+    if 'flt_var' in OBS[obs]:
+        flt_paths = [obs_path.format(OBS[obs]['flt_var'], month)
+                if obs else ''
+                for month in months]
+        print("FLT", flt_paths)
 
     print("MOD", mod_paths)
     print("OBS", obs_paths)
-    print("FLT", flt_paths)
 
     columns = ['station'] + list(MODELS.keys())
     print(columns)
@@ -134,9 +135,10 @@ def convert2timeseries(model, obs=None, months=None):
     totn_df = pd.DataFrame(columns=columns)
 
     # read sites for a text file
-    sites = pd.read_table(os.path.join(CURRENT_PATH, '../conf/',
-        OBS[obs]['sites']), delimiter=r"\s+",
-        engine='python').sort_values(by='AREA')
+    if 'sites' in OBS[obs]:
+        sites = pd.read_table(os.path.join(CURRENT_PATH, '../conf/',
+            OBS[obs]['sites']), delimiter=r"\s+",
+            engine='python').sort_values(by='AREA')
 
     models_ds = []
     for mpath in mod_paths:
@@ -154,49 +156,64 @@ def convert2timeseries(model, obs=None, months=None):
 
     try:
         # read filter variable
-        flt_ds = xr.open_mfdataset(flt_paths,
-                               concat_dim='time',
-                               combine='nested',
-                               )
+        flt_ds = None
+        if 'flt_var' in OBS[obs]:
+            flt_ds = xr.open_mfdataset(flt_paths,
+                                   concat_dim='time',
+                                   combine='nested',
+                                   )
 
-        # select stations and remove others
-        flt_ds = flt_ds.where(flt_ds['station_name'].isin(sites['SITE'].values.astype(np.bytes_)))
-        flt_df = flt_ds.to_dataframe().reset_index().dropna(subset=['station_name'])
-        flt_df = flt_df[['time', 'station', 'ndata', 'station_name', OBS[obs]['flt_var']]]
+            # select stations and remove others
+            flt_ds = flt_ds.where(flt_ds['station_name'].isin(sites['SITE'].values.astype(np.bytes_)))
+            flt_df = flt_ds.to_dataframe().reset_index().dropna(subset=['station_name'])
+            flt_df = flt_df[['time', 'station', 'ndata', 'station_name', OBS[obs]['flt_var']]]
 
-        # re-numbering stations
-        old_stations = flt_df['station'].unique()
-        new_stations = np.arange(old_stations.size)
-        for old_st, new_st in zip(old_stations, new_stations):
-            flt_df.loc[flt_df['station'] == old_st, 'station'] = new_st
+            # re-numbering stations
+            old_stations = flt_df['station'].unique()
+            new_stations = np.arange(old_stations.size)
+            for old_st, new_st in zip(old_stations, new_stations):
+                flt_df.loc[flt_df['station'] == old_st, 'station'] = new_st
 
         # read observations and transform to a dataframe with only needed stations
         obs_ds = xr.open_mfdataset(obs_paths,
                                concat_dim='time',
                                combine='nested',
                                )
-        # select only stations in a given text file and remove others
-        obs_ds = obs_ds.where(obs_ds['station_name'].isin(sites['SITE'].values.astype(np.bytes_)))
-        obs_df = obs_ds.to_dataframe().reset_index().dropna(subset=['station_name'])
-        obs_df = obs_df[['time', 'station', 'ndata', 'station_name', OBS[obs]['obs_var']]]
+        if 'sites' in OBS[obs]:
+            # select only stations in a given text file and remove others
+            obs_ds = obs_ds.where(obs_ds['station_name'].isin(sites['SITE'].values.astype(np.bytes_)))
+            obs_df = obs_ds.to_dataframe().reset_index().dropna(subset=['station_name'])
+            obs_df = obs_df[['time', 'station', 'ndata', 'station_name', OBS[obs]['obs_var']]]
 
-        # re-numbering stations
-        for old_st, new_st in zip(old_stations, new_stations):
-            obs_df.loc[obs_df['station'] == old_st, 'station'] = new_st
+            # re-numbering stations
+            for old_st, new_st in zip(old_stations, new_stations):
+                obs_df.loc[obs_df['station'] == old_st, 'station'] = new_st
 
-        # adding area to each station
-        for site in sites['SITE']:
-            obs_df.loc[obs_df['station_name'] == site.encode('utf-8'), 'area'] = sites.loc[sites['SITE'] == site, 'AREA'].values
+            # adding area to each station
+            for site in sites['SITE']:
+                obs_df.loc[obs_df['station_name'] == site.encode('utf-8'), 'area'] = sites.loc[sites['SITE'] == site, 'AREA'].values
+
+            # retrieve lat and lon only with 'station' dimension to perform the interpolation
+            obs_lat = obs_ds['latitude'].dropna('station')[0].drop_vars('time')
+            obs_lon = obs_ds['longitude'].dropna('station')[0].drop_vars('time')
+        else:
+            if 'latitude' in obs_ds.variables:
+                obs_lat = obs_ds['latitude']
+                obs_lon = obs_ds['longitude']
+            else:
+                obs_lat = obs_ds['lat']
+                obs_lon = obs_ds['lon']
+            obs_df = obs_ds.to_dataframe().reset_index()
 
         # apply filtering on the whole dataframe
-        obs_df.loc[flt_df[OBS[obs]['flt_var']]>0.6, OBS[obs]['obs_var']] = np.nan
+        if 'flt_var' in OBS[obs]:
+            obs_df.loc[flt_df[OBS[obs]['flt_var']]>0.6, OBS[obs]['obs_var']] = np.nan
 
-        # retrieve lat and lon only with 'station' dimension to perform the interpolation
-        obs_lat = obs_ds['latitude'].dropna('station')[0].drop_vars('time')
-        obs_lon = obs_ds['longitude'].dropna('station')[0].drop_vars('time')
+            # group by area
+            obs_grps_area = obs_df.groupby('area')
 
-        # group by area
-        obs_grps_area = obs_df.groupby('area')
+        else:
+            obs_grps_area = [] 
 
     except Exception as err:
         print('Error', str(err))
@@ -208,6 +225,7 @@ def convert2timeseries(model, obs=None, months=None):
     print('obs var', OBS[obs]['obs_var'])
 
     print(models_ds)
+    print("OBS_GRPS", obs_grps_area)
     for mod_idx, mod_ds in enumerate(models_ds):
         stations = []
         bias = []
@@ -216,7 +234,10 @@ def convert2timeseries(model, obs=None, months=None):
         frge = []
         totn = []
         print('IDX', mod_idx)
-        if variable in mod_ds.variables:
+        for var in mod_ds.variables:
+            if variable != var.upper():
+                continue
+            variable = var
             if obs_ds:
                 print('interpolating to observations ...')
                 try:
@@ -230,13 +251,17 @@ def convert2timeseries(model, obs=None, months=None):
 
             mod_df = mod_interp.to_dataframe().reset_index()
 
-            # adding area to each station
-            for st in mod_df['station']:
-                mod_df.loc[mod_df['station'] == st, 'area'] = obs_df.loc[obs_df['station'] == st, 'area'].values[0]
+            if 'sites' in OBS[obs]:
+                # adding area to each station
+                for st in mod_df['station']:
+                    mod_df.loc[mod_df['station'] == st, 'area'] = obs_df.loc[obs_df['station'] == st, 'area'].values[0]
 
-            # print(mod_df)
-            mod_grps_area = mod_df.groupby('area')
+                # print(mod_df)
+                mod_grps_area = mod_df.groupby('area')
+            else:
+                mod_grps_area = []
 
+            print("MOD_GRPS", mod_grps_area)
             for obs_area in obs_grps_area:
                 area, scores = ret_scores(mod_grps_area, obs_grps_area, obs_area[0], grpname='area')
                 stations.append(area)
@@ -273,7 +298,7 @@ def convert2timeseries(model, obs=None, months=None):
 
         # break
         print(stations)
-        print(columns[mod_idx+1])
+        print(columns)
         print('BIAS', bias)
         print('RMSE', rmse)
         print('CORR', corr)

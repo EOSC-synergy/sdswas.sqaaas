@@ -15,6 +15,7 @@ from datetime import timedelta
 
 start_date = DATES["start_date"]
 end_date = DATES['end_date'] or dt.now().strftime("%Y%m%d")
+aod_end_date = '20210318'
 
 
 layout_view = html.Div([
@@ -31,14 +32,19 @@ layout_view = html.Div([
 
 def obs_time_slider(div='obs', start=0, end=23, step=1):
 
+    if div == 'obs-aod':
+        edate = aod_end_date
+    else:
+        edate = end_date
+
     date_picker = html.Span(
         dcc.DatePickerSingle(
             id='{}-date-picker'.format(div),
             min_date_allowed=dt.strptime(start_date, "%Y%m%d"),
-            max_date_allowed=dt.strptime(end_date, "%Y%m%d"),
-            initial_visible_month=dt.strptime(end_date, "%Y%m%d"),
+            max_date_allowed=dt.strptime(edate, "%Y%m%d"),
+            initial_visible_month=dt.strptime(edate, "%Y%m%d"),
             display_format='DD MMM YYYY',
-            date=(dt.strptime(end_date, "%Y%m%d") - timedelta(days=1)).strftime("%Y%m%d"),
+            date=(dt.strptime(edate, "%Y%m%d") - timedelta(days=1)).strftime("%Y%m%d"),
             with_portal=True,
         ),
         className="timesliderline",

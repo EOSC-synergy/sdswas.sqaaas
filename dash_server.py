@@ -15,8 +15,7 @@ from dash.dependencies import MATCH
 from dash.exceptions import PreventUpdate
 import flask
 from flask_caching import Cache
-from flask_caching.backends import FileSystemCache
-#from dash_extensions.callback import CallbackCache, Trigger
+from pathlib import Path
 
 from data_handler import DEFAULT_VAR
 from data_handler import DEFAULT_MODEL
@@ -64,13 +63,23 @@ app.config.update({
 app.config.suppress_callback_exceptions = True
 server = app.server
 
+cache_dir = "/dev/shm"
+Path(cache_dir).mkdir(parents=True, exist_ok=True)
+
 cache_config = {
     "DEBUG": True,
+    # "CACHE_TYPE": "FileSystemCache",
     "CACHE_TYPE": "FileSystemCache",
-    "CACHE_DIR": "/dev/shm",
+    "CACHE_DIR": cache_dir,
 }
 
 cache = Cache(server, config=cache_config)
+cache_timeout = 1
+
+try:
+    cache.clear()
+except:
+    pass
 
 if DEBUG: print('SERVER: start creating app layout')
 app.layout = html.Div(
@@ -91,7 +100,6 @@ app.layout = html.Div(
 
 if DEBUG: print('SERVER: stop creating app layout')
 
-# cc = CallbackCache(cache=FileSystemCache(cache_dir="cache"))
 
 @app.callback(
     Output('app-sidebar', 'children'),
@@ -120,7 +128,7 @@ def render_sidebar(tab):
     return tabs[tab][0](*tabs[tab][1])
 
 
-fcst_callbacks(app)
+fcst_callbacks(app, cache, cache_timeout)
 eval_callbacks(app)
 obs_callbacks(app)
 

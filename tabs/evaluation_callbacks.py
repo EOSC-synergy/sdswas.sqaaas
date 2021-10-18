@@ -345,7 +345,10 @@ def register_callbacks(app):
         from tools import get_eval_timeseries
         print(start_date, end_date, obs, cdata)
         if cdata:
+            if DEBUG: print('EVAL AERONET CLICKDATA', cdata)
             idx = cdata['points'][0]['pointIndex']
+            lon = cdata['points'][0]['lon']
+            lat = cdata['points'][0]['lat']
             if idx != 0:
                 name = cdata['points'][0]['customdata']
                 figure = get_eval_timeseries(obs, start_date, end_date, DEFAULT_VAR, idx, name)
@@ -514,7 +517,7 @@ def register_callbacks(app):
                     selected_date=end_date, tstep=0)
             center = fig_mod['layout']['mapbox']['center']
             fig_obs = get_figure(model=obs, var=DEFAULT_VAR,
-                    selected_date=end_date, tstep=2, center=center)
+                    selected_date=end_date, tstep=0, center=center)
             graph_obs, graph_mod = [
                     dbc.Spinner(html.Div([
                         get_graph(
