@@ -244,7 +244,7 @@ class Observations1dHandler(object):
             marker=dict(
                 # autocolorscale=True,
                 # symbol='square',
-                color='#F1B545',
+                color='#f0b450',
                 opacity=0.8,
                 size=15,
                 colorscale=self.colormaps[varname],
@@ -315,9 +315,10 @@ class ObsTimeSeriesHandler(object):
 
             if mod == self.obs:
                 sc_mode = 'markers'
-                marker = {'size': 10, 'symbol': "triangle-up-dot", 'color': '#F1B545'}
+                marker = {'size': 10, 'symbol': "triangle-up-dot", 'color': '#f0b450'}
                 line = {}
                 visible = True
+                name = mod.upper()
             else:
                 sc_mode = 'lines'
                 marker = {}
@@ -325,14 +326,15 @@ class ObsTimeSeriesHandler(object):
                 visible = 'legendonly'
                 cur_lat = round(timeseries[lat_col][0], 2)
                 cur_lon = round(timeseries[lon_col][0], 2)
+                name = "{}".format(
+                    MODELS[mod]['name'])
 
             if mod == 'median':
                 line['dash'] = 'dash'
 
             fig.add_trace(dict(
                 type='scatter',
-                name="{}".format(
-                    mod.upper()),
+                name=name,
                 x=timeseries.index,
                 y=timeseries[self.variable].round(2),
                 mode=sc_mode,
@@ -463,7 +465,7 @@ class TimeSeriesHandler(object):
 
             if obs_eval and mod == model[0]:
                 sc_mode = 'markers'
-                marker = {'size': 12, 'symbol': "triangle-up-dot", 'color': '#F1B545'}
+                marker = {'size': 12, 'symbol': "triangle-up-dot", 'color': '#f0b450'}
                 line = {}
                 visible = True
                 name = "{}".format(mod.upper())
@@ -475,7 +477,7 @@ class TimeSeriesHandler(object):
                     visible = True
                 else:
                     visible = 'legendonly'
-                name = "{}".format(mod.upper())
+                name = "{}".format(MODELS[mod]['name'])
             else:
                 sc_mode = 'lines'
                 marker = {}
@@ -485,7 +487,7 @@ class TimeSeriesHandler(object):
                 else:
                     visible = 'legendonly'
                 name = "{} ({}, {})".format(
-                        mod.upper(), round(ts_lat, 2), round(ts_lon, 2))
+                        MODELS[mod]['name'], round(ts_lat, 2), round(ts_lon, 2))
 
             if mod == 'median':
                 line['dash'] = 'dash'
@@ -953,6 +955,7 @@ class ScoresFigureHandler(object):
         filename = "{}_{}.h5".format(selection, statistic)
         tab_name = "{}_{}".format(statistic, selection)
         filepath = os.path.join(filedir, "h5", filename)
+        if DEBUG: print('SCORES filepath', filepath, 'SELECTION', tab_name)
         self.dframe = pd.read_hdf(filepath, tab_name).replace('_', ' ', regex=True)
 
         months = ' - '.join([datetime.strptime(sel, '%Y%m').strftime("%B %Y") for sel in selection.split('_')])
@@ -1067,11 +1070,12 @@ class ScoresFigureHandler(object):
                 self.dframe.loc[self.dframe['station'] == site, 'lat'] = \
                     str(self.sites.loc[self.sites['SITE'] == site, 'LATITUDE'].values[0].round(2))
         self.dframe = self.dframe.replace('-', np.nan)
-        self.dframe.dropna(inplace=True)
+        # self.dframe.dropna(inplace=True)
+        if DEBUG: print(self.dframe.head(), model)
         if self.sites is not None:
-            xlon, ylat, stats, vals = self.dframe[['lon', 'lat', 'station', model]].values.T
+            xlon, ylat, stats, vals = self.dframe[['lon', 'lat', 'station', model]].dropna().values.T
         else:
-            xlon, ylat, vals = self.dframe[['lon', 'lat', model]].values.T
+            xlon, ylat, vals = self.dframe[['lon', 'lat', model]].dropna().values.T
             stats = None
 
         self.fig = go.Figure()

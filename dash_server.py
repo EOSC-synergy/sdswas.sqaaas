@@ -22,7 +22,6 @@ from data_handler import DEFAULT_MODEL
 from data_handler import VARS 
 from data_handler import MODELS
 from data_handler import DEBUG
-from data_handler import DATES
 
 from tabs.forecast import tab_forecast
 from tabs.forecast import sidebar_forecast
@@ -68,7 +67,6 @@ Path(cache_dir).mkdir(parents=True, exist_ok=True)
 
 cache_config = {
     "DEBUG": True,
-    # "CACHE_TYPE": "FileSystemCache",
     "CACHE_TYPE": "FileSystemCache",
     "CACHE_DIR": cache_dir,
 }
@@ -78,7 +76,8 @@ cache_timeout = 1
 
 try:
     cache.clear()
-except:
+except Exception as e:
+    print('CACHE CLEAR ERROR:', str(e))
     pass
 
 if DEBUG: print('SERVER: start creating app layout')
@@ -129,7 +128,7 @@ def render_sidebar(tab):
 
 
 fcst_callbacks(app, cache, cache_timeout)
-eval_callbacks(app)
+eval_callbacks(app, cache, cache_timeout)
 obs_callbacks(app)
 
 

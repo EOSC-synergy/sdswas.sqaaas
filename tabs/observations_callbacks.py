@@ -70,9 +70,10 @@ def register_callbacks(app):
         return dash.no_update, bold, norm, norm, 'rgb'
 
     @app.callback(
-    Output('aod-image', 'src'),
-    [Input('obs-aod-date-picker', 'date'),
-     Input('obs-aod-slider-graph', 'value')],
+        Output('aod-image', 'src'),
+        [Input('obs-aod-date-picker', 'date'),
+         Input('obs-aod-slider-graph', 'value')],
+        prevent_initial_call=True
     )
     def update_aod_image_src(date, tstep):
 

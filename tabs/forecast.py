@@ -22,9 +22,10 @@ login_modal = html.Div(
     id='open-login',
     children=[
         dbc.Modal([
+            dbc.ModalHeader("Download authentication"),
             dbc.ModalBody([
                 dbc.Alert(
-                    "Wrong username and/or password. Try agai or just clik outside this window to close it.",
+                    "The username/password is incorrect. Please try again or click outside the window to exit.",
                     id="alert-login-error",
                     is_open=False,
                     duration=6000,
@@ -33,7 +34,7 @@ login_modal = html.Div(
                     style={ 'overflow': 'auto', 'margin-bottom': 0 }
                 ),
                 dbc.Alert(
-                    "You don't have correct privileges to download latest forecast. Please download previous forecasts, insert correct username and password or just clik outside this window to close it.",
+                    "Sorry, you don't have permission to download the latest forecast. Please download a previous forecast or click outside the window to exit.",
                     id="alert-login-wrong",
                     is_open=False,
                     duration=6000,
@@ -52,8 +53,8 @@ login_modal = html.Div(
                     placeholder="password",
                 ),
                 html.Button('Login', id='submit-login', n_clicks=0),
-            ]
-            )],
+            ]),
+            ],
             id='login-modal',
             size='sm',
             centered=True,
@@ -232,7 +233,7 @@ def tab_forecast(window='models'):
             id='div-collection',
             children=[dbc.Spinner(
             id='loading-graph-collection',
-            debounce=10,
+            #debounce=10,
             show_initially=False,
             children=[
                 dbc.Container(

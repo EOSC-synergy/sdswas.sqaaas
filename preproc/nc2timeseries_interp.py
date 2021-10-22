@@ -12,13 +12,18 @@ import os
 import sys
 from datetime import datetime
 from glob import glob
+from pathlib import Path
 
 
-CURRENT_PATH = os.path.abspath(os.path.dirname(__file__))
+#CURRENT_PATH = os.path.abspath(os.path.dirname(__file__))
+CURRENT_PATH = os.path.dirname(Path(__file__).absolute())
+print('CURRENT_PATH', CURRENT_PATH)
 
 VARS = json.load(open(os.path.join(CURRENT_PATH, '../conf/vars.json')))
 MODELS = json.load(open(os.path.join(CURRENT_PATH, '../conf/models.json')))
 OBS = json.load(open(os.path.join(CURRENT_PATH, '../conf/obs.json')))
+
+SITES_LOC = os.path.join(CURRENT_PATH, '../conf/')
 
 DTYPE = 'float32'
 
@@ -69,10 +74,10 @@ def convert2timeseries(model, obs=None, fmt='feather', months=None):
 
     mod_paths = ["{}/{}*{}".format(os.path.dirname(mod_path), month, os.path.basename(mod_path)) for month in months]
 
-    print(obs_path, months, obs)
     obs_paths = [obs_path.format(OBS[obs]['obs_var'], month)
             if obs else ''
             for month in months]
+    print(obs_paths, months, obs)
 
     for mpath, opath, month in zip(mod_paths, obs_paths, months):
         fnames = glob(mpath)
@@ -86,7 +91,7 @@ def convert2timeseries(model, obs=None, fmt='feather', months=None):
                                    combine='nested',
                                    preprocess=preprocess)
         except Exception as err:
-            print('Error', str(err))
+            print('Error', str(mpath), str(err))
             continue
 
         try:
@@ -101,7 +106,7 @@ def convert2timeseries(model, obs=None, fmt='feather', months=None):
                         obs_lon = 'lon'
                         obs_lat = 'lat'
                 if obs == 'aeronet':
-                    sites = pd.read_table(os.path.join('../conf/',
+                    sites = pd.read_table(os.path.join(SITES_LOC,
                         OBS[obs]['sites']), delimiter=r"\s+", engine='python')
 
                     print(obs_ds['station_name'])
@@ -114,10 +119,8 @@ def convert2timeseries(model, obs=None, fmt='feather', months=None):
                 else:
                     idxs = [(obs_ds[obs_lat]>-10) & (obs_ds[obs_lat]<65), (obs_ds[obs_lon]>-30) & (obs_ds[obs_lon]<70)]
                     print('******')
-                    #print(idxs)
-                    print('******')
         except Exception as err:
-            print('Error', str(err))
+            print('Error', str(opath), str(err))
             continue
 
         for variable in VARS:
@@ -183,16 +186,28 @@ if __name__ == "__main__":
     elif len(sys.argv) == 3:
         months = sys.argv[1].split(",")
         model = sys.argv[2]
-        convert2timeseries(model, months=months)
+        if model == 'all':
+            for model in MODELS:
+                convert2timeseries(model, months=months)
+        else:
+            convert2timeseries(model, months=months)
     elif len(sys.argv) == 4:
         months = sys.argv[1].split(",")
         model = sys.argv[2]
         obs = sys.argv[3]
         print(months, model, obs)
-        convert2timeseries(model, obs, months=months)
+        if model == 'all':
+            for model in MODELS:
+                convert2timeseries(model, obs, months=months)
+        else:
+            convert2timeseries(model, obs, months=months)
     else:
         months = sys.argv[1].split(",")
         model = sys.argv[2]
         obs = sys.argv[3]
         fmt = sys.argv[4]
-        convert2timeseries(model, obs, fmt, months)
+        if model == 'all':
+            for model in MODELS:
+                convert2timeseries(model, obs, fmt, months)
+        else:
+            convert2timeseries(model, obs, fmt, months=months)

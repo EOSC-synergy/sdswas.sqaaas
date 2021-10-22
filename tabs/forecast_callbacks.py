@@ -220,6 +220,7 @@ def register_callbacks(app, cache, cache_timeout):
                     return True, True, False, dash.no_update
 
                 user_data = res.json()
+                if DEBUG: print('USER_DATA', user_data)
                 roles = user_data['roles']
 
                 if DEBUG: print('NC', btn_login, models, date)
@@ -228,7 +229,7 @@ def register_callbacks(app, cache, cache_timeout):
                 except:
                     curdate = date
 
-                if curdate == (dt.today() - timedelta(days=1)).strftime('%Y%m%d') and not any(r in roles for r in ('Restricted', 'Manager')):
+                if curdate == (dt.today() - timedelta(days=1)).strftime('%Y%m%d') and not any(r in roles for r in ('Restricted data user', 'Manager')):
                     return True, False, True, dash.no_update
                     
                 if len(models) == 1:
@@ -326,6 +327,7 @@ def register_callbacks(app, cache, cache_timeout):
          Input('was-slider-graph', 'value'),
          Input('was-dropdown', 'value'),],
     )
+    @cache.memoize(timeout=cache_timeout)
     def update_was_figure(date, day, was):
         """ Update Warning Advisory Systems maps """
         from tools import get_was_figure
@@ -344,7 +346,7 @@ def register_callbacks(app, cache, cache_timeout):
         if was:
             was = was[0]
             return get_graph(index=was, figure=get_was_figure(was, day, selected_date=date))
-        print("WAS figure " + date, was, day)
+        if DEBUG: print("WAS figure " + date, was, day)
         return get_graph(index='none', figure=get_was_figure(selected_date=date))
 
 
@@ -357,10 +359,11 @@ def register_callbacks(app, cache, cache_timeout):
          State('variable-dropdown-forecast', 'value'),
          ],
     )
+    @cache.memoize(timeout=cache_timeout)
     def update_prob_figure(n_clicks, date, day, prob, var):
         """ Update Warning Advisory Systems maps """
         from tools import get_prob_figure
-        print('PROB', date, day, var, prob)
+        if DEBUG: print('PROB', date, day, var, prob)
         ctx = dash.callback_context
         if ctx.triggered:
             button_id = ctx.triggered[0]["prop_id"].split(".")[0]
@@ -381,7 +384,7 @@ def register_callbacks(app, cache, cache_timeout):
         if prob:
             prob = prob.replace('prob_', '')
             return get_graph(index=prob, figure=get_prob_figure(var, prob, day, selected_date=date))
-        print("PROB figure " + date, prob, day)
+        if DEBUG: print("PROB figure " + date, prob, day)
         return get_graph(index='none', figure=get_prob_figure(var, selected_date=date))
 
 
@@ -391,6 +394,7 @@ def register_callbacks(app, cache, cache_timeout):
         [Input('airports', 'n_clicks')],
         [State({'type': 'graph-with-slider', 'index': MATCH}, 'figure')]
     )
+    @cache.memoize(timeout=cache_timeout)
     def update_styles(*args):
         """ Function updating map layout cartography """
         ctx = dash.callback_context
@@ -460,6 +464,7 @@ def register_callbacks(app, cache, cache_timeout):
          State('variable-dropdown-forecast', 'value')],
         prevent_initial_call=True
     )
+    @cache.memoize(timeout=cache_timeout)
     def show_timeseries(cdata, element, date, model, variable):
         """ Renders model comparison timeseries """
         from tools import get_timeseries
@@ -541,7 +546,9 @@ def register_callbacks(app, cache, cache_timeout):
 
     @app.callback(
         Output('slider-graph', 'value'),
-        [Input('slider-interval', 'n_intervals')])
+        [Input('slider-interval', 'n_intervals')]
+    )
+    @cache.memoize(timeout=cache_timeout)
     def update_slider(n):
         """ Update slider value according to the number of intervals """
         if DEBUG: print('SERVER: updating slider-graph ' + str(n))
@@ -563,6 +570,7 @@ def register_callbacks(app, cache, cache_timeout):
         [State('forecast-tab', 'children')],
         prevent_initial_call=True
         )
+    @cache.memoize(timeout=cache_timeout)
     def update_tab_content(models_clicks, prob_clicks, was_clicks, curtab):
         ctx = dash.callback_context
 

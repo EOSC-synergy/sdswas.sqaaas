@@ -50,7 +50,7 @@ def extend_l(l):
     return res
 
 
-def register_callbacks(app):
+def register_callbacks(app, cache, cache_timeout):
     """ Registering callbacks """
 
     @app.callback(
@@ -101,19 +101,19 @@ def register_callbacks(app):
                 'value' : '{}{}'.format(seasons[mon.strftime('%m')],
                     mon.strftime('%Y'))
                 }
-                for mon in pd.date_range(start_date, end_date, freq='Q')]
+                for mon in pd.date_range(start_date, end_date, freq='Q')[::-1]]
         elif timescale == 'annual':
             ret = [{
                 'label': mon.strftime('%Y'),
                 'value': mon.strftime('%Y'),
                 } for mon in 
-                pd.date_range(start_date, end_date, freq='A')]
+                pd.date_range(start_date, end_date, freq='A')[::-1]]
         else:   # timescale == 'monthly':
             ret = [{
                 'label': mon.strftime('%B %Y'),
                 'value': mon.strftime('%Y%m'),
                 } for mon in 
-                pd.date_range(start_date, end_date, freq='M')]
+                pd.date_range(start_date, end_date, freq='M')[::-1]]
     
         return [ret]
 
@@ -169,6 +169,7 @@ def register_callbacks(app):
          State('obs-selection-dropdown', 'value')],
         prevent_initial_call=True
     )
+    @cache.memoize(timeout=cache_timeout)
     def scores_maps_retrieve(n_clicks, model, score, network, selection):
         """ Read scores tables and plot maps """
         from tools import get_scores_figure
@@ -307,6 +308,7 @@ def register_callbacks(app):
          State('obs-mod-dropdown', 'value')],
         prevent_initial_call=True
     )
+    @cache.memoize(timeout=cache_timeout)
     def show_eval_modis_timeseries(obs_cdata, date, obs, model):
         """ Retrieve MODIS evaluation timeseries according to station selected """
         from tools import get_timeseries
@@ -340,6 +342,7 @@ def register_callbacks(app):
          State('obs-dropdown', 'value')],
         prevent_initial_call=True
     )
+    @cache.memoize(timeout=cache_timeout)
     def show_eval_aeronet_timeseries(cdata, start_date, end_date, obs):
         """ Retrieve AERONET evaluation timeseries according to station selected """
         from tools import get_eval_timeseries
@@ -373,6 +376,7 @@ def register_callbacks(app):
         [State('obs-dropdown', 'value'),
          State('graph-eval-aeronet', 'relayoutData')],
         prevent_initial_call=True)
+    @cache.memoize(timeout=cache_timeout)
     def update_eval_aeronet(sdate, edate, obs, relayoutdata):
         """ Update AERONET evaluation figure according to all parameters """
         from tools import get_figure
@@ -424,6 +428,7 @@ def register_callbacks(app):
         State('graph-eval-modis-obs', 'relayoutData'),
         State('graph-eval-modis-mod', 'relayoutData')],
         prevent_initial_call=True)
+    @cache.memoize(timeout=cache_timeout)
     def update_eval_modis(date, mod, obs, relayoutdata_obs, relayoutdata_mod):
         """ Update MODIS evaluation figure according to all parameters """
         from tools import get_figure
@@ -469,6 +474,7 @@ def register_callbacks(app):
          Output('obs-mod-dropdown-span', 'style')],
         [Input('obs-dropdown', 'value')],
          prevent_initial_call=True)
+    @cache.memoize(timeout=cache_timeout)
     def update_eval(obs):
         """ Update evaluation figure according to all parameters """
         from tools import get_figure

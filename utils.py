@@ -62,9 +62,12 @@ def retrieve_timeseries(fname, lat, lon, variable, method='netcdf', forecast=Fal
 
         n_lon = find_nearest(df[lon_col].values, lon)
         n_lat = find_nearest(df[lat_col].values, lat)
-        ts = df.loc[(df[lat_col] == n_lat) &
+        ts = df.reindex([(df[lat_col] == n_lat) &
                     (df[lon_col] == n_lon), 
-                    ('time', variable)].set_index('time')
+                    ('time', variable)])  #.set_index('time')
+#        ts = df.loc[(df[lat_col] == n_lat) &
+#                    (df[lon_col] == n_lon), 
+#                    ('time', variable)].set_index('time')
         return n_lat, n_lon, ts.index, ts[variable]
 
     def preprocess(ds, n=8):
