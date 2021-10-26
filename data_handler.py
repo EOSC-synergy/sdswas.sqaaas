@@ -291,7 +291,7 @@ class ObsTimeSeriesHandler(object):
             self.dataframe.append(mod_df)
 
 
-    def retrieve_timeseries(self, idx, name):
+    def retrieve_timeseries(self, idx, st_name):
 
         old_indexes = self.dataframe[0]['station'].unique()
         new_indexes = np.arange(old_indexes.size)
@@ -345,7 +345,7 @@ class ObsTimeSeriesHandler(object):
             )
 
         title = "{} @ {} (lat = {:.2f}, lon = {:.2f})".format(
-            VARS[self.variable]['name'], name, cur_lat, cur_lon,
+            VARS[self.variable]['name'], st_name, cur_lat, cur_lon,
         )
 
         fig.update_layout(
@@ -445,7 +445,7 @@ class TimeSeriesHandler(object):
                 variable = self.variable
 
             if not os.path.exists(fpath):
-                if DEBUG: print("NOT restrieving", fpath, "File doesn't exist.")
+                if DEBUG: print("NOT retrieving", fpath, "File doesn't exist.")
                 continue
 
             if DEBUG: print('Retrieving *** FPATH ***', fpath)
@@ -453,7 +453,7 @@ class TimeSeriesHandler(object):
                 ts_lat, ts_lon, ts_index, ts_values = retrieve_timeseries(
                         fpath, lat, lon, variable, method=method, forecast=forecast)
             except Exception as e:
-                if DEBUG: print("NOT restrieving", fpath, "ERROR:", str(e))
+                if DEBUG: print("NOT retrieving", fpath, "ERROR:", str(e))
                 continue
 
             if isinstance(ts_lat, np.ndarray):
@@ -685,7 +685,7 @@ class FigureHandler(object):
         realvar = [var for var in self.varlist if var.upper()==varname.upper()][0]
         if DEBUG: print("***", mul, realvar, "***")
         var = self.input_file.variables[realvar][tstep]*mul
-        idx = np.where(var.ravel() >= self.bounds[varname.upper()][0])  # !=-9.e+33)
+        idx = np.where((~var.ravel().mask) & (var.ravel() >= self.bounds[varname.upper()][0]))  # !=-9.e+33)
         xlon = self.xlon.ravel()[idx]
         ylat = self.ylat.ravel()[idx]
         var = var.ravel()[idx]
@@ -1480,6 +1480,7 @@ class ProbFigureHandler(object):
         geojson_file = self.geojson.format(step=tstep)
 
         if os.path.exists(geojson_file):
+            if DEBUG: print('GEOJSON PROB', geojson_file)
             geojson = json.load(open(geojson_file))
         else:
             if DEBUG: print('ERROR', geojson_file, 'not available')
@@ -1882,7 +1883,7 @@ class WasFigureHandler(object):
             ids=locations,
             locations=locations,
             showscale=False,
-            showlegend=False,
+            showlegend=True,
             customdata=["Region: {}<br>Warning level: {}".format(name,
                 definition) for name, definition in zip(names, definitions)],
             hovertemplate="%{customdata}",

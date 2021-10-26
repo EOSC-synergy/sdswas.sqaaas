@@ -28,7 +28,7 @@ SITES_LOC = os.path.join(CURRENT_PATH, '../conf/')
 DTYPE = 'float32'
 
 
-def save_to_timeseries(df, fname, dest, fmt='feather'):
+def save_to_timeseries(df, fname, dest, obs='aeronet', fmt='feather'):
     df = df.to_dataframe()
     print(df)
     dest = os.path.join(dest, fname)
@@ -39,7 +39,10 @@ def save_to_timeseries(df, fname, dest, fmt='feather'):
             compression='gzip')
     elif fmt == 'feather':
         print('reset index ...')
-        var_df = df.astype(DTYPE).reset_index()
+        if obs == 'aeronet':
+            var_df = df.astype(DTYPE).reset_index()
+        else:
+            var_df = df.astype(DTYPE).dropna().reset_index()
         print('saving to feather ...')
         var_df.to_feather(
             '{}.ft'.format(dest),
@@ -135,9 +138,9 @@ def convert2timeseries(model, obs=None, fmt='feather', months=None):
                 fpath = os.path.join(obs_dest, fname)
                 if not os.path.exists(fpath):
                     if obs == 'aeronet':
-                        save_to_timeseries(obs_ds[OBS[obs]['obs_var']][:, idxs], fname, obs_dest, fmt)
+                        save_to_timeseries(obs_ds[OBS[obs]['obs_var']][:, idxs], fname, obs_dest, obs, fmt)
                     else:
-                        save_to_timeseries(obs_ds[OBS[obs]['obs_var']][:, idxs[0], :][:, :, idxs[1]], fname, obs_dest, fmt)
+                        save_to_timeseries(obs_ds[OBS[obs]['obs_var']][:, idxs[0], :][:, :, idxs[1]], fname, obs_dest, obs, fmt)
             print('variable', variable)
             for var in mod_ds.variables:
                 if var.upper() != variable:
@@ -158,6 +161,8 @@ def convert2timeseries(model, obs=None, fmt='feather', months=None):
                             mod_interp = mod_da.interp(longitude=obs_ds[obs_lon][idxs[1]], latitude=obs_ds[obs_lat][idxs[0]])
                         else:
                             mod_interp = mod_da.interp(lon=obs_ds[obs_lon][idxs[1]], lat=obs_ds[obs_lat][idxs[0]])
+                        if 'lon' in mod_interp.coords and 'longitude' in mod_interp.coords:
+                            mod_interp = mod_interp.drop_vars(['longitude', 'latitude'])
                     print('converting to df with name {} ...'.format(fname))
                 else:
                     mod_interp = mod_ds[var]
@@ -165,7 +170,7 @@ def convert2timeseries(model, obs=None, fmt='feather', months=None):
                 print(mod_interp.shape)
                 mod_interp = mod_interp.dropna('time', 'all')
                 print(mod_interp.shape)
-                save_to_timeseries(mod_interp, fname, obs_dest, fmt)
+                save_to_timeseries(mod_interp, fname, obs_dest, obs, fmt)
 
         if obs_ds:
             obs_ds.close()

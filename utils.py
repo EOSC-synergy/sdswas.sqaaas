@@ -60,11 +60,19 @@ def retrieve_timeseries(fname, lat, lon, variable, method='netcdf', forecast=Fal
             lat_col = 'latitude'
             lon_col = 'longitude'
 
+        if variable not in df.columns:
+            variable = variable.lower()
+
+        if variable not in df.columns:
+            return
+
         n_lon = find_nearest(df[lon_col].values, lon)
         n_lat = find_nearest(df[lat_col].values, lat)
-        ts = df.reindex([(df[lat_col] == n_lat) &
-                    (df[lon_col] == n_lon), 
-                    ('time', variable)])  #.set_index('time')
+        ts = df[(df[lat_col] == n_lat) & (df[lon_col] == n_lon)][['time',
+            variable]].set_index('time')
+#        ts = df.reindex([(df[lat_col] == n_lat) &
+#                    (df[lon_col] == n_lon), 
+#                    ('time', variable)])  #.set_index('time')
 #        ts = df.loc[(df[lat_col] == n_lat) &
 #                    (df[lon_col] == n_lon), 
 #                    ('time', variable)].set_index('time')
