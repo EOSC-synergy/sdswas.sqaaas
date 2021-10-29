@@ -219,9 +219,6 @@ def get_vis_figure(tstep=0, selected_date=end_date):
     if DEBUG: print('SERVER: NO VIS Figure')
     return VisFigureHandler().retrieve_var_tstep()
 
-#@app.app_context
-#@cache.cached(timeout=60, key_prefix='figure')
-#@cache.memoize(timeout=60)
 def get_figure(model=None, var=None, selected_date=end_date, tstep=0, hour=None, static=True, aspect=(1, 1), center=None):
     """ Retrieve figure """
     #if DEBUG: print("***", model, var, selected_date, tstep, hour, "***")
@@ -230,8 +227,13 @@ def get_figure(model=None, var=None, selected_date=end_date, tstep=0, hour=None,
             selected_date, "%Y-%m-%d %H:%M:%S").strftime("%Y%m%d")
     except:
         pass
+
     if model:
         if DEBUG: print('SERVER: Figure init ... ')
+        if MODELS[model]['start'] == 12 and tstep <= 4:
+            selected_date = (dt.strptime(selected_date, "%Y%m%d") - timedelta(days=1)).strftime("%Y%m%d")
+            tstep = 4 + int(tstep)
+
         fh = FigureHandler(model, selected_date)
         if isinstance(hour, list):
             return [fh.retrieve_var_tstep(var, tstep, h, static, aspect, center) for h in hour]

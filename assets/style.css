@@ -101,7 +101,7 @@ a.modebar-btn {
   margin: .5rem 1rem;
 }
 
-.disclaimer>p {
+.disclaimer>p, .disclaimer>span>p {
   opacity: 0.8;
   color: #2B383E;
   font-family: "Roboto", sans-serif !important;
@@ -109,7 +109,17 @@ a.modebar-btn {
   letter-spacing: 0;
   line-height: 22px;
   margin-left: .5rem;
+  margin-top: .1rem;
   bottom: .5rem;
+  display: block;
+}
+
+.disclaimer>span#forecast-issued>p {
+    float: left;
+}
+.disclaimer>span#forecast-disclaimer>p {
+    float: right;
+    margin-right: 2rem;
 }
 
 .layout-dropdown .disclaimer>p {
