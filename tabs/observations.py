@@ -44,7 +44,8 @@ def obs_time_slider(div='obs', start=0, end=23, step=1):
             max_date_allowed=dt.strptime(edate, "%Y%m%d"),
             initial_visible_month=dt.strptime(edate, "%Y%m%d"),
             display_format='DD MMM YYYY',
-            date=(dt.strptime(edate, "%Y%m%d") - timedelta(days=1)).strftime("%Y%m%d"),
+            # date=(dt.strptime(edate, "%Y%m%d") - timedelta(days=1)).strftime("%Y%m%d"),
+            date=dt.strptime(edate, "%Y%m%d").strftime("%Y%m%d"),
             with_portal=True,
         ),
         className="timesliderline",
@@ -156,6 +157,7 @@ def tab_observations(window='rgb'):
         html.Div([
             html.Img(
                 id='aod-image',
+                src='./assets/metoffice/{date}/MSG_{date}{tstep:02}00_AOD_444x278.gif'.format(date=aod_end_date, tstep=0),
                 alt='UK METOFFICE AOD - NOT AVAILABLE',
                 ),
             html.Div(

@@ -230,9 +230,12 @@ def get_figure(model=None, var=None, selected_date=end_date, tstep=0, hour=None,
 
     if model:
         if DEBUG: print('SERVER: Figure init ... ')
-        if MODELS[model]['start'] == 12 and tstep <= 4:
-            selected_date = (dt.strptime(selected_date, "%Y%m%d") - timedelta(days=1)).strftime("%Y%m%d")
-            tstep = 4 + int(tstep)
+        if model in MODELS and MODELS[model]['start'] == 12:
+            if tstep <= 4:
+                selected_date = (dt.strptime(selected_date, "%Y%m%d") - timedelta(days=1)).strftime("%Y%m%d")
+                tstep = 4 + int(tstep)
+            else:
+                tstep = int(tstep) - 4
 
         fh = FigureHandler(model, selected_date)
         if isinstance(hour, list):

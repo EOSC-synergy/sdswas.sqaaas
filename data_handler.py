@@ -830,7 +830,7 @@ class FigureHandler(object):
         else:
             name = MODELS[self.model]['name']
             title = VARS[varname]['title']
-        rdatetime = self.rdatetime
+        rdatetime = self.retrieve_cdatetime(tstep=0)
         cdatetime = self.retrieve_cdatetime(tstep)
         return r'{} {}'.format(name, title % {
             'rhour':  rdatetime.strftime("%H"),
@@ -870,15 +870,21 @@ class FigureHandler(object):
         self.fig = go.Figure()
         if varname and self.filedir:
             if DEBUG: print('Adding contours ...')
-            self.fig.add_trace(self.generate_contour_tstep_trace(varname, tstep))
+            try:
+                self.fig.add_trace(self.generate_contour_tstep_trace(varname, tstep))
+            except:
+                self.filedir = None
         else:
             if DEBUG: print('Adding one point ...')
             self.fig.add_trace(self.generate_var_tstep_trace())
         if varname and static and self.filedir:
             if DEBUG: print('Adding points ...', varname, tstep)
-            points_trace = self.generate_var_tstep_trace(varname, tstep)
-            if DEBUG: print(points_trace)
-            self.fig.add_trace(points_trace)
+            try:
+                points_trace = self.generate_var_tstep_trace(varname, tstep)
+                if DEBUG: print(points_trace)
+                self.fig.add_trace(points_trace)
+            except:
+                self.filedir = None
 
         # axis_style = dict(
         #     zeroline=False,
@@ -1577,6 +1583,7 @@ class ProbFigureHandler(object):
 
     def get_title(self, varname, tstep=0):
         """ return title according to the date """
+        tstep += 1
         rdatetime = self.rdatetime
         cdatetime = self.retrieve_cdatetime(tstep)
         return PROB[varname]['title'].format(

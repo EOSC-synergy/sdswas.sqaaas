@@ -72,7 +72,7 @@ cache_config = {
 }
 
 cache = Cache(server, config=cache_config)
-cache_timeout = 1
+cache_timeout = 86400
 
 try:
     cache.clear()

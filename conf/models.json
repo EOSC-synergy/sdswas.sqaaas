@@ -85,7 +85,7 @@
     },
     "wrf-nemo": {
         "name": "WRF-NEMO",
-        "template": "00_1H_WRF-NEMO-CAMx.nc",
+        "template": "00_1H_WRF-NEMO-CAMx",
         "path": "/data/products/WRF-NEMO",
 	"color": "#28a0bc",
 	"start": 0

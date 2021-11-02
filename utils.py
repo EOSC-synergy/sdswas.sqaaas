@@ -151,7 +151,7 @@ def get_colorscale(bounds, colormap, discrete=True):
     norm = mpl.colors.BoundaryNorm(bounds, colormap.N, clip=True)
     s_map = cm.ScalarMappable(norm=norm, cmap=colormap)
 
-    if DEBUG: print("::", bounds, "..", magn, "..", n_bounds)
+    # if DEBUG: print("::", bounds, "..", magn, "..", n_bounds)
 
     norm_val = not (list(bounds) == list(n_bounds))
 
@@ -173,7 +173,7 @@ def get_colorscale(bounds, colormap, discrete=True):
                 colorscale.insert(1, [1, colorscale[0][1]])
 
 
-    if DEBUG: print(':::', colorscale, ':::')
+    # if DEBUG: print(':::', colorscale, ':::')
     return colorscale
 
 

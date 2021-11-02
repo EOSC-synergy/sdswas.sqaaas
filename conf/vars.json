@@ -45,12 +45,12 @@
 	"models": "['monarch']"
     },
     "DUST_EXT_SFC": {
-        "name": "Dust Surface Extinction (Mm⁻ⁱ)",
+        "name": "Dust Surface Extinction (Mm⁻¹)",
 	"name_sidebar": "Extinction",
 	"image_scale": "/home/fbeninca/interactive-forecast-viewer/assets/images/SurfaceExtintion.png",
         "bounds": [5, 10, 25, 100, 250, 1000, 2500, 10000, 100000],
         "mul": 1e6,
-        "title": "Dust Surface Extinction (Mm⁻ⁱ)<br>Run: %(rhour)sh %(rday)s %(rmonth)s %(ryear)s<br>Valid: %(shour)sh %(sday)s %(smonth)s %(syear)s (H+%(step)s)",
+        "title": "Dust Surface Extinction (Mm⁻¹)<br>Run: %(rhour)sh %(rday)s %(rmonth)s %(ryear)s<br>Valid: %(shour)sh %(sday)s %(smonth)s %(syear)s (H+%(step)s)",
 	"models": "['monarch']"
     }
 }
