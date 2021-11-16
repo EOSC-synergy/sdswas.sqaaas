@@ -30,6 +30,7 @@ import requests
 import pandas as pd
 from datetime import datetime as dt
 from datetime import timedelta
+import time
 from io import BytesIO
 from PIL import Image
 import zipfile
@@ -58,7 +59,8 @@ def register_callbacks(app, cache, cache_timeout):
          Input('variable-dropdown-forecast', 'value')],
         [State('collapse-1', 'is_open'),
          State('collapse-2', 'is_open'),
-         State('collapse-3', 'is_open'),]
+         State('collapse-3', 'is_open'),],
+        prevent_initial_call=True
     )
     def render_forecast_tab(modbutton, probbutton, wasbutton, var, modopen, probopen, wasopen):
         """ Function rendering requested tab """
@@ -111,6 +113,7 @@ def register_callbacks(app, cache, cache_timeout):
         [Output('prob-dropdown', 'options'),
          Output('prob-dropdown', 'value')],
         [Input('variable-dropdown-forecast', 'value')],
+        prevent_initial_call=True
     )
     def update_prob_dropdown(var):
         """ Update Prob maps dropdown """
@@ -123,7 +126,7 @@ def register_callbacks(app, cache, cache_timeout):
 
 
     @app.callback(
-        [Output('alert-models-auto', 'is_open'),
+        [  # Output('alert-models-auto', 'is_open'),
          Output('model-dropdown', 'options'),
          Output('model-dropdown', 'value')],
         [Input('variable-dropdown-forecast', 'value')],
@@ -146,16 +149,16 @@ def register_callbacks(app, cache, cache_timeout):
 
         checked = [c for c in models if c in checked or len(models)==1]
         if DEBUG: print('MODELS', models, 'OPTS', type(options), options)
-        if len(checked) >= 4:
-            options = [{
-                'label': MODELS[model]['name'],
-                'value': model,
-                'disabled': model not in checked,
-                } for model in MODELS]
+#        if len(checked) >= 16:
+#            options = [{
+#                'label': MODELS[model]['name'],
+#                'value': model,
+#                'disabled': model not in checked,
+#                } for model in MODELS]
+#
+#            return True, options, checked
 
-            return True, options, checked
-
-        return False, options, checked
+        return options, checked
 
 
     @app.callback(
@@ -326,8 +329,9 @@ def register_callbacks(app, cache, cache_timeout):
         [Input('was-date-picker', 'date'),
          Input('was-slider-graph', 'value'),
          Input('was-dropdown', 'value'),],
+        prevent_initial_call=True
     )
-    @cache.memoize(timeout=cache_timeout)
+    # @cache.memoize(timeout=cache_timeout)
     def update_was_figure(date, day, was):
         """ Update Warning Advisory Systems maps """
         from tools import get_was_figure
@@ -358,8 +362,9 @@ def register_callbacks(app, cache, cache_timeout):
         [State('prob-dropdown', 'value'),
          State('variable-dropdown-forecast', 'value'),
          ],
+        prevent_initial_call=True
     )
-    @cache.memoize(timeout=cache_timeout)
+    # @cache.memoize(timeout=cache_timeout)
     def update_prob_figure(n_clicks, date, day, prob, var):
         """ Update Warning Advisory Systems maps """
         from tools import get_prob_figure
@@ -392,9 +397,10 @@ def register_callbacks(app, cache, cache_timeout):
         Output({'type': 'graph-with-slider', 'index': MATCH}, 'figure'),
         [Input(style, 'n_clicks') for style in STYLES] +
         [Input('airports', 'n_clicks')],
-        [State({'type': 'graph-with-slider', 'index': MATCH}, 'figure')]
+        [State({'type': 'graph-with-slider', 'index': MATCH}, 'figure')],
+        prevent_initial_call=True
     )
-    @cache.memoize(timeout=cache_timeout)
+    # @cache.memoize(timeout=cache_timeout)
     def update_styles(*args):
         """ Function updating map layout cartography """
         ctx = dash.callback_context
@@ -464,7 +470,7 @@ def register_callbacks(app, cache, cache_timeout):
          State('variable-dropdown-forecast', 'value')],
         prevent_initial_call=True
     )
-    @cache.memoize(timeout=cache_timeout)
+    # @cache.memoize(timeout=cache_timeout)
     def show_timeseries(cdata, element, date, model, variable):
         """ Renders model comparison timeseries """
         from tools import get_timeseries
@@ -539,16 +545,17 @@ def register_callbacks(app, cache, cache_timeout):
                 return not disabled, int(value/FREQ), ts_style, div_anim
             elif button_id == 'btn-stop' and not disabled:
                 ts_style = { 'display': 'block' }
-                return not disabled, int(value/FREQ), ts_style, div_noanim
+                return not disabled, int(value/FREQ), ts_style, div_anim
 
         raise PreventUpdate
 
 
     @app.callback(
         Output('slider-graph', 'value'),
-        [Input('slider-interval', 'n_intervals')]
+        [Input('slider-interval', 'n_intervals')],
+        prevent_initial_call=True
     )
-    @cache.memoize(timeout=cache_timeout)
+    # @cache.memoize(timeout=cache_timeout)
     def update_slider(n):
         """ Update slider value according to the number of intervals """
         if DEBUG: print('SERVER: updating slider-graph ' + str(n))
@@ -570,7 +577,7 @@ def register_callbacks(app, cache, cache_timeout):
         [State('forecast-tab', 'children')],
         prevent_initial_call=True
         )
-    @cache.memoize(timeout=cache_timeout)
+    # @cache.memoize(timeout=cache_timeout)
     def update_tab_content(models_clicks, prob_clicks, was_clicks, curtab):
         ctx = dash.callback_context
 
@@ -580,7 +587,7 @@ def register_callbacks(app, cache, cache_timeout):
                 raise PreventUpdate
 
             if DEBUG: print("::::::::::::", len(curtab))
-            out_tab = dash.no_update
+            # out_tab = dash.no_update
             if len(curtab) > 3:
                 curtab_name = 'models'
             elif curtab[1]['props']['children']['props']['id'] == 'prob-graph':
@@ -589,37 +596,50 @@ def register_callbacks(app, cache, cache_timeout):
                 curtab_name = 'was'
 
             nexttab_name = button_id.replace('-apply', '')
-            if curtab_name != nexttab_name:
-                out_tab = tab_forecast(nexttab_name)
-
             if DEBUG: print("::::::::::::", curtab_name, nexttab_name)
+            if curtab_name != nexttab_name:
+                return tab_forecast(nexttab_name)
 
-            return out_tab
+            raise PreventUpdate
 
         raise PreventUpdate
 
 
+#    app.clientside_callback(
+#        """
+#        function((figures, models, variable, date, tstep)) {
+#            return figures;
+#        }
+#        """,
+#
+#         Output('graph-collection', 'children'),
+#         Input('clientside-graph-collection', 'data'),
+#    )
+
     @app.callback(
-        [
-         Output('btn-play', 'style'),
-         Output('btn-stop', 'style'),
-         Output('graph-collection', 'children')],
+         # Output('btn-play', 'style'),
+           # Output('btn-stop', 'style'),
+         Output('graph-collection', 'children'),
         [Input('models-apply', 'n_clicks'),
          Input('slider-graph', 'value'),
          Input('model-date-picker', 'date')],
         [State('model-dropdown', 'value'),
          State('variable-dropdown-forecast', 'value'),
-         State({'type': 'graph-with-slider', 'index': ALL}, 'figure'),
-         State({'type': 'graph-with-slider', 'index': ALL}, 'id'),
+         # State({'type': 'graph-with-slider', 'index': ALL}, 'figure'),
+         # State({'type': 'graph-with-slider', 'index': ALL}, 'id'),
          State('slider-interval', 'disabled'),
+         # State('clientside-graph-collection', 'data'),
          ],
         prevent_initial_call=True
         )
-    @cache.memoize(timeout=cache_timeout)
-    def update_models_figure(n_clicks, tstep, date, model, variable, graphs, ids, static):
+    # @cache.memoize(timeout=cache_timeout)
+    def update_models_figure(n_clicks, tstep, date, model, variable, static):  # graphs, ids, static):
         """ Update mosaic of maps figures according to all parameters """
         from tools import get_figure
         if DEBUG: print('SERVER: calling figure from picker callback')
+
+        st_time = time.time()
+
         ctx = dash.callback_context
 
         if ctx.triggered:
@@ -654,66 +674,32 @@ def register_callbacks(app, cache, cache_timeout):
 
         if DEBUG: print('SERVER: tstep calc ' + str(tstep))
 
-        # if DEBUG and len(ids) > 0: print('SERVER: graphs ' + str(graphs), 'ids' + str(ids))
-
         figures = []
-        if not model:
-            fig = get_figure(model, variable, date, tstep, static=static)
-            if not static:
-                figures.append(
-                    dbc.Row([
-                        dbc.Col([
-                            get_graph(index='none', figure=fig,
-                                style={'height': '{}vh'.format(GRAPH_HEIGHT)}
-                                )
-                        ])
-                    ])
-                )
-            else:
-                figures.append(
-                    dbc.Row([
-                        dbc.Col([
-                            get_graph(index='none', figure=fig,
-                                style={'height': '{}vh'.format(GRAPH_HEIGHT)}
-                                )
-                        ])
-                    ])
-                )
-            if len(figures) > 1:
-                btn_style = { 'display': 'none' }
-            else:
-                btn_style = { 'display': 'inline-block' }
-            return btn_style, btn_style, figures
 
         ncols, nrows = calc_matrix(len(model))
-        past_models = {mod['index']: figure for mod, figure in zip(ids, graphs)}
 
         for idx, mod in enumerate(model):
-            if mod in past_models:
-                figure = past_models[mod]
-                figure['layout']['mapbox']['zoom'] = 2.8 -(0.5*nrows)
-            else:
-                figure = get_figure(mod, variable, date, tstep,
+            figure = get_figure(mod, variable, date, tstep,
                     static=static, aspect=(nrows, ncols))
+            # if DEBUG: print('FIGURE', figure)
             if DEBUG: print('STATIC', static)
-            if not static:
-                figures.append(
-                    get_graph(
-                        index=mod,
-                        figure=get_figure(mod, variable, date, tstep,
-                            static=static, aspect=(nrows, ncols)),
+            figures.append(
+                    html.Div(
+                        figure,
+                        id='{}-map'.format(mod),
+#                            {
+#                            'type': 'graph-with-slider',
+#                            'index': mod,
+#                            },
+                        className="graph-with-slider",
                         style={'height': '{}vh'.format(int(GRAPH_HEIGHT)/nrows)}
                     )
-                )
-            else:
-                figures.append(
-                    get_graph(
-                        index=mod,
-                        figure=get_figure(mod, variable, date, tstep,
-                            static=static, aspect=(nrows, ncols)),
-                        style={'height': '{}vh'.format(int(GRAPH_HEIGHT)/nrows)}
-                    )
-                )
+#                get_graph(
+#                    index=mod,
+#                    figure=figure,
+#                    style={'height': '{}vh'.format(int(GRAPH_HEIGHT)/nrows)}
+#                )
+            )
 
         res = [
             dbc.Row(
@@ -729,8 +715,5 @@ def register_callbacks(app, cache, cache_timeout):
             ) for row in range(nrows)
         ]
         if DEBUG: print(ncols, nrows, len(res), [(type(i), len(i.children)) for i in res])
-        if len(figures) > 1:
-            btn_style = { 'display': 'none' }
-        else:
-            btn_style = { 'display': 'inline-block' }
-        return btn_style, btn_style, res
+        if DEBUG: print("**** REQUEST TIME", str(time.time() - st_time))
+        return res

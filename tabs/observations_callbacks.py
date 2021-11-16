@@ -141,7 +141,7 @@ def register_callbacks(app):
      Input('obs-slider-graph', 'value')],
     [State('btn-fulldisc', 'active'),
      State('btn-middleeast', 'active')],
-     #prevent_initial_call=True
+     prevent_initial_call=True
     )
     def update_image_src(btn_fulldisc, btn_middleeast, date, tstep, btn_fulldisc_active, btn_middleeast_active):
 

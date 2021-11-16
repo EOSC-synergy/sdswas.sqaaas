@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 """ Data Handler """
 
-# import plotly
 import plotly.graph_objs as go
 from dash import html
+import dash_leaflet as dl
+import dash_leaflet.express as dlx
+from dash_extensions.javascript import arrow_function
+from dash_extensions.javascript import Namespace
 from matplotlib.colors import ListedColormap
 import numpy as np
 from netCDF4 import Dataset as nc_file
@@ -11,12 +14,14 @@ import pandas as pd
 import geopandas as gpd
 from shapely import geometry
 import json
+import orjson
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from collections import OrderedDict
 from PIL import Image
-from urllib.request import urlopen
+import requests
 import calendar
+import time
 import os
 
 from utils import concat_dataframes
@@ -399,7 +404,7 @@ class TimeSeriesHandler(object):
         if not model:
             model = self.model
 
-        if DEBUG: print("----------", model)
+        # if DEBUG: print("----------", model)
 
         obs_eval = model[0] not in MODELS and model[0] in OBS
         if obs_eval:
@@ -525,6 +530,9 @@ class FigureHandler(object):
     """ Class to manage the figure creation """
 
     def __init__(self, model=None, selected_date=None):
+        """ FigureHandler init """
+
+        self.st_time = time.time()
         if isinstance(model, list):
             model = model[0]
 
@@ -666,6 +674,18 @@ class FigureHandler(object):
             method="relayout"
         )
 
+    def get_center(self, center=None):
+        """ Returns center of map """
+        if center is None and hasattr(self, 'ylat'):
+            center =  [
+                    (self.ylat.max()-self.ylat.min())/2 + self.ylat.min(),
+                    (self.xlon.max()-self.xlon.min())/2 + self.xlon.min(),
+            ]
+        elif center is None:
+            center = [ 30, 15 ]
+
+        return center
+
     def get_updated_trace(self, varname, tstep=0):
         """ Get updated trace """
         return dict(
@@ -683,13 +703,13 @@ class FigureHandler(object):
             mul = VARS[varname]['mul']
 
         realvar = [var for var in self.varlist if var.upper()==varname.upper()][0]
-        if DEBUG: print("***", mul, realvar, "***")
+        # if DEBUG: print("***", mul, realvar, "***")
         var = self.input_file.variables[realvar][tstep]*mul
         idx = np.where((~var.ravel().mask) & (var.ravel() >= self.bounds[varname.upper()][0]))  # !=-9.e+33)
         xlon = self.xlon.ravel()[idx]
         ylat = self.ylat.ravel()[idx]
         var = var.ravel()[idx]
-        if DEBUG: print("***", xlon.shape, ylat.shape, var.shape, "***")
+        # if DEBUG: print("***", xlon.shape, ylat.shape, var.shape, "***")
         return xlon.data, ylat.data, var.data
 
     def retrieve_cdatetime(self, tstep=0):
@@ -707,30 +727,58 @@ class FigureHandler(object):
 
         return cdatetime
 
+    def generate_contour_tstep_trace_leaflet(self, varname, tstep=0):
+        """ Generate trace to be added to data, per variable and timestep """
+        from dash_server import app
+
+        if varname not in VARS and self.model in OBS:
+            name = VARS[OBS[self.model]['mod_var']]['name']
+        else:
+            name = VARS[varname]['name']
+        if self.bounds:
+            bounds = self.bounds[varname.upper()]
+        else:
+            bounds = [0, 1]
+
+        if DEBUG: print(bounds)
+        colorscale=COLORS  # self.colormaps[varname.upper()]
+        if DEBUG: print(colorscale)
+
+        geojson_url = app.get_asset_url(os.path.join('geojsons',
+            GEOJSON_TEMPLATE.format(os.path.basename(MODELS[self.model]['path']),
+                self.selected_date_plain, tstep, self.selected_date_plain,
+                varname)))
+
+        style = dict(weight=0, opacity=0, color='white', dashArray='', fillOpacity=0.6)
+
+        # Create colorbar.
+        ctg = ["{:.1f}".format(cls, bounds[i + 1]) if '.' in str(cls) else "{:d}".format(cls, bounds[i + 1]) for i, cls in enumerate(bounds[:-1])]
+        colorbar = dlx.categorical_colorbar(categories=ctg, colorscale=colorscale, width=250, height=20, position="topleft", style={ 'top': '70px' })
+
+        # Geojson rendering logic, must be JavaScript as it is executed in clientside.
+        ns = Namespace("forecastTab", "forecastMaps")
+        style_handle = ns("styleHandle")
+
+        geojson = dl.GeoJSON(
+                url=geojson_url,
+                options=dict(style=style_handle),
+                hideout=dict(colorscale=colorscale, bounds=bounds, style=style, colorProp="value")
+                )  # url to geojson file
+
+        return geojson, colorbar
+
+
     def generate_contour_tstep_trace(self, varname, tstep=0):
         """ Generate trace to be added to data, per variable and timestep """
         from dash_server import app
-        from dash_server import HOSTNAME
-        HOSTNAME = 'http://{}:9000'.format(HOSTNAME)
 
-#        geojson_file = GEOJSON_TEMPLATE.format(self.filedir,
-#                self.selected_date_plain, tstep, self.selected_date_plain, varname)
-
-        if self.filedir[-1] == '/':
-            self.filedir = self.filedir[:-1]
-        mod_name = 'geojsons/{}'.format(os.path.basename(self.filedir))
-        if DEBUG: print('****', mod_name, self.filedir)
-        geojson_file = GEOJSON_TEMPLATE.format(mod_name,
+        geojson_file = GEOJSON_TEMPLATE.format(self.filedir,
                 self.selected_date_plain, tstep, self.selected_date_plain, varname)
 
-        try:
-        #if os.path.exists(geojson_file):
-            #geojson = json.load(open(geojson_file))
-            geojson_url = '{}{}'.format(HOSTNAME, app.get_asset_url(geojson_file))
-            if DEBUG: print('GEOJSON_URL', geojson_url)
-            geojson = json.load(urlopen(geojson_url))
-        except:
-            if DEBUG: print('ERROR', geojson_url, 'not available')
+        if os.path.exists(geojson_file):
+            geojson = orjson.loads(open(geojson_file).read())
+        else:
+            if DEBUG: print('ERROR', geojson_file, 'not available')
             geojson = {
                     "type": "FeatureCollection",
                     "features": []
@@ -775,12 +823,48 @@ class FigureHandler(object):
             colorbar=None,
         )
 
+    def generate_var_tstep_trace_leaflet(self, varname=None, tstep=0):
+        """ Generate trace to be added to data, per variable and timestep """
+        colorscale = COLORS
+        xlon, ylat, val = self.set_data(varname, tstep)
+        df = pd.DataFrame(np.array([xlon, ylat, val]).T.round(2), columns=['lon', 'lat', 'value'])
+        dicts = df.to_dict('rows')
+        for item in dicts:
+            item["tooltip"] = \
+                    "Lat {:.2f} Lon {:.2f} Val {:.2f}".format(item['lat'], item['lon'], item['value'])
+        geojson = dlx.dicts_to_geojson(dicts, lon="lon")
+        geobuf = dlx.geojson_to_geobuf(geojson)
+
+        if DEBUG: print("GEOBUF CREATED ***********")
+        # Geojson rendering logic, must be JavaScript as it is executed in clientside.
+        ns = Namespace("forecastTab", "forecastMaps")
+        point_to_layer = ns("pointToLayer")
+        bind_tooltip = ns("bindTooltip")
+        if DEBUG: print("BIND", str(bind_tooltip))
+        # Create geojson.
+        return dl.GeoJSON(data=geobuf, format="geobuf",
+                options=dict(
+                    pointToLayer=point_to_layer,
+                    # onEachFeature=bind_tooltip,
+                ),  # how to draw points
+                hideout=dict(
+                    colorProp='value',
+                    circleOptions=dict(
+                        fillOpacity=0,
+                        stroke=False,
+                        radius=0),
+                    min=0,
+                    max=val.max(),
+                    colorscale=colorscale)
+                )
+        
+
     def generate_var_tstep_trace(self, varname=None, tstep=0):
         """ Generate trace to be added to data, per variable and timestep """
         if not varname:
             return dict(
                 type='scattermapbox',
-                below='',
+                # below='',
                 lon=[15],
                 lat=[30],
                 hoverinfo='none',
@@ -800,7 +884,7 @@ class FigureHandler(object):
         if DEBUG: print("***", name, "***")
         return dict(
             type='scattermapbox',
-            below='',
+            # below='',
             lon=xlon,
             lat=ylat,
             text=val,
@@ -867,81 +951,89 @@ class FigureHandler(object):
 
         if DEBUG: print('VARNAME', varname)
 
-        self.fig = go.Figure()
+#        tiles_url = 'https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png'
+#        tiles_url = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}'
+#        tiles_attribution = '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a> '
+
         if varname and self.filedir:
             if DEBUG: print('Adding contours ...')
             try:
-                self.fig.add_trace(self.generate_contour_tstep_trace(varname, tstep))
-            except:
+                cont_time = time.time()
+                geojson_contours, colorbar = self.generate_contour_tstep_trace_leaflet(varname, tstep)
+                if DEBUG: print("****** CONTOURS EXEC TIME", str(time.time() - cont_time))
+                if static:
+                    if DEBUG: print('Adding points ...', varname, tstep)
+                    pts_time = time.time()
+                    geojson_points = self.generate_var_tstep_trace_leaflet(varname, tstep)
+                    if DEBUG: print("****** POINTS EXEC TIME", str(time.time() - pts_time))
+                else:
+                    geojson_points = None
+            except Exception as err:
+                if DEBUG: print("----------- ERROR:", str(err))
                 self.filedir = None
+                # if DEBUG: print('ERROR: geojson {}'.format(geojson_url))
+                data = {
+                        "type": "FeatureCollection",
+                        "features": []
+                        }
+                geojson_contours = dl.GeoJSON(
+                        data=data,
+                        )
+                geojson_points = None
+                colorbar = None
         else:
             if DEBUG: print('Adding one point ...')
-            self.fig.add_trace(self.generate_var_tstep_trace())
-        if varname and static and self.filedir:
-            if DEBUG: print('Adding points ...', varname, tstep)
-            try:
-                points_trace = self.generate_var_tstep_trace(varname, tstep)
-                if DEBUG: print(points_trace)
-                self.fig.add_trace(points_trace)
-            except:
-                self.filedir = None
+            data = {
+                    "type": "FeatureCollection",
+                    "features": []
+                    }
+            geojson_contours = dl.GeoJSON(
+                data=data,
+            )
+            geojson_points = None
+            colorbar = None
 
-        # axis_style = dict(
-        #     zeroline=False,
-        #     showline=False,
-        #     showgrid=True,
-        #     ticks='',
-        #     showticklabels=False,
-        # )
+        if DEBUG: print("ASPECT", aspect)
+        center = self.get_center(center)
+        if DEBUG: print("CENTER", center)
+
 
         if DEBUG: print('Update layout ...')
         if not varname:
-            fig_title=dict(text='',
-                           xanchor='center',
-                           yanchor='middle',
-                           x=0.5, y=0.5)
+            fig_title=html.P("")
+            info_style = {"position": "absolute", "top": "10px", "left": "10px", "z-index": "1000"}
         elif varname and not self.filedir:
-            fig_title=dict(text='<b>DATA NOT AVAILABLE</b>',
-                           xanchor='center',
-                           yanchor='middle',
-                           x=0.5, y=0.5)
+            fig_title = html.P(html.B("DATA NOT AVAILABLE"))
+            info_style = {"position": "absolute", "top": "10px", "left": "10px", "z-index": "1000"}
         else:
-            fig_title=dict(text='{}'.format(self.get_title(varname, tstep)),
-                           xanchor='left',
-                           yanchor='top',
-                           x=0.01, y=0.95)
-            if varname and varname in VARS:
-                if DEBUG: print('ADD IMAGES')
-                ypos = 0.9-(aspect[0]/30)
-                size = 0.18+(aspect[0]/6)
-                if DEBUG: print("YPOS", aspect[0], ypos)
-                self.fig.add_layout_image(
-                    dict(
-                        source=Image.open(VARS[varname]['image_scale']),
-                        xref="paper", yref="paper",
-                        x=0.01, y=ypos,
-                        sizex=size, sizey=size,
-                        xanchor="left", yanchor="top",
-                        layer='above',
-                    ))
-        self.fig.update_layout(
-            title=fig_title,
-            uirevision='forecast-multimodel',  # True,
-            autosize=True,
-            hovermode="closest",        # highlight closest point on hover
-            mapbox=self.get_mapbox(zoom=2.8-(0.5*aspect[0]), center=center),
-            font_size=12-(0.5*aspect[0]),
-            # width="100%",
-            updatemenus=[
-                # get_animation_buttons(),
-                # self.get_mapbox_style_buttons(),
-                # self.get_variable_dropdown_buttons(),
-            ],
-            margin={"r": 0, "t": 0, "l": 0, "b": 0},
+            fig_title = html.P(html.B(
+                [
+                    item for sublist in self.get_title(varname, tstep).split('<br>') for item in [sublist, html.Br()]
+                ][:-1]
+            ))
+            info_style = {"position": "absolute", "top": "10px", "left": "10px", "z-index": "1000"}
+        info = html.Div(
+            children=fig_title,
+            id="{}-info".format(self.model), # className="info",
+            style=info_style
         )
 
-        # if DEBUG: print('Returning fig of size {}'.format(sys.getsizeof(self.fig)))
-        return self.fig
+        fig = dl.Map(children=[
+            dl.TileLayer(),
+            dl.FullscreenControl(
+                position='topright',
+                ),
+            geojson_contours,
+            geojson_points,
+            colorbar,
+            info
+            ],
+            zoom=4.5-(aspect[0]),
+            center=center,
+        )
+
+        if DEBUG: print("*** FIGURE EXECUTION TIME: {} ***".format(str(time.time() - self.st_time)))
+        return fig
 
 
 class ScoresFigureHandler(object):

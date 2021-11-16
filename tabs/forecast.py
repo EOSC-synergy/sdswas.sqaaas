@@ -12,6 +12,11 @@ from datetime import timedelta
 from data_handler import STYLES
 from data_handler import DATES
 from data_handler import DISCLAIMER_MODELS
+from data_handler import DEFAULT_MODEL
+from data_handler import DEFAULT_VAR
+from data_handler import GRAPH_HEIGHT 
+
+from tools import get_figure
 
 start_date = DATES['start_date']
 end_date = DATES['end_date'] or (dt.now() - timedelta(days=1)).strftime("%Y%m%d")
@@ -87,7 +92,7 @@ time_series = html.Div(
                 ),
             ],
         )],
-    #style={'display': 'none'},
+    style={'display': 'none'},
 )
 
 
@@ -220,32 +225,51 @@ was_time_slider = html.Div([
 def tab_forecast(window='models'):
     models_children = [
         login_modal,
-        dbc.Alert(
-            "To ensure a better experience, please note that you cannot select more than 4 models at once.",
-            id="alert-models-auto",
-            is_open=False,
-            duration=6000,
-            fade=True,
-            color="primary",
-            style={ 'overflow': 'auto', 'margin-bottom': 0 }
-        ),
+#        dbc.Alert(
+#            "To ensure a better experience, please note that you cannot select more than 4 models at once.",
+#            id="alert-models-auto",
+#            is_open=False,
+#            duration=6000,
+#            fade=True,
+#            color="primary",
+#            style={ 'overflow': 'auto', 'margin-bottom': 0 }
+#        ),
         html.Div(
             id='div-collection',
-            children=[dbc.Spinner(
-            id='loading-graph-collection',
-            #debounce=10,
-            show_initially=False,
+#            children=[dbc.Spinner(
+#            id='loading-graph-collection',
+#            #debounce=10,
+#            show_initially=False,
             children=[
                 dbc.Container(
                     id='graph-collection',
-                    children=[],
+                    children=[
+                        html.Div(
+                            get_figure(
+                                DEFAULT_MODEL,
+                                DEFAULT_VAR, 
+                                end_date,
+                                0,
+                                static=True,
+                                aspect=(1, 1)
+                            ),
+                            id='{}-map'.format(DEFAULT_MODEL),
+#                                {
+#                                'type': 'graph-with-slider',
+#                                'index': DEFAULT_MODEL,
+#                                },
+                            className="graph-with-slider",
+                            style={'height': '{}vh'.format(int(GRAPH_HEIGHT))}
+                        )
+                        ],
                     fluid=True,
-                    )]
-            )],
+                    ),
+                ]
+#            )],
         ),
         html.Div(
             dcc.Interval(id='slider-interval',
-                interval=1500,
+                interval=1000,
                 n_intervals=0,
                 disabled=True
         )),
@@ -261,15 +285,15 @@ def tab_forecast(window='models'):
     ]
 
     was_children = [
-        dbc.Alert(
-            "To ensure a better experience, please note that you cannot select more than 4 models at once.",
-            id="alert-models-auto",
-            is_open=False,
-            duration=6000,
-            fade=True,
-            color="primary",
-            style={ 'overflow': 'auto', 'margin-bottom': 0 }
-        ),
+#        dbc.Alert(
+#            "To ensure a better experience, please note that you cannot select more than 4 models at once.",
+#            id="alert-models-auto",
+#            is_open=False,
+#            duration=6000,
+#            fade=True,
+#            color="primary",
+#            style={ 'overflow': 'auto', 'margin-bottom': 0 }
+#        ),
         dbc.Spinner(
             html.Div(
                 id='was-graph',
@@ -287,15 +311,15 @@ def tab_forecast(window='models'):
     ]
 
     prob_children = [
-        dbc.Alert(
-            "To ensure a better experience, please note that you cannot select more than 4 models at once.",
-            id="alert-models-auto",
-            is_open=False,
-            duration=6000,
-            fade=True,
-            color="primary",
-            style={ 'overflow': 'auto', 'margin-bottom': 0 }
-        ),
+#        dbc.Alert(
+#            "To ensure a better experience, please note that you cannot select more than 4 models at once.",
+#            id="alert-models-auto",
+#            is_open=False,
+#            duration=6000,
+#            fade=True,
+#            color="primary",
+#            style={ 'overflow': 'auto', 'margin-bottom': 0 }
+##        ),
         dbc.Spinner(
             html.Div(
                 id='prob-graph',
@@ -393,7 +417,7 @@ def sidebar_forecast(variables, default_var, models, default_model):
         dbc.Card([
             dbc.CardHeader(html.H2(
                 dbc.Button("Warning Advisory System",
-                    color="link", id='group-3-toggle')
+                    color="link", id='group-3-toggle', disabled=True)
             )),
             dbc.Collapse(
                 id='collapse-3',

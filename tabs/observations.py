@@ -125,6 +125,7 @@ def tab_observations(window='rgb'):
         html.Div([
             html.Img(
                 id='rgb-image',
+                src='./assets/eumetsat/FullDiscHD/archive/{date}/FRAME_OIS_RGB-dust-all_{date}{tstep:02d}00.gif'.format(date=end_date, tstep=0),
                 ),
             html.Div(
                 obs_time_slider(div='obs'),

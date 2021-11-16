@@ -4,6 +4,7 @@
 
 import matplotlib as mpl
 from matplotlib import cm
+import plotly.graph_objs as go
 import xarray as xr
 import numpy as np
 import pandas as pd
@@ -162,7 +163,7 @@ def get_colorscale(bounds, colormap, discrete=True):
                                               norm=norm_val))]
                   for idx, val in zip(n_bounds, bounds)]
 
-    if DEBUG: print('---', colorscale, '---')
+    # if DEBUG: print('---', colorscale, '---')
     if discrete is True:
         for item in colorscale.copy():
             if colorscale.index(item) < len(colorscale)-2:
@@ -230,6 +231,9 @@ def get_graph(index=None, figure={}, gid=None, style={}):
                 'type': 'graph-with-slider',
                 'index': index,
             }
+
+    if isinstance(figure, dict):
+        figure = go.Figure(figure)
 
     figure.update_layout(MODEBAR_LAYOUT)
 

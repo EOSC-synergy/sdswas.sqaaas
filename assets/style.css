@@ -189,6 +189,10 @@ div.SingleDatePickerInput {
     border: none;
 }
 
+.SingleDatePicker_picker__portal {
+    z-index: 10001;
+}
+
 #was-slider-graph, #prob-slider-graph, #obs-vis-slider-graph {
     width: 10rem;
     padding-right: 35px !important;
@@ -456,6 +460,10 @@ div.SingleDatePickerInput {
 #graph-collection {
     height: 93vh !important;
     padding: 0 !important;
+}
+
+.info>p {
+    margin-bottom: 0;
 }
 
 /*

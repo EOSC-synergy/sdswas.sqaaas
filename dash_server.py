@@ -1,8 +1,8 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """ Dash Server """
 
-# import debug
+#import gevent.monkey
+#gevent.monkey.patch_all()
+
 import dash
 import dash_bootstrap_components as dbc
 from dash import dcc
@@ -14,7 +14,9 @@ from dash.dependencies import ALL
 from dash.dependencies import MATCH
 from dash.exceptions import PreventUpdate
 import flask
-from flask_caching import Cache
+from flask import g, make_response, request
+#from flask_caching import Cache
+#from pyinstrument import Profiler
 from pathlib import Path
 
 from data_handler import DEFAULT_VAR
@@ -48,7 +50,9 @@ app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP,
                                                 fontawesome
                                                 ],
                 url_base_pathname='/daily_dashboard/',
-                server=srv)
+                server=srv,
+                prevent_initial_callbacks=True
+                )
 app.css.config.serve_locally = True
 app.scripts.config.serve_locally = True
 app.config.update({
@@ -62,30 +66,45 @@ app.config.update({
 app.config.suppress_callback_exceptions = True
 server = app.server
 
-cache_dir = "/dev/shm"
-Path(cache_dir).mkdir(parents=True, exist_ok=True)
-
-cache_config = {
-    "DEBUG": True,
-    "CACHE_TYPE": "FileSystemCache",
-    "CACHE_DIR": cache_dir,
-}
-
-cache = Cache(server, config=cache_config)
-cache_timeout = 86400
-
-try:
-    cache.clear()
-except Exception as e:
-    print('CACHE CLEAR ERROR:', str(e))
-    pass
+#cache_dir = "/dev/shm"
+#Path(cache_dir).mkdir(parents=True, exist_ok=True)
+#
+#cache_config = {
+#    "DEBUG": True,
+#    "CACHE_TYPE": "FileSystemCache",
+#    "CACHE_DIR": cache_dir,
+#}
+#
+#cache = Cache(server, config=cache_config)
+#cache_timeout = 86400
+#
+#try:
+#    cache.clear()
+#except Exception as e:
+#    print('CACHE CLEAR ERROR:', str(e))
+#    pass
+#
+#@srv.before_request
+#def before_request():
+#    if "profile" in request.args:
+#        g.profiler = Profiler()
+#        g.profiler.start()
+#
+#
+#@srv.after_request
+#def after_request(response):
+#    if not hasattr(g, "profiler"):
+#        return response
+#    g.profiler.stop()
+#    output_html = g.profiler.output_html()
+#    return make_response(output_html)
 
 if DEBUG: print('SERVER: start creating app layout')
 app.layout = html.Div(
     children=[
         html.Div(
             id='app-sidebar',
-            children=[],
+            children=sidebar_forecast(VARS, DEFAULT_VAR, MODELS, DEFAULT_MODEL),
             className='sidebar'
         ),
         dcc.Tabs(id='app-tabs', value='forecast-tab', children=[
@@ -127,11 +146,11 @@ def render_sidebar(tab):
     return tabs[tab][0](*tabs[tab][1])
 
 
-fcst_callbacks(app, cache, cache_timeout)
-eval_callbacks(app, cache, cache_timeout)
+fcst_callbacks(app, cache=None, cache_timeout=None)
+eval_callbacks(app, cache=None, cache_timeout=None)
 obs_callbacks(app)
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True, processes=4, threaded=False,
+    app.run_server(debug=True, # use_reloader=False,  # processes=4, threaded=False,
                    host=HOSTNAME, port=7777)
