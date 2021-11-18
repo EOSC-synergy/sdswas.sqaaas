@@ -50,6 +50,26 @@ def concat_dataframes(fname_tpl, months, variable, rename_from=None, notnans=Non
     return notnans, mon_dfs[mon_dfs['station'].isin(notnans)]
 
 
+def retrieve_single_point(fname, tstep, lat, lon, variable, method='netcdf', forecast=True):
+    """ """
+    from data_handler import DEBUG
+    if DEBUG: print(fname, tstep, lat, lon, variable)
+    ds = xr.open_dataset(fname)
+    if variable not in ds.variables:
+        variable = variable.lower()
+    # print('TIMESERIES', fname, variable, lon, lat)
+    if 'lat' in ds.variables:
+        da = ds[variable].sel(lon=lon, lat=lat, method='nearest')
+        clat = 'lat'
+        clon = 'lon'
+    else:
+        da = ds[variable].sel(longitude=lon, latitude=lat, method='nearest')
+        clat = 'latitude'
+        clon = 'longitude'
+    if DEBUG: print(da)
+    return da.values[tstep]
+
+
 def retrieve_timeseries(fname, lat, lon, variable, method='netcdf', forecast=False):
     """ """
     if method == 'feather' and not forecast:

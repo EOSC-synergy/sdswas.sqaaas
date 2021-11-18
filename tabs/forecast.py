@@ -11,6 +11,7 @@ from datetime import timedelta
 
 from data_handler import STYLES
 from data_handler import DATES
+from data_handler import MODELS
 from data_handler import DISCLAIMER_MODELS
 from data_handler import DEFAULT_MODEL
 from data_handler import DEFAULT_VAR
@@ -75,7 +76,7 @@ time_series = html.Div(
         dbc.Spinner(
             id='loading-ts-modal',
             fullscreen=True,
-            fullscreen_style={'opacity': '0.5'},
+            fullscreen_style={'opacity': '0.5', 'z-index' : '200000'},
             show_initially=False,
             children=[
                 dbc.Modal([
@@ -92,7 +93,7 @@ time_series = html.Div(
                 ),
             ],
         )],
-    style={'display': 'none'},
+#    style={'display': 'none'},
 )
 
 
@@ -244,28 +245,33 @@ def tab_forecast(window='models'):
                 dbc.Container(
                     id='graph-collection',
                     children=[
-                        html.Div(
-                            get_figure(
-                                DEFAULT_MODEL,
-                                DEFAULT_VAR, 
-                                end_date,
-                                0,
-                                static=True,
-                                aspect=(1, 1)
-                            ),
-                            id='{}-map'.format(DEFAULT_MODEL),
-#                                {
-#                                'type': 'graph-with-slider',
-#                                'index': DEFAULT_MODEL,
-#                                },
-                            className="graph-with-slider",
-                            style={'height': '{}vh'.format(int(GRAPH_HEIGHT))}
-                        )
-                        ],
+                    dbc.Row([
+                        dbc.Col(
+                            html.Div(
+                                get_figure(
+                                    DEFAULT_MODEL,
+                                    DEFAULT_VAR, 
+                                    end_date,
+                                    0,
+                                    static=True,
+                                    aspect=(1, 1)
+                                ),
+                                id='{}-map-container'.format(DEFAULT_MODEL),
+                                className="graph-with-slider",
+                                style={'height': '{}vh'.format(int(GRAPH_HEIGHT))}
+                            )
+                        )],
+                        align="start",
+                        no_gutters=True,
+                    )],
                     fluid=True,
                     ),
-                ]
+               ]
 #            )],
+        ),
+        html.Div(
+            [dcc.Store(id="model-clicked-coords"),
+             dcc.Store(id="current-ts-stored")]
         ),
         html.Div(
             dcc.Interval(id='slider-interval',

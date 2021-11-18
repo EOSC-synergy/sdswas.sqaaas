@@ -26,6 +26,7 @@ import os
 
 from utils import concat_dataframes
 from utils import retrieve_timeseries
+from utils import retrieve_single_point
 from utils import get_colorscale
 
 
@@ -398,6 +399,29 @@ class TimeSeriesHandler(object):
         except:
             self.month = datetime.strptime(date, "%Y-%m-%d").strftime("%Y%m")
             self.currdate = datetime.strptime(date, "%Y-%m-%d").strftime("%Y%m%d")
+
+    def retrieve_single_point(self, tstep, lat, lon, model=None, method='netcdf', forecast=False):
+
+        if not model:
+            model = self.model[0]
+
+        if DEBUG: print("----------", model)
+
+#        obs_eval = model[0] not in MODELS and model[0] in OBS
+#        if obs_eval:
+#            all_models = [model[0]] + list(MODELS.keys())
+#        else:
+#            all_models = list(MODELS.keys())
+
+        if forecast:
+            method = 'netcdf'
+            path_template = '{}{}.nc'.format(self.currdate, MODELS[model]['template'], self.variable)
+
+        fpath = os.path.join(MODELS[model]['path'], method, path_template)
+
+        return retrieve_single_point( fpath, tstep, lat, lon, self.variable,
+                method=method, forecast=forecast)
+        
 
     def retrieve_timeseries(self, lat, lon, model=None, method='netcdf', forecast=False):
 
@@ -833,7 +857,7 @@ class FigureHandler(object):
             item["tooltip"] = \
                     "Lat {:.2f} Lon {:.2f} Val {:.2f}".format(item['lat'], item['lon'], item['value'])
         geojson = dlx.dicts_to_geojson(dicts, lon="lon")
-        geobuf = dlx.geojson_to_geobuf(geojson)
+        # geobuf = dlx.geojson_to_geobuf(geojson)
 
         if DEBUG: print("GEOBUF CREATED ***********")
         # Geojson rendering logic, must be JavaScript as it is executed in clientside.
@@ -842,7 +866,8 @@ class FigureHandler(object):
         bind_tooltip = ns("bindTooltip")
         if DEBUG: print("BIND", str(bind_tooltip))
         # Create geojson.
-        return dl.GeoJSON(data=geobuf, format="geobuf",
+        # return dl.GeoJSON(data=geobuf, format="geobuf",
+        return dl.GeoJSON(data=geojson,
                 options=dict(
                     pointToLayer=point_to_layer,
                     # onEachFeature=bind_tooltip,
@@ -961,13 +986,6 @@ class FigureHandler(object):
                 cont_time = time.time()
                 geojson_contours, colorbar = self.generate_contour_tstep_trace_leaflet(varname, tstep)
                 if DEBUG: print("****** CONTOURS EXEC TIME", str(time.time() - cont_time))
-                if static:
-                    if DEBUG: print('Adding points ...', varname, tstep)
-                    pts_time = time.time()
-                    geojson_points = self.generate_var_tstep_trace_leaflet(varname, tstep)
-                    if DEBUG: print("****** POINTS EXEC TIME", str(time.time() - pts_time))
-                else:
-                    geojson_points = None
             except Exception as err:
                 if DEBUG: print("----------- ERROR:", str(err))
                 self.filedir = None
@@ -979,7 +997,6 @@ class FigureHandler(object):
                 geojson_contours = dl.GeoJSON(
                         data=data,
                         )
-                geojson_points = None
                 colorbar = None
         else:
             if DEBUG: print('Adding one point ...')
@@ -990,7 +1007,6 @@ class FigureHandler(object):
             geojson_contours = dl.GeoJSON(
                 data=data,
             )
-            geojson_points = None
             colorbar = None
 
         if DEBUG: print("ASPECT", aspect)
@@ -1014,22 +1030,31 @@ class FigureHandler(object):
             info_style = {"position": "absolute", "top": "10px", "left": "10px", "z-index": "1000"}
         info = html.Div(
             children=fig_title,
-            id="{}-info".format(self.model), # className="info",
+            id="{}-info".format(self.model),
+            className="info",
             style=info_style
         )
 
         fig = dl.Map(children=[
             dl.TileLayer(),
+            dl.LayerGroup(id=dict(
+                tag="model-map-layer",
+                index=self.model
+                )
+            ),
             dl.FullscreenControl(
                 position='topright',
-                ),
+            ),
             geojson_contours,
-            geojson_points,
             colorbar,
             info
             ],
             zoom=4.5-(aspect[0]),
             center=center,
+            id=dict(
+                tag='model-map',
+                index=self.model
+                )
         )
 
         if DEBUG: print("*** FIGURE EXECUTION TIME: {} ***".format(str(time.time() - self.st_time)))

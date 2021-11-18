@@ -9,6 +9,7 @@ from dash.dependencies import State
 from dash.dependencies import ALL
 from dash.dependencies import MATCH
 from dash.exceptions import PreventUpdate
+import dash_leaflet as dl
 
 from data_handler import DEFAULT_VAR
 from data_handler import DEFAULT_MODEL
@@ -36,6 +37,7 @@ from PIL import Image
 import zipfile
 import tempfile
 import os.path
+import orjson
 import math
 
 start_date = DATES['start_date']
@@ -458,46 +460,111 @@ def register_callbacks(app, cache, cache_timeout):
         raise PreventUpdate
 
 
+    @app.callback(
+        [Output('model-clicked-coords', 'data'),
+         Output(dict(tag='model-map-layer', index=ALL), 'children')],
+        [Input(dict(tag='model-map', index=ALL), 'click_lat_lng'),
+         Input(dict(tag='model-map', index=ALL), 'id')],
+        [State('model-date-picker', 'date'),
+         State('slider-graph', 'value'),
+         State('variable-dropdown-forecast', 'value')],
+    )
+    def models_popup(click_data, map_ids, date, tstep, var):
+        from tools import get_single_point
+        if DEBUG: print("CLICK:", str(click_data))
+        if DEBUG: print("MAPID:", str(map_ids), type(map_ids))
+
+        ctxt = dash.callback_context.triggered[0]["prop_id"].split(".")[0]
+        if DEBUG: print("CTXT", ctxt, type(ctxt))
+        if not ctxt or ctxt is None:
+            raise PreventUpdate
+
+        trigger = orjson.loads(ctxt)
+        if DEBUG: print('TRIGGER', trigger, type(trigger))
+
+        res = [[] for item in range(len(map_ids))]
+        if trigger in map_ids:
+            model = trigger['index']
+            mod_idx = map_ids.index(trigger)
+            click = click_data[mod_idx]
+            if tstep is None:
+                tstep = 0
+
+            if DEBUG: print("MODEL", model, "CLICK", click, "MODIDX", mod_idx)
+
+            if click is not None and model is not None:
+                lat, lon = click
+                value = get_single_point(model, date, int(tstep/3), var, lat, lon)
+                if DEBUG: print("VALUE:", str(value))
+
+                marker = dl.Popup(
+                    children=[
+                        "Lat {:.2f}".format(lat), html.Br(),
+                        "Lon {:.2f}".format(lon), html.Br(),
+                        "Value {:.2f}".format(value*VARS[var]['mul']), html.Br(),
+                        dbc.Button("Timeseries",
+                            color='link',
+                            id='ts-button'.format(model),
+                            n_clicks=0,
+                        )
+                    ],
+                    id='map-point'.format(model),
+                    position=[lat, lon],
+                    autoClose=True, 
+                    closeOnEscapeKey=True,
+                    closeOnClick=True
+                )
+
+                res[mod_idx] = [marker,]
+                coords = [lat, lon]
+                if DEBUG: print("COORDS:", str(coords))
+                if DEBUG: print("RES:", str(res))
+                return coords, res
+
+        raise PreventUpdate
+
+
     # retrieve timeseries according to coordinates selected
     @app.callback(
-        [ # Output('progress-modal', 'is_open'),
-         Output('ts-modal', 'children'),
+        [Output('ts-modal', 'children'),
          Output('ts-modal', 'is_open')],
-        [Input({'type': 'graph-with-slider', 'index': ALL}, 'clickData'),
-         Input({'type': 'graph-with-slider', 'index': ALL}, 'id')],
-        [State('model-date-picker', 'date'),
-         State('model-dropdown', 'value'),
-         State('variable-dropdown-forecast', 'value')],
+        [Input('ts-button', 'n_clicks')],
+        [State('model-dropdown', 'value'),
+         State('model-date-picker', 'date'),
+         State('variable-dropdown-forecast', 'value')] + \
+        [State('model-clicked-coords', 'data')],
         prevent_initial_call=True
     )
     # @cache.memoize(timeout=cache_timeout)
-    def show_timeseries(cdata, element, date, model, variable):
+    def store_timeseries(ts_button, mod, date, variable, coords):
         """ Renders model comparison timeseries """
         from tools import get_timeseries
-        if cdata is None:
-            raise PreventUpdate
 
-        lat = lon = None
-        for click, elem in zip(cdata, element):
-            if elem['index'] in model and click:
-                if DEBUG: print(click)
-                lat = click['points'][0]['lat']
-                lon = click['points'][0]['lon']
-                break
+        ctx = dash.callback_context
+        if ctx.triggered:
+            button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+            if DEBUG: print("BUTTONID:", str(button_id))
+            if button_id == 'ts-button' and ts_button > 0:
+                if DEBUG: print('COORDS', coords, type(coords), mod)
+                lat, lon = coords
 
-        if lat is None or lon is None:
-            raise PreventUpdate
+                if lat is None or lon is None:
+                    raise PreventUpdate
 
-        if DEBUG: print('SHOW TS """""', model, lat, lon)
-        figure = get_timeseries(model, date, variable, lat, lon, forecast=True)
-        figure.update_layout(MODEBAR_LAYOUT_TS)
-        return dbc.ModalBody(
-            dcc.Graph(
-                id='timeseries-modal',
-                figure=figure,
-                config=MODEBAR_CONFIG_TS
-            )
-        ), True
+                if DEBUG: print('SHOW TS """""', mod, lat, lon)
+                figure = get_timeseries(mod, date, variable, lat, lon, forecast=True)
+                figure.update_layout(MODEBAR_LAYOUT_TS)
+                ts_body = dbc.ModalBody(
+                    dcc.Graph(
+                        id='timeseries-modal',
+                        figure=figure,
+                        config=MODEBAR_CONFIG_TS
+                    )
+                )
+
+                return ts_body, True
+
+        raise PreventUpdate
 
 
     # start/stop animation
@@ -686,19 +753,10 @@ def register_callbacks(app, cache, cache_timeout):
             figures.append(
                     html.Div(
                         figure,
-                        id='{}-map'.format(mod),
-#                            {
-#                            'type': 'graph-with-slider',
-#                            'index': mod,
-#                            },
+                        id='{}-map-container'.format(mod),
                         className="graph-with-slider",
                         style={'height': '{}vh'.format(int(GRAPH_HEIGHT)/nrows)}
                     )
-#                get_graph(
-#                    index=mod,
-#                    figure=figure,
-#                    style={'height': '{}vh'.format(int(GRAPH_HEIGHT)/nrows)}
-#                )
             )
 
         res = [

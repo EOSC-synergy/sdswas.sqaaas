@@ -155,6 +155,14 @@ def get_timeseries(model, date, var, lat, lon, forecast=False):
     return th.retrieve_timeseries(lat, lon, method='feather', forecast=forecast)
 
 
+def get_single_point(model, date, tstep, var, lat, lon, forecast=True):
+    """ Retrieve timeseries """
+    if DEBUG: print('SERVER: SINGLE POINT init for models {} ... '.format(str(model)))
+    th = TimeSeriesHandler(model, date, var)
+    if DEBUG: print('SERVER: SINGLE POINT generation ... ')
+    return th.retrieve_single_point(tstep, lat, lon, method='netcdf', forecast=forecast)
+
+
 def get_obs1d(sdate, edate, obs, var):
     """ Retrieve 1D observation """
     obs_handler = Observations1dHandler(sdate, edate, obs)
