@@ -396,23 +396,57 @@ def register_callbacks(app, cache, cache_timeout):
 
 
     @app.callback(
-        Output({'type': 'graph-with-slider', 'index': MATCH}, 'figure'),
-        [Input(style, 'n_clicks') for style in STYLES] +
-        [Input('airports', 'n_clicks')],
-        [State({'type': 'graph-with-slider', 'index': MATCH}, 'figure')],
+        Output({'tag': 'view-style', 'index': ALL}, 'active'),
+        [Input({'tag': 'view-style', 'index': ALL}, 'n_clicks')],
+        [State({'tag': 'view-style', 'index': ALL}, 'active')],
+        prevent_initial_call=True
+    )
+    # @cache.memoize(timeout=cache_timeout)
+    def update_styles_button(*args):
+        """ Function updating styles button """
+        ctx = dash.callback_context
+        active = args[-1]
+        if DEBUG: print("CURRENT STYLES", str(args))
+
+        res = [False for i in active]
+        if ctx.triggered:
+            button_id = orjson.loads(ctx.triggered[0]["prop_id"].split(".")[0])
+            if DEBUG: print("BUTTON ID", str(button_id), type(button_id))
+            if button_id['index'] in STYLES:
+                st_idx = list(STYLES.keys()).index(button_id['index'])
+                if active[st_idx] is False:
+                    res[st_idx] = True
+                return res
+                # return [True if i == button_id['index'] else False for i in active]
+
+        if DEBUG: print('NOTHING TO DO')
+        raise PreventUpdate
+
+
+    @app.callback(
+        [Output({'tag': 'model-tile-layer', 'index': MATCH}, 'url'),
+         Output({'tag': 'model-tile-layer', 'index': MATCH}, 'attribution')],
+        [Input('airports', 'n_clicks')] +
+        [Input({'tag': 'view-style', 'index': MATCH}, 'n_clicks')],
+        [State({'tag': 'view-style', 'index': MATCH}, 'active')],
         prevent_initial_call=True
     )
     # @cache.memoize(timeout=cache_timeout)
     def update_styles(*args):
         """ Function updating map layout cartography """
         ctx = dash.callback_context
-        figures = args[-1]
+        active = args[-1]
+        # urls, attributions = args[-2], args[-1]
+        if DEBUG: print("CURRENT STYLES 2", str(active))
 
         if ctx.triggered:
             button_id = ctx.triggered[0]["prop_id"].split(".")[0]
             if button_id in STYLES:
-                figures['layout']['mapbox']['style'] = button_id
-                return figures
+                if DEBUG:
+                    print("STYLE", button_id)
+                url = STYLES[button_id]['url']
+                attr = STYLES[button_id]['attribution']
+                return url, attr
             elif button_id == 'airports':
                 traces_list = [trace for trace in figures['data']]
                 for trace in figures['data']:
@@ -465,14 +499,16 @@ def register_callbacks(app, cache, cache_timeout):
          Output(dict(tag='model-map-layer', index=ALL), 'children')],
         [Input(dict(tag='model-map', index=ALL), 'click_lat_lng'),
          Input(dict(tag='model-map', index=ALL), 'id')],
-        [State('model-date-picker', 'date'),
+        [State(dict(tag='model-map-layer', index=ALL), 'children'),
+         State('model-date-picker', 'date'),
          State('slider-graph', 'value'),
          State('variable-dropdown-forecast', 'value')],
     )
-    def models_popup(click_data, map_ids, date, tstep, var):
+    def models_popup(click_data, map_ids, res_list, date, tstep, var):
         from tools import get_single_point
         if DEBUG: print("CLICK:", str(click_data))
         if DEBUG: print("MAPID:", str(map_ids), type(map_ids))
+        if DEBUG: print("RESLIST:", str(res_list), type(res_list))
 
         ctxt = dash.callback_context.triggered[0]["prop_id"].split(".")[0]
         if DEBUG: print("CTXT", ctxt, type(ctxt))
@@ -482,7 +518,7 @@ def register_callbacks(app, cache, cache_timeout):
         trigger = orjson.loads(ctxt)
         if DEBUG: print('TRIGGER', trigger, type(trigger))
 
-        res = [[] for item in range(len(map_ids))]
+        res = res_list
         if trigger in map_ids:
             model = trigger['index']
             mod_idx = map_ids.index(trigger)
@@ -502,20 +538,24 @@ def register_callbacks(app, cache, cache_timeout):
                         "Lat {:.2f}".format(lat), html.Br(),
                         "Lon {:.2f}".format(lon), html.Br(),
                         "Value {:.2f}".format(value*VARS[var]['mul']), html.Br(),
-                        dbc.Button("Timeseries",
-                            color='link',
-                            id='ts-button'.format(model),
+                        html.Button("Timeseries",
+                            # color='link',
+                            id='ts-button',
                             n_clicks=0,
                         )
                     ],
                     id='map-point'.format(model),
                     position=[lat, lon],
-                    autoClose=True, 
-                    closeOnEscapeKey=True,
-                    closeOnClick=True
+                    autoClose=False, 
+                    closeOnEscapeKey=False,
+                    closeOnClick=False,
+                    closeButton=True
                 )
 
-                res[mod_idx] = [marker,]
+                if DEBUG: print("||||", res, "\n", res[mod_idx], type(res[mod_idx]))
+                if res[mod_idx]:
+                    if DEBUG: print("||||", res[mod_idx], type(res[mod_idx]))
+                res[mod_idx] = marker
                 coords = [lat, lon]
                 if DEBUG: print("COORDS:", str(coords))
                 if DEBUG: print("RES:", str(res))
@@ -531,8 +571,8 @@ def register_callbacks(app, cache, cache_timeout):
         [Input('ts-button', 'n_clicks')],
         [State('model-dropdown', 'value'),
          State('model-date-picker', 'date'),
-         State('variable-dropdown-forecast', 'value')] + \
-        [State('model-clicked-coords', 'data')],
+         State('variable-dropdown-forecast', 'value'),
+         State('model-clicked-coords', 'data')],
         prevent_initial_call=True
     )
     # @cache.memoize(timeout=cache_timeout)

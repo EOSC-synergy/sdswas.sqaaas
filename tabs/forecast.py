@@ -103,8 +103,17 @@ layout_view = html.Div([
             id='map-view-dropdown',
             label='VIEW',
             children=[
-                dbc.DropdownMenuItem(STYLES[style], id=style)
-                for style in STYLES],
+                dbc.DropdownMenuItem(
+                    STYLES[style]['name'],
+                    id=dict(
+                        tag='view-style',
+                        index=style
+                    ),
+                    active=active
+                )
+                for style, active in zip(STYLES, [True if i == 'carto-positron'
+                    else False for i in STYLES])
+                ],
             direction="up",
         ),
     )])

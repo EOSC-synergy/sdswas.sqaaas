@@ -100,9 +100,26 @@ DEFAULT_VAR = 'OD550_DUST'
 DEFAULT_MODEL = 'median'
 
 STYLES = {
-    "carto-positron": "Light",
-    "open-street-map": "Open street map",
-    "stamen-terrain": "Terrain",
+    "carto-positron": {
+        'name': "Light",
+        'url': 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+	'attribution': '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+    },
+    "open-street-map": {
+        'name': "Open street map",
+        'url': 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+	'attribution': '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    },
+    "stamen-terrain": {
+        'name': "Terrain",
+        'url': 'https://stamen-tiles-{s}.a.ssl.fastly.net/terrain/{z}/{x}/{y}{r}.png',
+        'attribution': 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    },
+    "esri-world": {
+        'name': "ESRI",
+        'url': 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+       	'attribution': 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+    }
 }
 
 
@@ -963,7 +980,7 @@ class FigureHandler(object):
 
         return 0
 
-    def retrieve_var_tstep(self, varname=None, tstep=0, hour=None, static=True, aspect=(1,1), center=None):
+    def retrieve_var_tstep(self, varname=None, tstep=0, hour=None, static=True, aspect=(1,1), center=None, selected_tiles='carto-positron'):
         """ run plot """
 
         if hour is not None:
@@ -975,10 +992,6 @@ class FigureHandler(object):
             varname = OBS[self.model]['obs_var']
 
         if DEBUG: print('VARNAME', varname)
-
-#        tiles_url = 'https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png'
-#        tiles_url = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}'
-#        tiles_attribution = '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a> '
 
         if varname and self.filedir:
             if DEBUG: print('Adding contours ...')
@@ -1036,10 +1049,19 @@ class FigureHandler(object):
         )
 
         fig = dl.Map(children=[
-            dl.TileLayer(),
-            dl.LayerGroup(id=dict(
-                tag="model-map-layer",
-                index=self.model
+            dl.TileLayer(
+                id=dict(
+                    tag="model-tile-layer",
+                    index=self.model
+                ),
+                url=STYLES[selected_tiles]['url'],
+                attribution=STYLES[selected_tiles]['attribution']
+            ),
+            dl.LayerGroup(
+                # children=[],
+                id=dict(
+                    tag="model-map-layer",
+                    index=self.model
                 )
             ),
             dl.FullscreenControl(
