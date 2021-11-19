@@ -535,21 +535,33 @@ def register_callbacks(app, cache, cache_timeout):
 
                 marker = dl.Popup(
                     children=[
-                        "Lat {:.2f}".format(lat), html.Br(),
-                        "Lon {:.2f}".format(lon), html.Br(),
-                        "Value {:.2f}".format(value*VARS[var]['mul']), html.Br(),
-                        html.Button("Timeseries",
-                            # color='link',
-                            id='ts-button',
-                            n_clicks=0,
+                        html.Div([
+                            html.Span(
+                                '{:.2f}'.format(value*VARS[var]['mul']),
+                                className='popup-map-value',
+                            ),
+                            html.Span([
+                                html.B("Lat {:.2f}, Lon {:.2f}".format(lat, lon)), html.Br(),
+                                "Value {:.2f}".format(value*VARS[var]['mul']), html.Br(),
+                                html.Button("EXPLORE TIMESERIES",
+                                    id=dict(
+                                        tag='ts-button',
+                                        index=model,
+                                    ),
+                                    n_clicks=0,
+                                    className='popup-ts-button'
+                                )],
+                                className='popup-map-body',
+                            )],
                         )
                     ],
-                    id='map-point'.format(model),
+                    id='{}-map-point'.format(model),
                     position=[lat, lon],
                     autoClose=False, 
                     closeOnEscapeKey=False,
                     closeOnClick=False,
-                    closeButton=True
+                    closeButton=True,
+                    className='popup-map-point'
                 )
 
                 if DEBUG: print("||||", res, "\n", res[mod_idx], type(res[mod_idx]))
@@ -567,8 +579,9 @@ def register_callbacks(app, cache, cache_timeout):
     # retrieve timeseries according to coordinates selected
     @app.callback(
         [Output('ts-modal', 'children'),
-         Output('ts-modal', 'is_open')],
-        [Input('ts-button', 'n_clicks')],
+         Output('ts-modal', 'is_open'),
+         Output({ 'tag': 'ts-button', 'index': ALL }, 'n_clicks')],
+        [Input({ 'tag': 'ts-button', 'index': ALL }, 'n_clicks')],
         [State('model-dropdown', 'value'),
          State('model-date-picker', 'date'),
          State('variable-dropdown-forecast', 'value'),
@@ -582,9 +595,9 @@ def register_callbacks(app, cache, cache_timeout):
 
         ctx = dash.callback_context
         if ctx.triggered:
-            button_id = ctx.triggered[0]["prop_id"].split(".")[0]
-            if DEBUG: print("BUTTONID:", str(button_id))
-            if button_id == 'ts-button' and ts_button > 0:
+            button_id = orjson.loads(ctx.triggered[0]["prop_id"].split(".")[0])
+            if DEBUG: print("BUTTONID:", str(button_id), str(ts_button))
+            if button_id['tag'] == 'ts-button' and 1 in ts_button:
                 if DEBUG: print('COORDS', coords, type(coords), mod)
                 lat, lon = coords
 
@@ -602,7 +615,7 @@ def register_callbacks(app, cache, cache_timeout):
                     )
                 )
 
-                return ts_body, True
+                return ts_body, True, [0 for i in ts_button]
 
         raise PreventUpdate
 

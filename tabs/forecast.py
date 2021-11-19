@@ -78,14 +78,9 @@ time_series = html.Div(
             fullscreen=True,
             fullscreen_style={'opacity': '0.5', 'z-index' : '200000'},
             show_initially=False,
+            # debounce=200,
             children=[
-                dbc.Modal([
-                    dbc.ModalBody(
-                        dcc.Graph(
-                            id='timeseries-modal',
-                            figure={},
-                        ),
-                    )],
+                dbc.Modal([],
                     id='ts-modal',
                     size='xl',
                     centered=True,
@@ -93,7 +88,7 @@ time_series = html.Div(
                 ),
             ],
         )],
-#    style={'display': 'none'},
+    style={'display': 'none'},
 )
 
 

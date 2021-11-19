@@ -466,6 +466,60 @@ div.SingleDatePickerInput {
     margin-bottom: 0;
 }
 
+.popup-map-point {
+}
+
+.leaflet-container .leaflet-popup-content-wrapper {
+    font: 16px "Roboto", sans-serif !important;
+    border-radius: 5px !important;
+    display: inline-flex !important;
+    width: 300px;
+    height: 120px;
+}
+
+.leaflet-container .leaflet-popup-content-wrapper .popup-map-value {
+    float: left;
+    width: 35%;
+    background-color: #2b383e;
+    color: #ffffff;
+    font-family: "Roboto", sans-serif;
+    text-transform: uppercase;
+    font-weight: bold;
+    text-align: center;
+    border-radius: 20px;
+    padding: 0.2rem 0.5rem;
+}
+
+.leaflet-container .leaflet-popup-content-wrapper .popup-map-body {
+    float: left;
+    width: 65%;
+    padding-left: 1rem;
+    padding-right: 5px;
+}
+
+.popup-ts-button {
+    background-color: #2b383e;
+    color: #ffffff;
+    font-family: "Roboto", sans-serif;
+    text-transform: uppercase;
+    font-weight: bold;
+    border: none;
+    padding: 0.2rem 0.5rem;
+}
+
+.leaflet-container a.leaflet-popup-close-button {
+    background-color: #2b383e !important;
+    color: #ffffff !important;
+    padding: 0 ! important;
+    border-radius: 8px !important;
+    top: -9px !important;
+    right: -9px !important;
+    height: 18px !important;
+    font: 20px "Roboto", sans-serif !important;
+    text-transform: uppercase !important;
+    font-weight: bold !important;
+}
+
 /*
 .graph-with-slider {
     height: 93vh !important; 
