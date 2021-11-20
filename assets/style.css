@@ -470,31 +470,41 @@ div.SingleDatePickerInput {
 }
 
 .leaflet-container .leaflet-popup-content-wrapper {
-    font: 16px "Roboto", sans-serif !important;
+    font: 12px "Roboto", sans-serif !important;
     border-radius: 5px !important;
     display: inline-flex !important;
-    width: 300px;
-    height: 120px;
+}
+
+.leaflet-popup-content {
+    width: 13.6rem !important;
+    margin: 0.5rem 0 0.5rem 0.5rem !important;
+    line-height: 1.6 !important;
 }
 
 .leaflet-container .leaflet-popup-content-wrapper .popup-map-value {
     float: left;
-    width: 35%;
+    width: 4rem;
+    height: 4rem;
     background-color: #2b383e;
     color: #ffffff;
-    font-family: "Roboto", sans-serif;
+    border-radius: 50%;
+}
+
+.leaflet-container .leaflet-popup-content-wrapper .popup-map-value p {
+    font: 16px "Roboto", sans-serif;
     text-transform: uppercase;
     font-weight: bold;
     text-align: center;
-    border-radius: 20px;
-    padding: 0.2rem 0.5rem;
+    line-height: 1.8;
+    display: block;
+    vertical-align: middle;
 }
 
 .leaflet-container .leaflet-popup-content-wrapper .popup-map-body {
     float: left;
-    width: 65%;
-    padding-left: 1rem;
-    padding-right: 5px;
+    padding-left: 0.5rem;
+    padding-right: 0 !important;
+    margin-right: 0 !important;
 }
 
 .popup-ts-button {
@@ -511,13 +521,15 @@ div.SingleDatePickerInput {
     background-color: #2b383e !important;
     color: #ffffff !important;
     padding: 0 ! important;
-    border-radius: 8px !important;
+    border-radius: 50% !important;
     top: -9px !important;
     right: -9px !important;
     height: 18px !important;
-    font: 20px "Roboto", sans-serif !important;
+    font: 22px "Roboto", sans-serif !important;
     text-transform: uppercase !important;
     font-weight: bold !important;
+    line-height: .8 !important;
+
 }
 
 /*

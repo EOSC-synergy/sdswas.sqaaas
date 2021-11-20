@@ -513,22 +513,23 @@ def sidebar_forecast(variables, default_var, models, default_model):
                                 base64=True,
                                 )
                             ),
-                        html.Button('NETCDF',
+                        dbc.Button('NETCDF',
                             id='btn-netcdf-download',
                             n_clicks=0,
+                            href="https://dust03.bsc.es/products/data-download",
                             className='download-section',
                             ),
-                        dbc.Spinner(
-                            dcc.Download(
-                                id="netcdf-download",
-                                base64=True,
-                                ),
-                            ),
-                        html.P("""This button allows you to get selected models netCDF files."""),
-                        html.P([
-                            """To get access to the forecast archive please click """,
-                            dcc.Link('here', href="https://dust03.bsc.es/products/data-download"),
-                            ]),
+#                        dbc.Spinner(
+#                            dcc.Download(
+#                                id="netcdf-download",
+#                                base64=True,
+#                                ),
+#                            ),
+#                        html.P("""This button allows you to get selected models netCDF files."""),
+#                        html.P([
+#                            """To get access to the forecast archive please click """,
+#                            dcc.Link('here', href="https://dust03.bsc.es/products/data-download"),
+#                            ]),
                     ],
                     className="card-text",
                     )),

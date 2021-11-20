@@ -15,6 +15,7 @@ from data_handler import Observations1dHandler
 from data_handler import DEBUG
 from data_handler import DATES
 from data_handler import MODELS
+from data_handler import FREQ
 #from dash_server import cache
 from utils import calc_matrix
 
@@ -158,6 +159,12 @@ def get_timeseries(model, date, var, lat, lon, forecast=False):
 def get_single_point(model, date, tstep, var, lat, lon, forecast=True):
     """ Retrieve timeseries """
     if DEBUG: print('SERVER: SINGLE POINT init for models {} ... '.format(str(model)))
+#    if model in MODELS and MODELS[model]['start'] == 12:
+#        if tstep <= 4:
+#            date = (dt.strptime(date, "%Y%m%d") - timedelta(days=1)).strftime("%Y%m%d")
+#            tstep = 4 + int(tstep)
+#        else:
+#            tstep = int(tstep) - 4
     th = TimeSeriesHandler(model, date, var)
     if DEBUG: print('SERVER: SINGLE POINT generation ... ')
     return th.retrieve_single_point(tstep, lat, lon, method='netcdf', forecast=forecast)
@@ -239,7 +246,7 @@ def get_figure(model=None, var=None, selected_date=end_date, tstep=0, hour=None,
     if model:
         if DEBUG: print('SERVER: Figure init ... ')
         if model in MODELS and MODELS[model]['start'] == 12:
-            if tstep <= 4:
+            if tstep < 4:
                 selected_date = (dt.strptime(selected_date, "%Y%m%d") - timedelta(days=1)).strftime("%Y%m%d")
                 tstep = 4 + int(tstep)
             else:

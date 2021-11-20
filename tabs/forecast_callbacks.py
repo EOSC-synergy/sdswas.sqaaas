@@ -187,89 +187,83 @@ def register_callbacks(app, cache, cache_timeout):
         if DEBUG: print('clicked NONE', False, False)
         raise PreventUdate
 
+
 #    @app.callback(
-#        Output('netcdf-download', 'data'),
-#        [Input('downloaded-data', 'data')]
+#        [Output('login-modal', 'is_open'),
+#         Output('alert-login-error', 'is_open'),
+#         Output('alert-login-wrong', 'is_open'),
+#         Output('netcdf-download', 'data')],
+#        [Input('btn-netcdf-download', 'n_clicks'),
+#         Input('submit-login', 'n_clicks')],
+#        [State('input_username', 'value'),
+#         State('input_password', 'value'),
+#         State('model-dropdown', 'value'),
+#         State('model-date-picker', 'date')],
 #        prevent_initial_call=True,
 #    )
-#    def download_data(nc_data):
-
-    @app.callback(
-        [Output('login-modal', 'is_open'),
-         Output('alert-login-error', 'is_open'),
-         Output('alert-login-wrong', 'is_open'),
-         Output('netcdf-download', 'data')],
-        [Input('btn-netcdf-download', 'n_clicks'),
-         Input('submit-login', 'n_clicks')],
-        [State('input_username', 'value'),
-         State('input_password', 'value'),
-         State('model-dropdown', 'value'),
-         State('model-date-picker', 'date')],
-        prevent_initial_call=True,
-    )
-    def download_netcdf(btn_download, btn_login, username, password, models, date):
-        ctx = dash.callback_context
-
-        if ctx.triggered:
-            button_id = ctx.triggered[0]["prop_id"].split(".")[0]
-            if DEBUG: print(':::::', ctx.triggered)
-            if DEBUG: print(':::::', button_id)
-            if button_id == 'btn-netcdf-download' and btn_download > 0:
-                return True, False, False, dash.no_update
-
-            if button_id == 'submit-login':
-                res = requests.get('http://bscesdust03.bsc.es/@users/{}'.format(username),
-                        headers={'Accept': 'application/json'},
-                        auth=(username, password))
-                if res.status_code != 200:
-                    return True, True, False, dash.no_update
-
-                user_data = res.json()
-                if DEBUG: print('USER_DATA', user_data)
-                roles = user_data['roles']
-
-                if DEBUG: print('NC', btn_login, models, date)
-                try:
-                    curdate = dt.strptime(date, '%Y-%m-%d').strftime('%Y%m%d')
-                except:
-                    curdate = date
-
-                if curdate == (dt.today() - timedelta(days=1)).strftime('%Y%m%d') and not any(r in roles for r in ('Restricted data user', 'Manager')):
-                    return True, False, True, dash.no_update
-                    
-                if len(models) == 1:
-                    model = models[0]
-                    tpl = MODELS[model]['template']
-                    mod_path = MODELS[model]['path']
-                    final_path = os.path.join(mod_path, 'netcdf', '{date}{tpl}.nc'.format(date=curdate, tpl=tpl))
-                    if DEBUG: print('DOWNLOAD', final_path)
-                    return False, False, False, dcc.send_file(
-                            final_path,
-                            filename=os.path.basename(final_path),
-                            type='application/x-netcdf')
-
-                with tempfile.NamedTemporaryFile() as fp:
-                    with zipfile.ZipFile(
-                            fp, mode="w",
-                            compression=zipfile.ZIP_DEFLATED) as zf:
-
-                        for model in models:
-                            tpl = MODELS[model]['template']
-                            mod_path = MODELS[model]['path']
-                            final_path = os.path.join(
-                                    mod_path,
-                                    'netcdf',
-                                    '{date}{tpl}.nc'.format(date=curdate, tpl=tpl))
-                            if DEBUG: print('ZIPPING', final_path)
-                            fname = os.path.basename(final_path)
-                            zf.write(final_path, fname)
-                    if DEBUG: print('DOWNLOAD', fp.name)
-                    return False, False, False, dcc.send_file(
-                            fp.name,
-                            filename='{}_DUST_MODELS.zip'.format(date),
-                            type='application/zip')
-
-        raise PreventUpdate
+#    def download_netcdf(btn_download, btn_login, username, password, models, date):
+#        ctx = dash.callback_context
+#
+#        if ctx.triggered:
+#            button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+#            if DEBUG: print(':::::', ctx.triggered)
+#            if DEBUG: print(':::::', button_id)
+#            if button_id == 'btn-netcdf-download' and btn_download > 0:
+#                return True, False, False, dash.no_update
+#
+#            if button_id == 'submit-login':
+#                res = requests.get('http://bscesdust03.bsc.es/@users/{}'.format(username),
+#                        headers={'Accept': 'application/json'},
+#                        auth=(username, password))
+#                if res.status_code != 200:
+#                    return True, True, False, dash.no_update
+#
+#                user_data = res.json()
+#                if DEBUG: print('USER_DATA', user_data)
+#                roles = user_data['roles']
+#
+#                if DEBUG: print('NC', btn_login, models, date)
+#                try:
+#                    curdate = dt.strptime(date, '%Y-%m-%d').strftime('%Y%m%d')
+#                except:
+#                    curdate = date
+#
+#                if curdate == (dt.today() - timedelta(days=1)).strftime('%Y%m%d') and not any(r in roles for r in ('Restricted data user', 'Manager')):
+#                    return True, False, True, dash.no_update
+#                    
+#                if len(models) == 1:
+#                    model = models[0]
+#                    tpl = MODELS[model]['template']
+#                    mod_path = MODELS[model]['path']
+#                    final_path = os.path.join(mod_path, 'netcdf', '{date}{tpl}.nc'.format(date=curdate, tpl=tpl))
+#                    if DEBUG: print('DOWNLOAD', final_path)
+#                    return False, False, False, dcc.send_file(
+#                            final_path,
+#                            filename=os.path.basename(final_path),
+#                            type='application/x-netcdf')
+#
+#                with tempfile.NamedTemporaryFile() as fp:
+#                    with zipfile.ZipFile(
+#                            fp, mode="w",
+#                            compression=zipfile.ZIP_DEFLATED) as zf:
+#
+#                        for model in models:
+#                            tpl = MODELS[model]['template']
+#                            mod_path = MODELS[model]['path']
+#                            final_path = os.path.join(
+#                                    mod_path,
+#                                    'netcdf',
+#                                    '{date}{tpl}.nc'.format(date=curdate, tpl=tpl))
+#                            if DEBUG: print('ZIPPING', final_path)
+#                            fname = os.path.basename(final_path)
+#                            zf.write(final_path, fname)
+#                    if DEBUG: print('DOWNLOAD', fp.name)
+#                    return False, False, False, dcc.send_file(
+#                            fp.name,
+#                            filename='{}_DUST_MODELS.zip'.format(date),
+#                            type='application/zip')
+#
+#        raise PreventUpdate
 
     @app.callback(
         Output('anim-download', 'data'),
@@ -525,24 +519,44 @@ def register_callbacks(app, cache, cache_timeout):
             click = click_data[mod_idx]
             if tstep is None:
                 tstep = 0
+            else:
+                tstep = int(tstep/FREQ)
 
             if DEBUG: print("MODEL", model, "CLICK", click, "MODIDX", mod_idx)
 
             if click is not None and model is not None:
                 lat, lon = click
-                value = get_single_point(model, date, int(tstep/3), var, lat, lon)
+                try:
+                    selected_date = dt.strptime(date, '%Y%m%d')
+                except:
+                    selected_date = dt.strptime(date, '%Y-%m-%d')
+
+                if model in MODELS and MODELS[model]['start'] == 12:
+                    if tstep < 4:
+                        date = (selected_date - timedelta(days=1) + timedelta(hours=12)).strftime("%Y%m%d")
+                        tstep = 4 + int(tstep)
+                    else:
+                        date = (selected_date + timedelta(hours=12)).strftime("%Y%m%d")
+                        tstep = int(tstep) - 4
+                else:
+                        date = selected_date.strftime("%Y%m%d")
+
+                value = get_single_point(model, date, int(tstep), var, lat, lon)
                 if DEBUG: print("VALUE:", str(value))
+
+                valid_dt = dt.strptime(date, '%Y%m%d') + timedelta(hours=tstep*FREQ)
 
                 marker = dl.Popup(
                     children=[
                         html.Div([
-                            html.Span(
-                                '{:.2f}'.format(value*VARS[var]['mul']),
+                            html.Span(html.P(
+                                '{:.2f}'.format(value*VARS[var]['mul'])),
                                 className='popup-map-value',
                             ),
                             html.Span([
                                 html.B("Lat {:.2f}, Lon {:.2f}".format(lat, lon)), html.Br(),
-                                "Value {:.2f}".format(value*VARS[var]['mul']), html.Br(),
+                                "DATE {:02d} {} {} {:02d}UTC".format(valid_dt.day, dt.strftime(valid_dt, '%b'), valid_dt.year, valid_dt.hour),
+                                html.Br(),
                                 html.Button("EXPLORE TIMESERIES",
                                     id=dict(
                                         tag='ts-button',
