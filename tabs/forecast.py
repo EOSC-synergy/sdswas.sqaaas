@@ -9,6 +9,7 @@ from dash import html
 from datetime import datetime as dt
 from datetime import timedelta
 
+from data_handler import PROB
 from data_handler import STYLES
 from data_handler import DATES
 from data_handler import MODELS
@@ -18,6 +19,8 @@ from data_handler import DEFAULT_VAR
 from data_handler import GRAPH_HEIGHT 
 
 from tools import get_figure
+from tools import get_was_figure
+from tools import get_prob_figure
 
 start_date = DATES['start_date']
 end_date = DATES['end_date'] or (dt.now() - timedelta(days=1)).strftime("%Y%m%d")
@@ -307,7 +310,9 @@ def tab_forecast(window='models'):
         dbc.Spinner(
             html.Div(
                 id='was-graph',
-                children=[],
+                children=[
+                    # get_was_figure('burkinafaso')
+                ],
             ),
         ),
         html.Div([
@@ -333,7 +338,9 @@ def tab_forecast(window='models'):
         dbc.Spinner(
             html.Div(
                 id='prob-graph',
-                children=[],
+                children=[
+                    # get_prob_figure(DEFAULT_VAR, PROB[DEFAULT_VAR]['prob_thresh'][0])
+                ],
             )
         ),
         html.Div([

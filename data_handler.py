@@ -1859,24 +1859,27 @@ class WasFigureHandler(object):
                 selected_date,
                 MODELS[self.model]['template']
             )
-            self.input_file = nc_file(filepath)
-            if 'lon' in self.input_file.variables:
-                lon = self.input_file.variables['lon'][:]
-                lat = self.input_file.variables['lat'][:]
-            else:
-                lon = self.input_file.variables['longitude'][:]
-                lat = self.input_file.variables['latitude'][:]
-            time_obj = self.input_file.variables['time']
-            self.tim = time_obj[:]
-            self.what, _, rdate, rtime = time_obj.units.split()[:4]
-            if len(rtime) > 5:
-                rtime = rtime[:5]
-            self.rdatetime = datetime.strptime("{} {}".format(rdate, rtime),
-                                               "%Y-%m-%d %H:%M")
-            varlist = [var for var in self.input_file.variables if var in VARS]
+            if os.path.exists(filepath):
+                self.input_file = nc_file(filepath)
+                if 'lon' in self.input_file.variables:
+                    lon = self.input_file.variables['lon'][:]
+                    lat = self.input_file.variables['lat'][:]
+                else:
+                    lon = self.input_file.variables['longitude'][:]
+                    lat = self.input_file.variables['latitude'][:]
+                time_obj = self.input_file.variables['time']
+                self.tim = time_obj[:]
+                self.what, _, rdate, rtime = time_obj.units.split()[:4]
+                if len(rtime) > 5:
+                    rtime = rtime[:5]
+                self.rdatetime = datetime.strptime("{} {}".format(rdate, rtime),
+                                                   "%Y-%m-%d %H:%M")
+                varlist = [var for var in self.input_file.variables if var in VARS]
 
-            self.xlon, self.ylat = np.meshgrid(lon, lat)
-            self.vardata = self.input_file.variables[variable][:]*1e9
+                self.xlon, self.ylat = np.meshgrid(lon, lat)
+                self.vardata = self.input_file.variables[variable][:]*1e9
+            else:
+                self.input_file = None
 
 #         self.bounds = {
 #             varname: np.array(VARS[varname]['bounds']).astype('float32')
@@ -1968,7 +1971,8 @@ class WasFigureHandler(object):
 
         input_path = os.path.join(input_dir, input_file)
 
-        df = pd.read_hdf(input_path, 'was_{}'.format(self.selected_date_plain)).set_index('day')
+        if os.path.exists(input_path):
+            df = pd.read_hdf(input_path, 'was_{}'.format(self.selected_date_plain)).set_index('day')
 
         names = []
         colors = []
@@ -1998,12 +2002,18 @@ class WasFigureHandler(object):
         """ Generate trace to be added to data, per variable and timestep """
 
         if hasattr(self, 'was_df'):
-            geojson = json.loads(self.was_df['geometry'].to_json())
+            geojson = orjson.loads(self.was_df['geometry'].to_json())
         else:
             geojson = {
                     "type": "FeatureCollection",
                     "features": []
                     }
+
+            return dict(
+                        type='choroplethmapbox',
+                        name='',  # str(self.was)+'_contours',
+                        geojson=geojson,
+                    )
         colormap =  list(WAS[self.was]['colors'].keys())
         names, colors, definitions = self.get_regions_data(day=day)
         loc_val = [

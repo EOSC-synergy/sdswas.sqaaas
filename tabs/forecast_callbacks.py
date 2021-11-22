@@ -62,7 +62,7 @@ def register_callbacks(app, cache, cache_timeout):
         [State('collapse-1', 'is_open'),
          State('collapse-2', 'is_open'),
          State('collapse-3', 'is_open'),],
-        prevent_initial_call=True
+        prevent_initial_call=False
     )
     def render_forecast_tab(modbutton, probbutton, wasbutton, var, modopen, probopen, wasopen):
         """ Function rendering requested tab """
@@ -73,39 +73,28 @@ def register_callbacks(app, cache, cache_timeout):
 
             if button_id == "group-1-toggle" and modbutton:
                 if modopen is True:
-                    # return dash.no_update, not modopen, False, False, dash.no_update, dash.no_update
                     return not modopen, False, False, dash.no_update, dash.no_update
-                # return tab_forecast('models'), not modopen, False, False, dash.no_update, dash.no_update
                 return not modopen, False, False, dash.no_update, dash.no_update
             elif button_id == "group-2-toggle" and probbutton:
                 if probopen is True:
-                    # return dash.no_update, False, not probopen, False, dash.no_update, dash.no_update
                     return False, not probopen, False, dash.no_update, dash.no_update
-                # return tab_forecast('prob'), False, not probopen, False, dash.no_update, dash.no_update
                 return False, not probopen, False, dash.no_update, dash.no_update
             elif button_id == "group-3-toggle" and wasbutton:
                 if wasopen is True:
-                    # return dash.no_update, False, False, not wasopen, dash.no_update, dash.no_update
                     return False, False, not wasopen, dash.no_update, dash.no_update
-                # return tab_forecast('was'), False, False, not wasopen, dash.no_update, dash.no_update
                 return False, False, not wasopen, dash.no_update, dash.no_update
 
         if var == 'SCONC_DUST':
             # raise PreventUpdate
-            # return dash.no_update, modopen, probopen, wasopen, False, False
             return modopen, probopen, wasopen, False, False
         elif var == 'OD550_DUST':
             # only models and prob can be opened
             if wasopen:
-                # return tab_forecast('models'), True, False, False, False, True
                 return True, False, False, False, True
-            # return dash.no_update, modopen, probopen, wasopen, False, True
             return modopen, probopen, wasopen, False, True
         else:
             if modopen:
-                # return dash.no_update, True, False, False, True, True
                 return True, False, False, True, True
-            # return tab_forecast('models'), True, False, False, True, True
             return True, False, False, True, True
 
         raise PreventUpdate
@@ -115,7 +104,7 @@ def register_callbacks(app, cache, cache_timeout):
         [Output('prob-dropdown', 'options'),
          Output('prob-dropdown', 'value')],
         [Input('variable-dropdown-forecast', 'value')],
-        prevent_initial_call=True
+        prevent_initial_call=False
     )
     def update_prob_dropdown(var):
         """ Update Prob maps dropdown """
@@ -325,8 +314,8 @@ def register_callbacks(app, cache, cache_timeout):
         [Input('was-date-picker', 'date'),
          Input('was-slider-graph', 'value'),
          Input('was-dropdown', 'value'),],
-        prevent_initial_call=True
-    )
+        prevent_initial_call=False
+        )
     # @cache.memoize(timeout=cache_timeout)
     def update_was_figure(date, day, was):
         """ Update Warning Advisory Systems maps """
@@ -358,7 +347,7 @@ def register_callbacks(app, cache, cache_timeout):
         [State('prob-dropdown', 'value'),
          State('variable-dropdown-forecast', 'value'),
          ],
-        prevent_initial_call=True
+        prevent_initial_call=False
     )
     # @cache.memoize(timeout=cache_timeout)
     def update_prob_figure(n_clicks, date, day, prob, var):
@@ -731,13 +720,16 @@ def register_callbacks(app, cache, cache_timeout):
             if button_id not in ('models-apply', 'prob-apply', 'was-apply'):
                 raise PreventUpdate
 
-            if DEBUG: print("::::::::::::", len(curtab))
+            if DEBUG: print("::::::::::::", curtab[0]['props']['children'])
             # out_tab = dash.no_update
-            if len(curtab) > 3:
+            if 'id' in curtab[1]['props']['children'][0]['props'] and \
+                    curtab[1]['props']['children'][0]['props']['id'] == 'graph-collection':
                 curtab_name = 'models'
-            elif curtab[1]['props']['children']['props']['id'] == 'prob-graph':
+            elif 'id' in curtab[0]['props'] and \
+                    curtab[0]['props']['id'] == 'prob-graph':
                 curtab_name = 'prob'
-            elif curtab[1]['props']['children']['props']['id'] == 'was-graph':
+            elif 'id' in curtab[0]['props'] and \
+                    curtab[0]['props']['id'] == 'was-graph':
                 curtab_name = 'was'
 
             nexttab_name = button_id.replace('-apply', '')
