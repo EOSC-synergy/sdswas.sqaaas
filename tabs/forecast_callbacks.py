@@ -522,7 +522,7 @@ def register_callbacks(app, cache, cache_timeout):
             else:
                 tstep = int(tstep/FREQ)
 
-            if DEBUG: print("MODEL", model, "CLICK", click, "MODIDX", mod_idx)
+            if DEBUG: print("MODEL", model, "CLICK", click, "DATE", date, "STEP", tstep, "MODIDX", mod_idx)
 
             if click is not None and model is not None:
                 lat, lon = click
@@ -533,18 +533,19 @@ def register_callbacks(app, cache, cache_timeout):
 
                 if model in MODELS and MODELS[model]['start'] == 12:
                     if tstep < 4:
-                        date = (selected_date - timedelta(days=1) + timedelta(hours=12)).strftime("%Y%m%d")
+                        date = (selected_date - timedelta(days=1)).strftime("%Y%m%d")
                         tstep = 4 + int(tstep)
                     else:
-                        date = (selected_date + timedelta(hours=12)).strftime("%Y%m%d")
-                        tstep = int(tstep) - 4
-                else:
                         date = selected_date.strftime("%Y%m%d")
+                        tstep = int(tstep) - 4
+                    valid_dt = dt.strptime(date, '%Y%m%d') + timedelta(hours=(tstep+4)*FREQ)
+                else:
+                    date = selected_date.strftime("%Y%m%d")
+                    valid_dt = dt.strptime(date, '%Y%m%d') + timedelta(hours=tstep*FREQ)
 
+                if DEBUG: print("MODEL", model, "CLICK", click, "DATE", date, "STEP", tstep)
                 value = get_single_point(model, date, int(tstep), var, lat, lon)
                 if DEBUG: print("VALUE:", str(value))
-
-                valid_dt = dt.strptime(date, '%Y%m%d') + timedelta(hours=tstep*FREQ)
 
                 marker = dl.Popup(
                     children=[
