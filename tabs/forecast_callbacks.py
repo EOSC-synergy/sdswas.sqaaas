@@ -390,102 +390,112 @@ def register_callbacks(app, cache, cache_timeout):
 
 
     @app.callback(
-        Output({'tag': 'view-style', 'index': ALL}, 'active'),
+        [Output({'tag': 'model-tile-layer', 'index': ALL}, 'url'),
+         Output({'tag': 'model-tile-layer', 'index': ALL}, 'attribution'),
+         Output({'tag': 'view-style', 'index': ALL}, 'active')],
         [Input({'tag': 'view-style', 'index': ALL}, 'n_clicks')],
-        [State({'tag': 'view-style', 'index': ALL}, 'active')],
+        [State({'tag': 'view-style', 'index': ALL}, 'active'),
+         State({'tag': 'model-tile-layer', 'index': ALL}, 'url')],
         prevent_initial_call=True
     )
     # @cache.memoize(timeout=cache_timeout)
     def update_styles_button(*args):
         """ Function updating styles button """
         ctx = dash.callback_context
-        active = args[-1]
-        if DEBUG: print("CURRENT STYLES", str(args))
-
-        res = [False for i in active]
         if ctx.triggered:
             button_id = orjson.loads(ctx.triggered[0]["prop_id"].split(".")[0])
             if DEBUG: print("BUTTON ID", str(button_id), type(button_id))
             if button_id['index'] in STYLES:
+                active = args[-2]
+                graphs = args[-1]
+                num_graphs = len(graphs)
+                # if DEBUG: print("CURRENT ARGS", str(args))
+                # if DEBUG: print("NUM GRAPHS", num_graphs)
+
+                res = [False for i in active]
                 st_idx = list(STYLES.keys()).index(button_id['index'])
                 if active[st_idx] is False:
                     res[st_idx] = True
-                return res
+                url = [STYLES[button_id['index']]['url'] for x in range(num_graphs)]
+                attr = [STYLES[button_id['index']]['attribution'] for x in range(num_graphs)]
+                if DEBUG:
+                    print(res, url, attr)
+                return url, attr, res
                 # return [True if i == button_id['index'] else False for i in active]
 
         if DEBUG: print('NOTHING TO DO')
         raise PreventUpdate
 
 
-    @app.callback(
-        [Output({'tag': 'model-tile-layer', 'index': MATCH}, 'url'),
-         Output({'tag': 'model-tile-layer', 'index': MATCH}, 'attribution')],
-        [Input('airports', 'n_clicks')] +
-        [Input({'tag': 'view-style', 'index': MATCH}, 'n_clicks')],
-        [State({'tag': 'view-style', 'index': MATCH}, 'active')],
-        prevent_initial_call=True
-    )
-    # @cache.memoize(timeout=cache_timeout)
-    def update_styles(*args):
-        """ Function updating map layout cartography """
-        ctx = dash.callback_context
-        active = args[-1]
-        # urls, attributions = args[-2], args[-1]
-        if DEBUG: print("CURRENT STYLES 2", str(active))
-
-        if ctx.triggered:
-            button_id = ctx.triggered[0]["prop_id"].split(".")[0]
-            if button_id in STYLES:
-                if DEBUG:
-                    print("STYLE", button_id)
-                url = STYLES[button_id]['url']
-                attr = STYLES[button_id]['attribution']
-                return url, attr
-            elif button_id == 'airports':
-                traces_list = [trace for trace in figures['data']]
-                for trace in figures['data']:
-                    if trace['name'] == 'Airports':
-                        figures['data'].remove(trace)
-                        return figures
-
-                fname = "/data/daily_dashboard/obs/airports/airports.dat"
-                df = pd.read_csv(fname)
-                clon = df['Longitude']
-                clat = df['Latitude']
-                calt = df['Altitude']
-                cname = df['Name']
-                cicao = df['ICAO']
-                ccity = df['City']
-                ccountry = df['Country']
-                figures['data'].append(
-                    dict(
-                        type='scattermapbox',
-                        name='Airports',
-                        below='',
-                        lon=clon,
-                        lat=clat,
-                        text=cname,
-                        customdata=cicao,
-                        #name='{} ({})'.format(cname, cicao),
-                        mode='markers',
-                        hovertemplate="lon: %{lon:.2f}<br>" +
-                                      "lat: %{lat:.2f}<br>" +
-                                      "name: %{text} (%{customdata})",
-                        opacity=0.6,
-                        showlegend=False,
-                        marker=dict(
-                            # autocolorscale=True,
-                            # symbol='square',
-                            color='#2B383E',
-                            opacity=0.6,
-                            size=10,
-                            showscale=False,
-                        )
-                    ),
-                )
-                return figures
-
-        raise PreventUpdate
+#    @app.callback(
+#        [Output({'tag': 'model-tile-layer', 'index': MATCH}, 'url'),
+#         Output({'tag': 'model-tile-layer', 'index': MATCH}, 'attribution')],
+#        [Input('airports', 'n_clicks')] +
+#        [Input({'tag': 'view-style', 'index': MATCH}, 'n_clicks')],
+#        [State({'tag': 'view-style', 'index': MATCH}, 'active')],
+#        prevent_initial_call=True
+#    )
+#    # @cache.memoize(timeout=cache_timeout)
+#    def update_styles(*args):
+#        """ Function updating map layout cartography """
+#        ctx = dash.callback_context
+#        active = args[-1]
+#        # urls, attributions = args[-2], args[-1]
+#        if DEBUG: print("CURRENT STYLES 2", str(active))
+#
+#        if ctx.triggered:
+#            button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+#            if button_id in STYLES:
+#                if DEBUG:
+#                    print("STYLE", button_id)
+#                url = STYLES[button_id]['url']
+#                attr = STYLES[button_id]['attribution']
+#                return url, attr
+#            elif button_id == 'airports':
+#                traces_list = [trace for trace in figures['data']]
+#                for trace in figures['data']:
+#                    if trace['name'] == 'Airports':
+#                        figures['data'].remove(trace)
+#                        return figures
+#
+#                fname = "/data/daily_dashboard/obs/airports/airports.dat"
+#                df = pd.read_csv(fname)
+#                clon = df['Longitude']
+#                clat = df['Latitude']
+#                calt = df['Altitude']
+#                cname = df['Name']
+#                cicao = df['ICAO']
+#                ccity = df['City']
+#                ccountry = df['Country']
+#                figures['data'].append(
+#                    dict(
+#                        type='scattermapbox',
+#                        name='Airports',
+#                        below='',
+#                        lon=clon,
+#                        lat=clat,
+#                        text=cname,
+#                        customdata=cicao,
+#                        #name='{} ({})'.format(cname, cicao),
+#                        mode='markers',
+#                        hovertemplate="lon: %{lon:.2f}<br>" +
+#                                      "lat: %{lat:.2f}<br>" +
+#                                      "name: %{text} (%{customdata})",
+#                        opacity=0.6,
+#                        showlegend=False,
+#                        marker=dict(
+#                            # autocolorscale=True,
+#                            # symbol='square',
+#                            color='#2B383E',
+#                            opacity=0.6,
+#                            size=10,
+#                            showscale=False,
+#                        )
+#                    ),
+#                )
+#                return figures
+#
+#        raise PreventUpdate
 
 
     @app.callback(
@@ -763,15 +773,17 @@ def register_callbacks(app, cache, cache_timeout):
          # State({'type': 'graph-with-slider', 'index': ALL}, 'figure'),
          # State({'type': 'graph-with-slider', 'index': ALL}, 'id'),
          State('slider-interval', 'disabled'),
+         State({'tag': 'view-style', 'index': ALL}, 'active'),
          # State('clientside-graph-collection', 'data'),
          ],
         prevent_initial_call=True
         )
     # @cache.memoize(timeout=cache_timeout)
-    def update_models_figure(n_clicks, tstep, date, model, variable, static):  # graphs, ids, static):
+    def update_models_figure(n_clicks, tstep, date, model, variable, static, view):  # graphs, ids, static):
         """ Update mosaic of maps figures according to all parameters """
         from tools import get_figure
         if DEBUG: print('SERVER: calling figure from picker callback')
+        if DEBUG: print('VIEW', view)
 
         st_time = time.time()
 
@@ -813,9 +825,10 @@ def register_callbacks(app, cache, cache_timeout):
 
         ncols, nrows = calc_matrix(len(model))
 
+        view = list(STYLES.keys())[view.index(True)]
         for idx, mod in enumerate(model):
             figure = get_figure(mod, variable, date, tstep,
-                    static=static, aspect=(nrows, ncols))
+                    static=static, aspect=(nrows, ncols), view=view)
             # if DEBUG: print('FIGURE', figure)
             if DEBUG: print('STATIC', static)
             figures.append(

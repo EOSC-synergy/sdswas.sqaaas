@@ -88,7 +88,7 @@ time_series = html.Div(
                 ),
             ],
         )],
-    style={'display': 'none'},
+    #style={'display': 'none'},
 )
 
 
