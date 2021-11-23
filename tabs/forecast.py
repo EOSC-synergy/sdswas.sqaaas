@@ -27,51 +27,51 @@ end_date = DATES['end_date'] or (dt.now() - timedelta(days=1)).strftime("%Y%m%d"
 
 forecast_days = ('Today', 'Tomorrow')
 
-login_modal = html.Div(
-    id='open-login',
-    children=[
-        dbc.Modal([
-            dbc.ModalHeader("Download authentication"),
-            dbc.ModalBody([
-                dbc.Alert(
-                    "The username/password is incorrect. Please try again or click outside the window to exit.",
-                    id="alert-login-error",
-                    is_open=False,
-                    duration=6000,
-                    fade=True,
-                    color="primary",
-                    style={ 'overflow': 'auto', 'margin-bottom': 0 }
-                ),
-                dbc.Alert(
-                    "Sorry, you don't have permission to download the latest forecast. Please download a previous forecast or click outside the window to exit.",
-                    id="alert-login-wrong",
-                    is_open=False,
-                    duration=6000,
-                    fade=True,
-                    color="primary",
-                    style={ 'overflow': 'auto', 'margin-bottom': 0 }
-                ),
-                dcc.Input(
-                    id="input_username",
-                    type="text",
-                    placeholder="username",
-                ),
-                dcc.Input(
-                    id="input_password",
-                    type="password",
-                    placeholder="password",
-                ),
-                html.Button('Login', id='submit-login', n_clicks=0),
-            ]),
-            ],
-            id='login-modal',
-            size='sm',
-            centered=True,
-            is_open=False,
-        ),
-    ]
-    #style={'display': 'none'},
-)
+#login_modal = html.Div(
+#    id='open-login',
+#    children=[
+#        dbc.Modal([
+#            dbc.ModalHeader("Download authentication"),
+#            dbc.ModalBody([
+#                dbc.Alert(
+#                    "The username/password is incorrect. Please try again or click outside the window to exit.",
+#                    id="alert-login-error",
+#                    is_open=False,
+#                    duration=6000,
+#                    fade=True,
+#                    color="primary",
+#                    style={ 'overflow': 'auto', 'margin-bottom': 0 }
+#                ),
+#                dbc.Alert(
+#                    "Sorry, you don't have permission to download the latest forecast. Please download a previous forecast or click outside the window to exit.",
+#                    id="alert-login-wrong",
+#                    is_open=False,
+#                    duration=6000,
+#                    fade=True,
+#                    color="primary",
+#                    style={ 'overflow': 'auto', 'margin-bottom': 0 }
+#                ),
+#                dcc.Input(
+#                    id="input_username",
+#                    type="text",
+#                    placeholder="username",
+#                ),
+#                dcc.Input(
+#                    id="input_password",
+#                    type="password",
+#                    placeholder="password",
+#                ),
+#                html.Button('Login', id='submit-login', n_clicks=0),
+#            ]),
+#            ],
+#            id='login-modal',
+#            size='sm',
+#            centered=True,
+#            is_open=False,
+#        ),
+#    ]
+#    #style={'display': 'none'},
+#)
 
 time_series = html.Div(
     id='open-timeseries',
@@ -232,7 +232,13 @@ was_time_slider = html.Div([
 
 def tab_forecast(window='models'):
     models_children = [
-        login_modal,
+            html.Div(
+                id=dict(
+                    tag='tab-name',
+                    index='models',
+                    )
+                ),
+#        login_modal,
 #        dbc.Alert(
 #            "To ensure a better experience, please note that you cannot select more than 4 models at once.",
 #            id="alert-models-auto",
@@ -252,25 +258,26 @@ def tab_forecast(window='models'):
                 dbc.Container(
                     id='graph-collection',
                     children=[
-                    dbc.Row([
-                        dbc.Col(
-                            html.Div(
-                                get_figure(
-                                    DEFAULT_MODEL,
-                                    DEFAULT_VAR, 
-                                    end_date,
-                                    0,
-                                    static=True,
-                                    aspect=(1, 1)
-                                ),
-                                id='{}-map-container'.format(DEFAULT_MODEL),
-                                className="graph-with-slider",
-                                style={'height': '{}vh'.format(int(GRAPH_HEIGHT))}
-                            )
-                        )],
-                        align="start",
-                        no_gutters=True,
-                    )],
+#                    dbc.Row([
+#                        dbc.Col(
+#                            html.Div(
+#                                get_figure(
+#                                    DEFAULT_MODEL,
+#                                    DEFAULT_VAR, 
+#                                    end_date,
+#                                    0,
+#                                    static=True,
+#                                    aspect=(1, 1)
+#                                ),
+#                                id='{}-map-container'.format(DEFAULT_MODEL),
+#                                className="graph-with-slider",
+#                                style={'height': '{}vh'.format(int(GRAPH_HEIGHT))}
+#                            )
+#                        )],
+#                        align="start",
+#                        no_gutters=True,
+#                    )
+                    ],
                     fluid=True,
                     ),
                ]
@@ -298,6 +305,12 @@ def tab_forecast(window='models'):
     ]
 
     was_children = [
+            html.Div(
+                id=dict(
+                    tag='tab-name',
+                    index='was',
+                    )
+                ),
 #        dbc.Alert(
 #            "To ensure a better experience, please note that you cannot select more than 4 models at once.",
 #            id="alert-models-auto",
@@ -326,6 +339,12 @@ def tab_forecast(window='models'):
     ]
 
     prob_children = [
+            html.Div(
+                id=dict(
+                    tag='tab-name',
+                    index='prob',
+                    )
+                ),
 #        dbc.Alert(
 #            "To ensure a better experience, please note that you cannot select more than 4 models at once.",
 #            id="alert-models-auto",

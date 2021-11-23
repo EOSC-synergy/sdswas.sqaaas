@@ -49,8 +49,7 @@ def register_callbacks(app, cache, cache_timeout):
 
 
     @app.callback(
-        [#Output('forecast-tab', 'children'),
-         Output('collapse-1', 'is_open'),
+        [Output('collapse-1', 'is_open'),
          Output('collapse-2', 'is_open'),
          Output('collapse-3', 'is_open'),
          Output('group-2-toggle', 'disabled'),
@@ -708,7 +707,7 @@ def register_callbacks(app, cache, cache_timeout):
         [Input('models-apply', 'n_clicks'),
          Input('prob-apply', 'n_clicks'),
          Input('was-apply', 'n_clicks')],
-        [State('forecast-tab', 'children')],
+        [State({'tag': 'tab-name', 'index': ALL}, 'id')],
         prevent_initial_call=True
         )
     # @cache.memoize(timeout=cache_timeout)
@@ -720,17 +719,8 @@ def register_callbacks(app, cache, cache_timeout):
             if button_id not in ('models-apply', 'prob-apply', 'was-apply'):
                 raise PreventUpdate
 
-            if DEBUG: print("::::::::::::", curtab[0]['props']['children'])
-            # out_tab = dash.no_update
-            if 'id' in curtab[1]['props']['children'][0]['props'] and \
-                    curtab[1]['props']['children'][0]['props']['id'] == 'graph-collection':
-                curtab_name = 'models'
-            elif 'id' in curtab[0]['props'] and \
-                    curtab[0]['props']['id'] == 'prob-graph':
-                curtab_name = 'prob'
-            elif 'id' in curtab[0]['props'] and \
-                    curtab[0]['props']['id'] == 'was-graph':
-                curtab_name = 'was'
+            if DEBUG: print("::::::::::::", len(curtab), curtab[0]['index'])
+            curtab_name = curtab[0]['index']
 
             nexttab_name = button_id.replace('-apply', '')
             if DEBUG: print("::::::::::::", curtab_name, nexttab_name)
@@ -768,7 +758,7 @@ def register_callbacks(app, cache, cache_timeout):
          State({'tag': 'view-style', 'index': ALL}, 'active'),
          # State('clientside-graph-collection', 'data'),
          ],
-        prevent_initial_call=True
+        prevent_initial_call=False
         )
     # @cache.memoize(timeout=cache_timeout)
     def update_models_figure(n_clicks, tstep, date, model, variable, static, view):  # graphs, ids, static):
