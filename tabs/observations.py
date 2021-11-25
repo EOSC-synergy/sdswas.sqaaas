@@ -63,12 +63,14 @@ def obs_time_slider(div='obs', start=0, end=23, step=1):
     )
 
     play_button = html.Span(children=[
-        html.Button('\u2023', title='Play',
-                    id='btn-{}-play'.format(div), n_clicks=0),
-        html.Button('\u25A0', title='Stop',
-                    id='btn-{}-stop'.format(div), n_clicks=0),
+        html.Button(title='Play',
+                    id='btn-{}-play'.format(div), n_clicks=0,
+                    className='fa fa-play'),
+        html.Button(title='Stop',
+                    id='btn-{}-stop'.format(div), n_clicks=0,
+                    className='fa fa-pause'),
         ],
-        className="timesliderline",
+        className="timesliderline anim-buttons",
     )
     
     slider = html.Span(

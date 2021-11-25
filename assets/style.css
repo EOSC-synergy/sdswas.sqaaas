@@ -282,6 +282,7 @@ div.SingleDatePickerInput {
     margin-right: 0.5rem;
     border: none !important;
     outline: none !important;
+    color: #2B383E;
 }
 
 .timesliderline>button:hover {
@@ -385,7 +386,7 @@ div.SingleDatePickerInput {
     background-color: #2b383e;*/
 }
 
-#anim-buttons.timesliderline {
+.anim-buttons {
     margin-left: 5px;
     padding: 0.4rem 0 0.4rem 0.4rem;
 }
@@ -498,7 +499,7 @@ div.SingleDatePickerInput {
 }
 
 .leaflet-popup-content {
-    width: 13.6rem !important;
+    width: 14rem !important;
     margin: 0.5rem 0 0.5rem 0.5rem !important;
     line-height: 1.6 !important;
 }
@@ -550,7 +551,7 @@ div.SingleDatePickerInput {
     font: 22px "Roboto", sans-serif !important;
     text-transform: uppercase !important;
     font-weight: bold !important;
-    line-height: .8 !important;
+    line-height: 20px !important;
 
 }
 

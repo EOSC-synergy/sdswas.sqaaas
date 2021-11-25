@@ -142,7 +142,6 @@ time_slider = html.Div([
         className="timesliderline",
     ),
     html.Span(
-        id='anim-buttons',
         children=[
         html.Button(title='Play',
                     id='btn-play', n_clicks=0,
@@ -150,7 +149,7 @@ time_slider = html.Div([
         html.Button(title='Stop',
                     id='btn-stop', n_clicks=0,
                     className='fa fa-pause')],
-        className="timesliderline",
+        className="timesliderline anim-buttons",
     ),
     html.Span(
         dcc.Slider(

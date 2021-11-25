@@ -165,9 +165,9 @@ MODEBAR_LAYOUT_TS = {
     }
 }
 
-DISCLAIMER_MODELS = [html.Span(html.P("""FORECAST ISSUED"""), id='forecast-issued'), html.Span(html.P("""DISCLAIMER: Dust data ©2021 WMO Barcelona Dust Regional Center."""), id='forecast-disclaimer')]
+DISCLAIMER_MODELS = [html.Span(html.P("""FORECAST ISSUED"""), id='forecast-issued'), html.Span(html.P("""Dust data ©2021 WMO Barcelona Dust Regional Center."""), id='forecast-disclaimer')]
 
-DISCLAIMER_OBS = html.P("""DISCLAIMER: Aerosol data ©2021 WMO Barcelona Dust Regional Center, NASA.""")
+DISCLAIMER_OBS = html.P("""Aerosol data ©2021 WMO Barcelona Dust Regional Center, NASA.""")
 
 GEOJSON_TEMPLATE = "{}/geojson/{}/{:02d}_{}_{}.geojson"
 NETCDF_TEMPLATE = "{}/netcdf/{}{}.nc"
