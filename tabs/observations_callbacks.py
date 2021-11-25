@@ -220,6 +220,44 @@ def register_callbacks(app):
         if DEBUG: print('SERVER: updating slider-graph ' + str(tstep))
         return tstep
 
+#    @app.callback(
+#        [Output({'tag': 'model-tile-layer', 'index': ALL}, 'url'),
+#         Output({'tag': 'model-tile-layer', 'index': ALL}, 'attribution'),
+#         Output({'tag': 'view-style', 'index': ALL}, 'active')],
+#        [Input({'tag': 'view-style', 'index': ALL}, 'n_clicks')],
+#        [State({'tag': 'view-style', 'index': ALL}, 'active'),
+#         State({'tag': 'model-tile-layer', 'index': ALL}, 'url')],
+#        prevent_initial_call=True
+#    )
+#    # @cache.memoize(timeout=cache_timeout)
+#    def update_styles_button(*args):
+#        """ Function updating styles button """
+#        ctx = dash.callback_context
+#        if ctx.triggered:
+#            button_id = orjson.loads(ctx.triggered[0]["prop_id"].split(".")[0])
+#            if DEBUG: print("BUTTON ID", str(button_id), type(button_id))
+#            if button_id['index'] in STYLES:
+#                active = args[-2]
+#                graphs = args[-1]
+#                num_graphs = len(graphs)
+#                # if DEBUG: print("CURRENT ARGS", str(args))
+#                # if DEBUG: print("NUM GRAPHS", num_graphs)
+#
+#                res = [False for i in active]
+#                st_idx = list(STYLES.keys()).index(button_id['index'])
+#                if active[st_idx] is False:
+#                    res[st_idx] = True
+#                url = [STYLES[button_id['index']]['url'] for x in range(num_graphs)]
+#                attr = [STYLES[button_id['index']]['attribution'] for x in range(num_graphs)]
+#                if DEBUG:
+#                    print(res, url, attr)
+#                return url, attr, res
+#                # return [True if i == button_id['index'] else False for i in active]
+#
+#        if DEBUG: print('NOTHING TO DO')
+#        raise PreventUpdate
+
+
     @app.callback(
         Output('obs-vis-graph', 'children'),
         [Input('obs-vis-date-picker', 'date'),

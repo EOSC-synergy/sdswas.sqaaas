@@ -9,6 +9,7 @@ from data_handler import MODELS
 from data_handler import DATES
 from data_handler import STYLES
 from data_handler import DISCLAIMER_MODELS
+# from tabs.forecast import layout_view
 
 from datetime import datetime as dt
 from datetime import timedelta
@@ -24,11 +25,21 @@ layout_view = html.Div([
             id='map-view-dropdown',
             label='VIEW',
             children=[
-                dbc.DropdownMenuItem(STYLES[style], id=style)
-                for style in STYLES],
+                dbc.DropdownMenuItem(
+                    STYLES[style]['name'],
+                    id=dict(
+                        tag='vis-view-style',
+                        index=style
+                    ),
+                    active=active
+                )
+                for style, active in zip(STYLES, [True if i == 'carto-positron'
+                    else False for i in STYLES])
+                ],
             direction="up",
         ),
     )])
+
 
 def obs_time_slider(div='obs', start=0, end=23, step=1):
 

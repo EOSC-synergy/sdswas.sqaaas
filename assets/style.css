@@ -161,10 +161,10 @@ button#scores-map-apply {
 .timesliderline #date {
     color: #F1B545 !important;
     font-family: "Roboto", sans-serif !important;
-    font-size: 0.8rem;
+    font-size: 1rem;
     font-weight: bold;
     text-transform: uppercase;
-    padding: 0.8rem 0rem 0.8rem 1.5rem;
+    padding: 0.8rem 0rem 0.8rem 1.1rem;
     background-color: #2B383E !important;
     border: none !important;
     cursor: pointer;
@@ -185,6 +185,12 @@ input.DateInput_input {
     padding-right: 0;
 }
 
+.DateInput_input::after { 
+  font-family: FontAwesome;
+  content: "\f107";
+  float: right;
+}
+
 div.SingleDatePickerInput {
     border: none;
 }
@@ -195,10 +201,11 @@ div.SingleDatePickerInput {
 
 #was-slider-graph, #prob-slider-graph, #obs-vis-slider-graph {
     width: 10rem;
-    padding-right: 35px !important;
+    padding: 0.4rem 35px 25px !important;
 }
 
 #slider-graph, #obs-slider-graph, #obs-aod-slider-graph {
+    padding: 0.4rem 25px 25px !important;
     width: 30rem;
 }
 
@@ -280,6 +287,12 @@ div.SingleDatePickerInput {
 .timesliderline>button:hover {
     background-color: #F1B545 !important;
 }
+/*
+.playbutton {
+    background-image: url('/daily_dashboard/assets/images/Play.png');
+    background-repeat: no-repeat;
+    background-color: #2B383E;
+}*/
 
 #obs-dropdown, #obs-mod-dropdown {
     min-width: 12rem;
@@ -355,17 +368,26 @@ div.SingleDatePickerInput {
 }
 
 .timesliderline {
-    display: table-cell;
+    display: inline-block;
     vertical-align: middle;
     margin: 0;
+    height: 100%;
+    background-color: #2b383e;
 }
 
 .timeslider {
     position: absolute;
-    width: 704px;
+    background-color: transparent !important;
+    height: 100%;
+    /* width: 704px;
     height: 100%;
     padding: 0.2rem;
-    background-color: #2b383e;
+    background-color: #2b383e;*/
+}
+
+#anim-buttons.timesliderline {
+    margin-left: 5px;
+    padding: 0.4rem 0 0.4rem 0.4rem;
 }
 
 /* Position the parent of the timeslider */
@@ -530,6 +552,10 @@ div.SingleDatePickerInput {
     font-weight: bold !important;
     line-height: .8 !important;
 
+}
+
+.leaflet-control-attribution {
+    display: none;
 }
 
 /*

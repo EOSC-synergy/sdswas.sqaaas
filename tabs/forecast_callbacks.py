@@ -279,34 +279,34 @@ def register_callbacks(app, cache, cache_timeout):
 
                 return download_image(models, variable, curdate, anim=True)
 
-    @app.callback(
-        Output('frame-download', 'data'),
-        [Input('btn-frame-download', 'n_clicks')],
-        [State('model-dropdown', 'value'),
-         State('variable-dropdown-forecast', 'value'),
-         State('model-date-picker', 'date'),
-         State('slider-graph', 'value')],
-         prevent_initial_call=True,
-    )
-    def download_frame(btn, models, variable, date, tstep):
-        """ Download PNG frame """
-        from tools import get_figure
-        from tools import download_image
-
-        ctx = dash.callback_context
-
-        if ctx.triggered:
-            button_id = ctx.triggered[0]["prop_id"].split(".")[0]
-            if button_id == 'btn-frame-download':
-                if tstep is None:
-                    tstep = 0
-                if DEBUG: print('PNG', btn, models, variable, date, tstep)
-                try:
-                    curdate = dt.strptime(date, '%Y-%m-%d').strftime('%Y%m%d')
-                except:
-                    curdate = date
-
-                return download_image(models, variable, curdate, tstep=int(tstep/FREQ))
+#    @app.callback(
+#        Output('frame-download', 'data'),
+#        [Input('btn-frame-download', 'n_clicks')],
+#        [State('model-dropdown', 'value'),
+#         State('variable-dropdown-forecast', 'value'),
+#         State('model-date-picker', 'date'),
+#         State('slider-graph', 'value')],
+#         prevent_initial_call=True,
+#    )
+#    def download_frame(btn, models, variable, date, tstep):
+#        """ Download PNG frame """
+#        from tools import get_figure
+#        from tools import download_image
+#
+#        ctx = dash.callback_context
+#
+#        if ctx.triggered:
+#            button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+#            if button_id == 'btn-frame-download':
+#                if tstep is None:
+#                    tstep = 0
+#                if DEBUG: print('PNG', btn, models, variable, date, tstep)
+#                try:
+#                    curdate = dt.strptime(date, '%Y-%m-%d').strftime('%Y%m%d')
+#                except:
+#                    curdate = date
+#
+#                return download_image(models, variable, curdate, tstep=int(tstep/FREQ))
 
     @app.callback(
         Output('was-graph', 'children'),

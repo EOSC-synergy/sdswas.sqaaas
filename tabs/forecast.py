@@ -141,11 +141,15 @@ time_slider = html.Div([
         ),
         className="timesliderline",
     ),
-    html.Span(children=[
-        html.Button('\u2023', title='Play',
-                    id='btn-play', n_clicks=0),
-        html.Button('\u25A0', title='Stop',
-                    id='btn-stop', n_clicks=0)],
+    html.Span(
+        id='anim-buttons',
+        children=[
+        html.Button(title='Play',
+                    id='btn-play', n_clicks=0,
+                    className='fa fa-play'),
+        html.Button(title='Stop',
+                    id='btn-stop', n_clicks=0,
+                    className='fa fa-pause')],
         className="timesliderline",
     ),
     html.Span(
@@ -543,6 +547,8 @@ def sidebar_forecast(variables, default_var, models, default_model):
                             id='btn-netcdf-download',
                             n_clicks=0,
                             href="https://dust03.bsc.es/products/data-download",
+                            external_link=True,
+                            target="_blank",
                             className='download-section',
                             ),
 #                        dbc.Spinner(

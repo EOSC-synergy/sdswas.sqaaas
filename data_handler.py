@@ -34,7 +34,10 @@ DIR_PATH = os.path.dirname(os.path.realpath(__file__))
 
 DEBUG = True
 
-COLORS = ['#a1ede3', '#5ce3ba', '#fcd775', '#da7230',
+COLORS = ['#ffffff', '#a1ede3', '#5ce3ba', '#fcd775', '#da7230',
+          '#9e6226', '#714921', '#392511', '#1d1309']
+
+COLORS_NEW = ['rgba(255,255,255,0.3)', '#a1ede3', '#5ce3ba', '#fcd775', '#da7230',
           '#9e6226', '#714921', '#392511', '#1d1309']
 
 COLORS_PROB = [  #(1,1,1),                                            \
@@ -782,8 +785,7 @@ class FigureHandler(object):
             bounds = [0, 1]
 
         if DEBUG: print(bounds)
-        colorscale=COLORS  # self.colormaps[varname.upper()]
-        if DEBUG: print(colorscale)
+        colorscale = COLORS_NEW
 
         geojson_url = app.get_asset_url(os.path.join('geojsons',
             GEOJSON_TEMPLATE.format(os.path.basename(MODELS[self.model]['path']),
@@ -793,8 +795,20 @@ class FigureHandler(object):
         style = dict(weight=0, opacity=0, color='white', dashArray='', fillOpacity=0.6)
 
         # Create colorbar.
-        ctg = ["{:.1f}".format(cls, bounds[i + 1]) if '.' in str(cls) else "{:d}".format(cls, bounds[i + 1]) for i, cls in enumerate(bounds[:-1])]
-        colorbar = dlx.categorical_colorbar(categories=ctg, colorscale=colorscale, width=250, height=20, position="topleft", style={ 'top': '70px' })
+        ctg = ["{:.1f}".format(cls) if '.' in str(cls) else "{:d}".format(cls)
+                for i, cls in enumerate(bounds[1:-1])]
+        indices = list(range(len(ctg) + 2))
+        colorbar = dl.Colorbar(
+                min=0, max=len(ctg)+1,
+                classes=indices,
+                colorscale=colorscale,
+                tickValues=indices[1:-1],
+                tickText=ctg,
+                position='topleft',
+                width=250,
+                height=15,
+                style={ 'top': '70px' }
+                )
 
         # Geojson rendering logic, must be JavaScript as it is executed in clientside.
         ns = Namespace("forecastTab", "forecastMaps")
@@ -1078,7 +1092,6 @@ class FigureHandler(object):
                 index=self.model
                 )
         )
-
         if DEBUG: print("*** FIGURE EXECUTION TIME: {} ***".format(str(time.time() - self.st_time)))
         return fig
 
@@ -2092,7 +2105,7 @@ class WasFigureHandler(object):
             uirevision=True,
             autosize=True,
             hovermode="closest",        # highlight closest point on hover
-            mapbox=self.get_mapbox(zoom=6.5-(0.5*aspect[0])),
+            mapbox=self.get_mapbox(zoom=4.5-(0.5*aspect[0])),
             font_size=12-(0.5*aspect[0]),
             #height=800,
             margin={"r": 0, "t": 0, "l": 0, "b": 0},

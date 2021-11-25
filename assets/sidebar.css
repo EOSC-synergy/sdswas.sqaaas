@@ -234,18 +234,20 @@ span>#models-apply {
     width: -moz-available;
 }
 
-.sidebar-bottom .card-text>button.download-section {
+.sidebar-bottom .card-text>.download-section {
     background-image: url("/daily_dashboard/assets/images/download.svg");
     background-repeat: no-repeat;
     background-position: 0.5rem;
+    background-color: lightgrey;
     display: block;
     width: 98%;
     height: 4vh;
-    margin-bottom: 1rem;
-    padding-left: 1rem;
+    margin-bottom: 1rem !important;
+    padding-left: 1rem !important;
     text-align: center;
-    color:  #2b383e;
-    border: 2px solid #2b383e;
+    font-size: Small;
+    color:  #2b383e !important;
+    border: 2px solid #2b383e !important;
 }
 
 .sidebar-bottom .card-text>p>a {

@@ -3,7 +3,7 @@
         "name": "Dust Optical Depth",
 	"name_sidebar": "AOD",
 	"image_scale": "/home/fbeninca/interactive-forecast-viewer/assets/images/AOD.png",
-        "bounds": [0.1, 0.2, 0.4, 0.8, 1.2, 1.6, 3.2, 6.4, 10],
+        "bounds": [0, 0.1, 0.2, 0.4, 0.8, 1.2, 1.6, 3.2, 6.4, 10],
         "mul": 1,
         "title": "Dust Optical Depth (550nm)<br>Run: %(rhour)sh %(rday)s %(rmonth)s %(ryear)s<br>Valid: %(shour)sh %(sday)s %(smonth)s %(syear)s (H+%(step)s)",
 	"models": "all"
