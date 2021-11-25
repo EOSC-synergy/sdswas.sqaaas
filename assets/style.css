@@ -283,11 +283,18 @@ div.SingleDatePickerInput {
     border: none !important;
     outline: none !important;
     color: #2B383E;
+    background-color: #fff !important;
 }
 
 .timesliderline>button:hover {
     background-color: #F1B545 !important;
 }
+
+.anim-buttons {
+    margin-left: 5px;
+    padding: 0.4rem 0 0.4rem 0.4rem;
+}
+
 /*
 .playbutton {
     background-image: url('/daily_dashboard/assets/images/Play.png');
@@ -371,7 +378,6 @@ div.SingleDatePickerInput {
 .timesliderline {
     display: inline-block;
     vertical-align: middle;
-    margin: 0;
     height: 100%;
     background-color: #2b383e;
 }
@@ -384,11 +390,6 @@ div.SingleDatePickerInput {
     height: 100%;
     padding: 0.2rem;
     background-color: #2b383e;*/
-}
-
-.anim-buttons {
-    margin-left: 5px;
-    padding: 0.4rem 0 0.4rem 0.4rem;
 }
 
 /* Position the parent of the timeslider */
