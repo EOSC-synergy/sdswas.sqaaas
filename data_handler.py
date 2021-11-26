@@ -994,7 +994,7 @@ class FigureHandler(object):
 
         return 0
 
-    def retrieve_var_tstep(self, varname=None, tstep=0, hour=None, static=True, aspect=(1,1), center=None, selected_tiles='carto-positron'):
+    def retrieve_var_tstep(self, varname=None, tstep=0, hour=None, static=True, aspect=(1,1), center=None, selected_tiles='carto-positron', zoom=None):
         """ run plot """
 
         if hour is not None:
@@ -1038,6 +1038,8 @@ class FigureHandler(object):
 
         if DEBUG: print("ASPECT", aspect)
         center = self.get_center(center)
+        zoom = zoom is not None and zoom or 4-(aspect[0])
+        if DEBUG: print("ZOOM", zoom)
         if DEBUG: print("CENTER", center)
 
 
@@ -1085,7 +1087,7 @@ class FigureHandler(object):
             colorbar,
             info
             ],
-            zoom=4.5-(aspect[0]),
+            zoom=zoom,
             center=center,
             id=dict(
                 tag='model-map',

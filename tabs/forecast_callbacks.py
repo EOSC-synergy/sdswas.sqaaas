@@ -499,6 +499,9 @@ def register_callbacks(app, cache, cache_timeout):
     def models_popup(click_data, map_ids, res_list, date, tstep, var):
         from tools import get_single_point
         if DEBUG: print("CLICK:", str(click_data))
+        if click_data.count(None) == len(click_data):
+            raise PreventUpdate
+
         if DEBUG: print("MAPID:", str(map_ids), type(map_ids))
         if DEBUG: print("RESLIST:", str(res_list), type(res_list))
 
@@ -638,7 +641,7 @@ def register_callbacks(app, cache, cache_timeout):
         [Output('slider-interval', 'disabled'),
          Output('slider-interval', 'n_intervals'),
          Output('open-timeseries', 'style'),
-         Output('div-collection', 'children'),
+         #Output('div-collection', 'children'),
          ],
         [Input('btn-play', 'n_clicks'),
          Input('btn-stop', 'n_clicks')],
@@ -653,32 +656,14 @@ def register_callbacks(app, cache, cache_timeout):
         if not value:
             value = 0
 
-        div_noanim = dbc.Spinner(
-            id='loading-graph-collection',
-            debounce=10,
-            show_initially=False,
-            children=[
-                dbc.Container(
-                    id='graph-collection',
-                    children=[],
-                    fluid=True,
-                    )]
-        )
-
-        div_anim = dbc.Container(
-            id='graph-collection',
-            children=[],
-            fluid=True,
-        )
-
         if ctx.triggered:
             button_id = ctx.triggered[0]["prop_id"].split(".")[0]
             if button_id == 'btn-play' and disabled:
                 ts_style = { 'display': 'none' }
-                return not disabled, int(value/FREQ), ts_style, div_anim
+                return not disabled, int(value/FREQ), ts_style
             elif button_id == 'btn-stop' and not disabled:
                 ts_style = { 'display': 'block' }
-                return not disabled, int(value/FREQ), ts_style, div_anim
+                return not disabled, int(value/FREQ), ts_style
 
         raise PreventUpdate
 
@@ -756,16 +741,18 @@ def register_callbacks(app, cache, cache_timeout):
          # State({'type': 'graph-with-slider', 'index': ALL}, 'id'),
          State('slider-interval', 'disabled'),
          State({'tag': 'view-style', 'index': ALL}, 'active'),
+         State({'tag': 'model-map', 'index': ALL}, 'zoom'),
+         State({'tag': 'model-map', 'index': ALL}, 'center'),
+         State({'tag': 'model-map', 'index': ALL}, 'id'),
          # State('clientside-graph-collection', 'data'),
          ],
         prevent_initial_call=False
         )
     # @cache.memoize(timeout=cache_timeout)
-    def update_models_figure(n_clicks, tstep, date, model, variable, static, view):  # graphs, ids, static):
+    def update_models_figure(n_clicks, tstep, date, model, variable, static, view, zoom, center, ids):  # graphs, ids, static):
         """ Update mosaic of maps figures according to all parameters """
         from tools import get_figure
         if DEBUG: print('SERVER: calling figure from picker callback')
-        if DEBUG: print('VIEW', view)
 
         st_time = time.time()
 
@@ -802,15 +789,37 @@ def register_callbacks(app, cache, cache_timeout):
             tstep = 0
 
         if DEBUG: print('SERVER: tstep calc ' + str(tstep))
+        if DEBUG: print('#### IDS, ZOOM, CENTER:', ids, zoom, center)
 
         figures = []
 
         ncols, nrows = calc_matrix(len(model))
 
+#        if len(model) == 1:
+#            if zoom and len(zoom) == 1:
+#                zoom = zoom[0]
+#            else:
+#                zoom = None
+#            if center and len(center) == 1:
+#                center = center[0]
+#            else:
+#                center = None
+#        else:
+
+        if not zoom:
+            zoom = [None]
+        if not center:
+            center = [None]
+        if len(model) > 1 or len(model) < len(zoom):
+            zoom = [None for item in model]
+            center = [None for item in model]
+        if DEBUG: print('#### ZOOM, CENTER:', zoom, center, model)
         view = list(STYLES.keys())[view.index(True)]
-        for idx, mod in enumerate(model):
+        for idx, (mod, mod_zoom, mod_center) in enumerate(zip(model, zoom, center)):
+            if DEBUG: print("IDX", idx, "MOD", mod, "ZOOM", mod_zoom, "CENTER", mod_center)
             figure = get_figure(mod, variable, date, tstep,
-                    static=static, aspect=(nrows, ncols), view=view)
+                    static=static, aspect=(nrows, ncols), view=view,
+                    center=mod_center, zoom=mod_zoom)
             # if DEBUG: print('FIGURE', figure)
             if DEBUG: print('STATIC', static)
             figures.append(
