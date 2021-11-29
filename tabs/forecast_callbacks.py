@@ -8,6 +8,7 @@ from dash.dependencies import Input
 from dash.dependencies import State
 from dash.dependencies import ALL
 from dash.dependencies import MATCH
+from dash.dependencies import ClientsideFunction
 from dash.exceptions import PreventUpdate
 import dash_leaflet as dl
 
@@ -278,6 +279,16 @@ def register_callbacks(app, cache, cache_timeout):
                     curdate = date
 
                 return download_image(models, variable, curdate, anim=True)
+
+#    app.clientside_callback(
+#        ClientsideFunction(
+#            namespace='clientside',
+#            function_name='download_png_frame'
+#        ),
+#        Output('frame-download', 'data'),
+#        Input('btn-frame-download', 'n_clicks'),
+#        prevent_initial_call=True,
+#    )
 
 #    @app.callback(
 #        Output('frame-download', 'data'),

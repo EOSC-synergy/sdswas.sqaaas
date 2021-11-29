@@ -164,7 +164,7 @@ button#scores-map-apply {
     font-size: 1rem;
     font-weight: bold;
     text-transform: uppercase;
-    padding: 0.8rem 0rem 0.8rem 1.1rem;
+    padding: 0.9rem 0rem 0.6rem 1.1rem;
     background-color: #2B383E !important;
     border: none !important;
     cursor: pointer;
@@ -284,10 +284,24 @@ div.SingleDatePickerInput {
     outline: none !important;
     color: #2B383E;
     background-color: #fff !important;
+    display: inline-flex;
+    padding: 9px 10px;
 }
 
 .timesliderline>button:hover {
     background-color: #F1B545 !important;
+}
+
+.timesliderline>button:focus {
+    background-color: #FFFFFF !important;
+}
+
+.timesliderline>button::before {
+}
+
+.text-center {
+    display: inline-block;
+    text-align: center;
 }
 
 .anim-buttons {
@@ -545,6 +559,7 @@ div.SingleDatePickerInput {
     background-color: #2b383e !important;
     color: #ffffff !important;
     padding: 0 ! important;
+    margin: 0 ! important;
     border-radius: 50% !important;
     top: -9px !important;
     right: -9px !important;
@@ -552,7 +567,7 @@ div.SingleDatePickerInput {
     font: 22px "Roboto", sans-serif !important;
     text-transform: uppercase !important;
     font-weight: bold !important;
-    line-height: 20px !important;
+    line-height: 16px !important;
 
 }
 

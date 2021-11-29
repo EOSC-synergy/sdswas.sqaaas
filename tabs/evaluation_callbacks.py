@@ -62,8 +62,8 @@ def register_callbacks(app, cache, cache_timeout):
     )
     def render_evaluation_tab(nrtbutton, scoresbutton):
         """ Function rendering requested tab """
-        bold = { 'font-weight': 'bold' }
-        norm = { 'font-weight': 'normal' }
+        bold = { 'fontWeight': 'bold' }
+        norm = { 'fontWeight': 'normal' }
         ctx = dash.callback_context
 
         if ctx.triggered:
@@ -496,12 +496,13 @@ def register_callbacks(app, cache, cache_timeout):
                 updatemode='bothdates',
             )]
 
-            eval_graph = [dbc.Spinner(
-                get_graph(
-                    gid='graph-eval-aeronet',
-                    figure=get_figure(),
-                    )),
-                ]
+            eval_graph = get_figure()
+#            eval_graph = [dbc.Spinner(
+#                get_graph(
+#                    gid='graph-eval-aeronet',
+#                    figure=get_figure(),
+#                    )),
+#                ]
 
             style = { 'display': 'none' }
 
@@ -521,23 +522,25 @@ def register_callbacks(app, cache, cache_timeout):
 
             fig_mod = get_figure(model='median', var=DEFAULT_VAR,
                     selected_date=end_date, tstep=0)
-            center = fig_mod['layout']['mapbox']['center']
+            #center = fig_mod['layout']['mapbox']['center']
             fig_obs = get_figure(model=obs, var=DEFAULT_VAR,
-                    selected_date=end_date, tstep=0, center=center)
+                    selected_date=end_date, tstep=0)
             graph_obs, graph_mod = [
                     dbc.Spinner(html.Div([
-                        get_graph(
-                            gid='graph-eval-modis-obs',
-                            figure=fig_obs,
-                            ),
+                        fig_obs,
+#                        get_graph(
+#                            gid='graph-eval-modis-obs',
+#                            figure=fig_obs,
+#                            ),
                         html.Div(DISCLAIMER_OBS,
                             className='disclaimer')
                         ])),
                     dbc.Spinner(html.Div([
-                        get_graph(
-                            gid='graph-eval-modis-mod',
-                            figure=fig_mod,
-                            ),
+                        fig_mod,
+#                        get_graph(
+#                            gid='graph-eval-modis-mod',
+#                            figure=fig_mod,
+#                            ),
                         html.Div(DISCLAIMER_MODELS,
                             className='disclaimer')
                         ])),

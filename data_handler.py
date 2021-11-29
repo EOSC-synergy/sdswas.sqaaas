@@ -165,6 +165,8 @@ MODEBAR_LAYOUT_TS = {
     }
 }
 
+INFO_STYLE = {"position": "absolute", "top": "10px", "left": "10px", "zIndex": "1000"}
+
 DISCLAIMER_MODELS = [html.Span(html.P("""FORECAST ISSUED"""), id='forecast-issued'), html.Span(html.P("""Dust data ©2021 WMO Barcelona Dust Regional Center."""), id='forecast-disclaimer')]
 
 DISCLAIMER_OBS = html.P("""Aerosol data ©2021 WMO Barcelona Dust Regional Center, NASA.""")
@@ -1046,29 +1048,32 @@ class FigureHandler(object):
         if DEBUG: print('Update layout ...')
         if not varname:
             fig_title=html.P("")
-            info_style = {"position": "absolute", "top": "10px", "left": "10px", "z-index": "1000"}
         elif varname and not self.filedir:
             fig_title = html.P(html.B("DATA NOT AVAILABLE"))
-            info_style = {"position": "absolute", "top": "10px", "left": "10px", "z-index": "1000"}
         else:
             fig_title = html.P(html.B(
                 [
                     item for sublist in self.get_title(varname, tstep).split('<br>') for item in [sublist, html.Br()]
                 ][:-1]
             ))
-            info_style = {"position": "absolute", "top": "10px", "left": "10px", "z-index": "1000"}
         info = html.Div(
             children=fig_title,
             id="{}-info".format(self.model),
             className="info",
-            style=info_style
+            style=INFO_STYLE
         )
 
+            
+        if isinstance(self.model, str):
+            curr_index = self.model
+        else:
+            curr_index = str(self.model)
+        
         fig = dl.Map(children=[
             dl.TileLayer(
                 id=dict(
                     tag="model-tile-layer",
-                    index=self.model
+                    index=curr_index
                 ),
                 url=STYLES[selected_tiles]['url'],
                 attribution=STYLES[selected_tiles]['attribution']
@@ -1077,7 +1082,7 @@ class FigureHandler(object):
                 # children=[],
                 id=dict(
                     tag="model-map-layer",
-                    index=self.model
+                    index=curr_index
                 )
             ),
             dl.FullscreenControl(
@@ -1091,7 +1096,7 @@ class FigureHandler(object):
             center=center,
             id=dict(
                 tag='model-map',
-                index=self.model
+                index=curr_index
                 )
         )
         if DEBUG: print("*** FIGURE EXECUTION TIME: {} ***".format(str(time.time() - self.st_time)))

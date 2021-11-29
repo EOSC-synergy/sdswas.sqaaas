@@ -79,7 +79,7 @@ time_series = html.Div(
         dbc.Spinner(
             id='loading-ts-modal',
             fullscreen=True,
-            fullscreen_style={'opacity': '0.5', 'z-index' : '200000'},
+            fullscreen_style={'opacity': '0.5', 'zIndex' : '200000'},
             show_initially=False,
             # debounce=200,
             children=[
@@ -145,10 +145,10 @@ time_slider = html.Div([
         children=[
         html.Button(title='Play',
                     id='btn-play', n_clicks=0,
-                    className='fa fa-play'),
+                    className='fa fa-play text-center'),
         html.Button(title='Stop',
                     id='btn-stop', n_clicks=0,
-                    className='fa fa-pause')],
+                    className='fa fa-pause text-center')],
         className="timesliderline anim-buttons",
     ),
     html.Span(
@@ -525,12 +525,12 @@ def sidebar_forecast(variables, default_var, models, default_model):
                             n_clicks=0,
                             className='download-section',
                             ),
-                        dbc.Spinner(
+                        # dbc.Spinner(
                                 dcc.Download(
                                     id="frame-download",
                                 base64=True,
-                                )
-                            ),
+                                ),
+                          #  ),
                         html.Button('GIF ANIM',
                             id='btn-anim-download',
                             n_clicks=0,
@@ -548,6 +548,13 @@ def sidebar_forecast(variables, default_var, models, default_model):
                             href="https://dust03.bsc.es/products/data-download",
                             external_link=True,
                             target="_blank",
+                            className='download-section',
+                            ),
+                        html.A('TEST',
+                            id='btn-img-download',
+                            n_clicks=0,
+                            href="#",
+                            # target="_blank",
                             className='download-section',
                             ),
 #                        dbc.Spinner(

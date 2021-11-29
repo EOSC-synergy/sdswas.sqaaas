@@ -46,10 +46,12 @@ TIMEOUT = 10
 fontawesome = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css'
 
 srv = flask.Flask(__name__)
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP,
-                                                dbc.themes.GRID,
-                                                fontawesome
-                                                ],
+app = dash.Dash(__name__,
+                external_scripts=['https://code.jquery.com/jquery-3.6.0.slim.min.js'],
+                external_stylesheets=[dbc.themes.BOOTSTRAP,
+                                      dbc.themes.GRID,
+                                      fontawesome
+                                     ],
                 url_base_pathname='/daily_dashboard/',
                 server=srv,
                 prevent_initial_callbacks=True
@@ -99,6 +101,37 @@ server = app.server
 #    g.profiler.stop()
 #    output_html = g.profiler.output_html()
 #    return make_response(output_html)
+
+app.index_string = """
+<!DOCTYPE html>
+<html>
+    <head>
+        {%metas%}
+        <script>
+            L_PREFER_CANVAS = true;
+
+            HTMLCanvasElement.prototype.getContext = function(origFn) {
+            return function(type, attribs) {
+            attribs = attribs || {};
+            attribs.preserveDrawingBuffer = true;
+            return origFn.call(this, type, attribs);
+             };
+            }(HTMLCanvasElement.prototype.getContext);
+        </script>
+        <title>{%title%}</title>
+        {%favicon%}
+        {%css%}
+    </head>
+    <body>
+        {%app_entry%}
+        <footer>
+            {%config%}
+            {%scripts%}
+            {%renderer%}
+        </footer>
+    </body>
+</html>
+"""
 
 if DEBUG: print('SERVER: start creating app layout')
 app.layout = html.Div(
