@@ -165,7 +165,14 @@ MODEBAR_LAYOUT_TS = {
     }
 }
 
-INFO_STYLE = {"position": "absolute", "top": "10px", "left": "10px", "zIndex": "1000"}
+INFO_STYLE = {
+        "position": "absolute",
+        "top": "10px",
+        "left": "10px",
+        "zIndex": "1000",
+        "fontFamily": '"Roboto", sans-serif',
+        "fontSize": "16px",
+        }
 
 DISCLAIMER_MODELS = [html.Span(html.P("""FORECAST ISSUED"""), id='forecast-issued'), html.Span(html.P("""Dust data ©2021 WMO Barcelona Dust Regional Center."""), id='forecast-disclaimer')]
 
@@ -257,31 +264,63 @@ class Observations1dHandler(object):
         cstations = self.station_names[notnan]
         if DEBUG: print(len(clon), len(clat), len(cstations))
         name = 'Aeronet Station'
-        return dict(
-            type='scattermapbox',
-            below='',
-            lon=clon,
-            lat=clat,
-            mode='markers',
-            name=name,
-            customdata=cstations,
-            hovertemplate="name:%{customdata}<br>lon: %{lon:.2f}<br>" +
-                          "lat: %{lat:.2f}", #"<br>value: %{text:.2f}",
-            opacity=0.6,
-            showlegend=False,
-            marker=dict(
-                # autocolorscale=True,
-                # symbol='square',
-                color='#f0b450',
-                opacity=0.8,
-                size=15,
-                colorscale=self.colormaps[varname],
-                cmin=self.bounds[varname][0],
-                cmax=self.bounds[varname][-1],
-                showscale=False,
-            ),
+        df = pd.DataFrame({
+            'lon': clon.round(2),
+            'lat': clat.round(2),
+            'stations': cstations
+            })  # .T, columns=['lon', 'lat', 'station'])
+        dicts = df.to_dict('rows')
+#        for item in dicts:
+#            item["popup"] = \
+#                    "Lat {} Lon {} Val {}".format(item['lat'], item['lon'], item['stations'])
+        geojson = dlx.dicts_to_geojson(dicts, lon="lon")
+        #geobuf = dlx.geojson_to_geobuf(geojson)
 
-        )
+        if DEBUG: print("GEOBUF CREATED ***********")
+        # Geojson rendering logic, must be JavaScript as it is executed in clientside.
+        ns = Namespace("evaluationTab", "evaluationMaps")
+        point_to_layer = ns("pointToLayer")
+        # bind_tooltip = ns("bindTooltip")
+        # if DEBUG: print("BIND", str(bind_tooltip))
+        # Create geojson.
+        # return dl.GeoJSON(data=geobuf, format="geobuf",
+        return df, dl.GeoJSON(data=geojson,
+                options=dict(
+                    pointToLayer=point_to_layer,
+                ),
+                hideout=dict(
+                    circleOptions=dict(
+                        fillOpacity=0.6,
+                        stroke=False,
+                        fillColor='#f0b450',
+                        radius=8),
+                )
+            )
+#        return dict(
+#            type='scattermapbox',
+#            below='',
+#            lon=clon,
+#            lat=clat,
+#            mode='markers',
+#            name=name,
+#            customdata=cstations,
+#            hovertemplate="name:%{customdata}<br>lon: %{lon:.2f}<br>" +
+#                          "lat: %{lat:.2f}", #"<br>value: %{text:.2f}",
+#            opacity=0.6,
+#            showlegend=False,
+#            marker=dict(
+#                # autocolorscale=True,
+#                # symbol='square',
+#                color='#f0b450',
+#                opacity=0.8,
+#                size=15,
+#                colorscale=self.colormaps[varname],
+#                cmin=self.bounds[varname][0],
+#                cmax=self.bounds[varname][-1],
+#                showscale=False,
+#            ),
+#
+#        )
 
 
 class ObsTimeSeriesHandler(object):
@@ -996,7 +1035,7 @@ class FigureHandler(object):
 
         return 0
 
-    def retrieve_var_tstep(self, varname=None, tstep=0, hour=None, static=True, aspect=(1,1), center=None, selected_tiles='carto-positron', zoom=None):
+    def retrieve_var_tstep(self, varname=None, tstep=0, hour=None, static=True, aspect=(1,1), center=None, selected_tiles='carto-positron', zoom=None, layer=None):
         """ run plot """
 
         if hour is not None:
@@ -1019,13 +1058,7 @@ class FigureHandler(object):
                 if DEBUG: print("----------- ERROR:", str(err))
                 self.filedir = None
                 # if DEBUG: print('ERROR: geojson {}'.format(geojson_url))
-                data = {
-                        "type": "FeatureCollection",
-                        "features": []
-                        }
-                geojson_contours = dl.GeoJSON(
-                        data=data,
-                        )
+                geojson_contours = None
                 colorbar = None
         else:
             if DEBUG: print('Adding one point ...')
@@ -1040,7 +1073,7 @@ class FigureHandler(object):
 
         if DEBUG: print("ASPECT", aspect)
         center = self.get_center(center)
-        zoom = zoom is not None and zoom or 4-(aspect[0])
+        zoom = zoom is not None and zoom or 3.5-(aspect[0])
         if DEBUG: print("ZOOM", zoom)
         if DEBUG: print("CENTER", center)
 
@@ -1049,30 +1082,46 @@ class FigureHandler(object):
         if not varname:
             fig_title=html.P("")
         elif varname and not self.filedir:
-            fig_title = html.P(html.B("DATA NOT AVAILABLE"))
+            fig_title = html.P(html.B("{} - DATA NOT AVAILABLE".format(MODELS[self.model]['name'])))
         else:
             fig_title = html.P(html.B(
                 [
                     item for sublist in self.get_title(varname, tstep).split('<br>') for item in [sublist, html.Br()]
                 ][:-1]
             ))
-        info = html.Div(
-            children=fig_title,
-            id="{}-info".format(self.model),
-            className="info",
-            style=INFO_STYLE
-        )
-
+        if self.model is not None:
+            CUR_INFO_STYLE = INFO_STYLE.copy()
+            if aspect[0] > 2:
+                CUR_INFO_STYLE['fontSize'] = "{}px".format(int(INFO_STYLE['fontSize'][:-2])-aspect[0]+1)
+            info = html.Div(
+                children=fig_title,
+                id="{}-info".format(self.model),
+                className="info",
+                style=CUR_INFO_STYLE
+            )
+        else:
+            info = None
             
         if isinstance(self.model, str):
             curr_index = self.model
         else:
             curr_index = str(self.model)
+
+        tag_template_tile = "{}-tile-layer"
+        tag_template_layer = "{}-map-layer"
+        tag_template_map = "{}-map"
+
+        if self.model is None:
+            curr_tag = 'empty'
+        elif self.model in MODELS:
+            curr_tag = 'model'
+        else:
+            curr_tag = self.model
         
         fig = dl.Map(children=[
             dl.TileLayer(
                 id=dict(
-                    tag="model-tile-layer",
+                    tag=tag_template_tile.format(curr_tag),
                     index=curr_index
                 ),
                 url=STYLES[selected_tiles]['url'],
@@ -1081,7 +1130,7 @@ class FigureHandler(object):
             dl.LayerGroup(
                 # children=[],
                 id=dict(
-                    tag="model-map-layer",
+                    tag=tag_template_layer.format(curr_tag),
                     index=curr_index
                 )
             ),
@@ -1089,16 +1138,18 @@ class FigureHandler(object):
                 position='topright',
             ),
             geojson_contours,
+            layer,
             colorbar,
             info
             ],
             zoom=zoom,
             center=center,
             id=dict(
-                tag='model-map',
+                tag=tag_template_map.format(curr_tag),
                 index=curr_index
                 )
         )
+        # if DEBUG: print("---", fig)
         if DEBUG: print("*** FIGURE EXECUTION TIME: {} ***".format(str(time.time() - self.st_time)))
         return fig
 

@@ -185,10 +185,28 @@ input.DateInput_input {
     padding-right: 0;
 }
 
-.DateInput_input::after { 
-  font-family: FontAwesome;
+.DateInput_input:after {
+      display: inline-block;
+    margin-left: 0.255em;
+    vertical-align: 0.255em;
+    content: "";
+    border-top: 0;
+    border-right: 0.3em solid transparent;
+    border-bottom: 0.3em solid;
+    border-left: 0.3em solid transparent;
+  /* display: inline-block;
+  font-variant: normal;
+  text-rendering: auto;
+  -webkit-font-smoothing: antialiased;
+  font-family: "Font Awesome 5 Brands","Font Awesome 5 Free";
+  font-size: 15px;
+  font-weight: 900;
+  font-style: normal;
   content: "\f107";
   float: right;
+  color: grey;
+  float: right;
+  */
 }
 
 div.SingleDatePickerInput {
@@ -377,6 +395,10 @@ div.SingleDatePickerInput {
     display: none;
 }
 
+.linetool .DateRangePicker_picker {
+    z-index: 1000;
+}
+
 .CalendarDay__hovered_span, .CalendarDay__hovered_span:hover, .linetool .CalendarDay__selected_span {
     background: #D8A443;
     border: 1px double #D8A443;
@@ -514,9 +536,16 @@ div.SingleDatePickerInput {
 }
 
 .leaflet-popup-content {
-    width: 14rem !important;
     margin: 0.5rem 0 0.5rem 0.5rem !important;
     line-height: 1.6 !important;
+}
+
+.leaflet-popup-content .popup-map-body {
+    width: 14rem !important;
+}
+
+.leaflet-popup-content .popup-map-eval-body {
+    width: 11rem !important;
 }
 
 .leaflet-container .leaflet-popup-content-wrapper .popup-map-value {
@@ -539,6 +568,13 @@ div.SingleDatePickerInput {
 }
 
 .leaflet-container .leaflet-popup-content-wrapper .popup-map-body {
+    float: left;
+    padding-left: 0.5rem;
+    padding-right: 0 !important;
+    margin-right: 0 !important;
+}
+
+.leaflet-container .leaflet-popup-content-wrapper .popup-map-eval-body {
     float: left;
     padding-left: 0.5rem;
     padding-right: 0 !important;

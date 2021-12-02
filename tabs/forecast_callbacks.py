@@ -616,7 +616,7 @@ def register_callbacks(app, cache, cache_timeout):
         prevent_initial_call=True
     )
     # @cache.memoize(timeout=cache_timeout)
-    def store_timeseries(ts_button, mod, date, variable, coords):
+    def show_timeseries(ts_button, mod, date, variable, coords):
         """ Renders model comparison timeseries """
         from tools import get_timeseries
 

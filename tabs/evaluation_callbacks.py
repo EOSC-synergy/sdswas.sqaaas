@@ -9,6 +9,7 @@ from dash.dependencies import State
 from dash.dependencies import ALL
 from dash.dependencies import MATCH
 from dash.exceptions import PreventUpdate
+import dash_leaflet as dl
 from data_handler import DEFAULT_VAR
 from data_handler import DEFAULT_MODEL
 from data_handler import VARS 
@@ -32,6 +33,7 @@ from tabs.evaluation import STATS
 from datetime import datetime as dt
 from datetime import timedelta
 import pandas as pd
+import orjson
 import os.path
 
 
@@ -334,66 +336,145 @@ def register_callbacks(app, cache, cache_timeout):
         return dash.no_update, False  # PreventUpdate
 
     @app.callback(
+        [Output('stations-clicked-coords', 'data'),
+         Output(dict(tag='empty-map-layer', index='None'), 'children')],
+        [Input(dict(tag='empty-map', index='None'), 'click_lat_lng')],
+        [State('stations-dataframe', 'data')],
+    )
+    def stations_popup(click_data, stations):
+        if not click_data:
+            raise PreventUpdate
+
+        if DEBUG: print("CLICK:", str(click_data))
+
+        # figure = get_eval_timeseries(obs, start_date, end_date, DEFAULT_VAR, idx, name)
+#
+        ctxt = dash.callback_context.triggered[0]["prop_id"].split(".")[0]
+        if DEBUG: print("CTXT", ctxt, type(ctxt))
+        if not ctxt or ctxt is None:
+            raise PreventUpdate
+
+        trigger = orjson.loads(ctxt)
+        if DEBUG: print('TRIGGER', trigger, type(trigger))
+
+        if trigger != {'index': 'None', 'tag': 'empty-map'}:
+            raise PreventUpdate
+
+        df_stations = pd.DataFrame(stations)
+        lat, lon = click_data
+        curr_station = df_stations[(df_stations['lon'].round(2) == round(lon, 2)) | \
+            (df_stations['lat'] == round(lat, 2))]['stations'].values
+        
+        if not curr_station:
+            raise PreventUpdate
+
+        curr_station = curr_station[0]
+
+        if DEBUG: print("CURR_STATION", curr_station)
+
+        marker = dl.Popup(
+            children=[
+                html.Div([
+                    html.Span([
+                        html.B("Lat {:.2f}, Lon {:.2f}".format(lat, lon)), html.Br(),
+                        "STATION: ", html.B("{}".format(curr_station)), html.Br(),
+                        html.Button("EXPLORE TIMESERIES",
+                            id='ts-eval-button',
+                            n_clicks=0,
+                            className='popup-ts-button'
+                        )],
+                        className='popup-map-eval-body',
+                    )],
+                )
+            ],
+            id='empty-map-point',
+            position=[lat, lon],
+            autoClose=False, 
+            closeOnEscapeKey=False,
+            closeOnClick=False,
+            closeButton=True,
+            className='popup-map-point'
+        )
+
+        curr_data = df_stations[(df_stations['lon'].round(2) == round(lon, 2)) | \
+            (df_stations['lat'] == round(lat, 2))]
+        return curr_data.to_dict(), marker
+
+
+    @app.callback(
         [Output('ts-eval-modal', 'children'),
          Output('ts-eval-modal', 'is_open')],
-        [Input('graph-eval-aeronet', 'clickData')],
-        [State('eval-date-picker', 'start_date'),
+        [Input('ts-eval-button', 'n_clicks')],
+        [State('stations-clicked-coords', 'data'),
+         State('eval-date-picker', 'start_date'),
          State('eval-date-picker', 'end_date'),
-         State('obs-dropdown', 'value')],
+         State('obs-dropdown', 'value'),
+         State('obs-mod-dropdown', 'value')],
         prevent_initial_call=True
     )
     # @cache.memoize(timeout=cache_timeout)
-    def show_eval_aeronet_timeseries(cdata, start_date, end_date, obs):
+    def show_eval_aeronet_timeseries(nclicks, cdata, start_date, end_date, obs, model):
         """ Retrieve AERONET evaluation timeseries according to station selected """
         from tools import get_eval_timeseries
-        print(start_date, end_date, obs, cdata)
-        if cdata:
-            if DEBUG: print('EVAL AERONET CLICKDATA', cdata)
-            idx = cdata['points'][0]['pointIndex']
-            lon = cdata['points'][0]['lon']
-            lat = cdata['points'][0]['lat']
-            if idx != 0:
-                name = cdata['points'][0]['customdata']
-                figure = get_eval_timeseries(obs, start_date, end_date, DEFAULT_VAR, idx, name)
-                mb = MODEBAR_LAYOUT_TS
-                figure.update_layout(mb)
-                if DEBUG: print('SHOW AERONET EVAL TS"""""', obs, idx, name)
-                return dbc.ModalBody(
-                    dcc.Graph(
-                        id='timeseries-eval-modal',
-                        figure=figure,
-                        config=MODEBAR_CONFIG_TS
-                    )
-                ), True
+        ctxt = dash.callback_context.triggered[0]["prop_id"].split(".")[0]
+        if DEBUG: print("CTXT", ctxt, type(ctxt))
+        if not ctxt or ctxt is None:
+            raise PreventUpdate
+
+        if ctxt != 'ts-eval-button' or nclicks == 0:
+            raise PreventUpdate
+
+        if not cdata:
+            raise PreventUpdate
+
+        print(start_date, end_date, obs, model, cdata)
+        if DEBUG: print('EVAL AERONET CLICKDATA', cdata)
+        cdata = pd.DataFrame(cdata)
+        idx = int(cdata.index.values[0])
+        lon = cdata.lon.round(2).values[0]
+        lat = cdata.lat.round(2).values[0]
+        stat = cdata.stations.values[0]
+        if idx != 0:
+            figure = get_eval_timeseries(obs, start_date, end_date, DEFAULT_VAR, idx, stat)
+            mb = MODEBAR_LAYOUT_TS
+            figure.update_layout(mb)
+            if DEBUG: print('SHOW AERONET EVAL TS"""""', obs, idx, stat)
+            return dbc.ModalBody(
+                dcc.Graph(
+                    id='timeseries-eval-modal',
+                    figure=figure,
+                    config=MODEBAR_CONFIG_TS
+                )
+            ), True
 
         raise PreventUpdate
 
 
     @app.callback(
-        Output('graph-eval-aeronet', 'figure'),
+        [Output('stations-dataframe', 'data'),
+         Output('graph-eval-aeronet', 'children')],
         [Input('eval-date-picker', 'start_date'),
          Input('eval-date-picker', 'end_date')],
-        [State('obs-dropdown', 'value'),
-         State('graph-eval-aeronet', 'relayoutData')],
+        [State('obs-dropdown', 'value')],
         prevent_initial_call=True)
     # @cache.memoize(timeout=cache_timeout)
-    def update_eval_aeronet(sdate, edate, obs, relayoutdata):
+    def update_eval_aeronet(sdate, edate, obs):
         """ Update AERONET evaluation figure according to all parameters """
         from tools import get_figure
         from tools import get_obs1d
         if DEBUG: print('SERVER: calling figure from EVAL picker callback')
-        if DEBUG: print('SERVER: SDATE' + str(sdate))
+        if DEBUG: print('SERVER: SDATE', str(sdate))
+        if sdate is None:
+            raise PreventUpdate
 
-        if sdate is not None:
-            sdate = sdate.split()[0]
-            try:
-                sdate = dt.strptime(
-                    sdate, "%Y-%m-%d").strftime("%Y%m%d")
-            except:
-                pass
-            if DEBUG: print('SERVER: callback start_date {}'.format(sdate))
-        else:
+        sdate = sdate.split()[0]
+        try:
+            sdate = dt.strptime(
+                sdate, "%Y-%m-%d").strftime("%Y%m%d")
+        except:
             sdate = end_date
+            pass
+        if DEBUG: print('SERVER: callback start_date {}'.format(sdate))
 
         if edate is not None:
             edate = edate.split()[0]
@@ -406,17 +487,10 @@ def register_callbacks(app, cache, cache_timeout):
         else:
             edate = end_date
 
-        fig = get_figure(model=None, var=DEFAULT_VAR)
-        fig.add_trace(get_obs1d(sdate, edate, obs, DEFAULT_VAR))
-        fig.update_layout(MODEBAR_LAYOUT)
-
-        if fig and relayoutdata:
-            relayoutdata = {k: relayoutdata[k]
-                            for k in relayoutdata
-                            if k not in ('mapbox._derived',)}
-            fig.layout.update(relayoutdata)
-
-        return fig
+        stations, points_layer = get_obs1d(sdate, edate, obs, DEFAULT_VAR)
+        fig = get_figure(model=None, var=DEFAULT_VAR, layer=points_layer)
+        # if DEBUG: print("---", fig)
+        return stations.to_dict(), fig
 
 
     @app.callback(
@@ -496,7 +570,10 @@ def register_callbacks(app, cache, cache_timeout):
                 updatemode='bothdates',
             )]
 
-            eval_graph = get_figure()
+            eval_graph = html.Div(
+                        get_figure(),
+                        id='graph-eval-aeronet',
+                    )
 #            eval_graph = [dbc.Spinner(
 #                get_graph(
 #                    gid='graph-eval-aeronet',

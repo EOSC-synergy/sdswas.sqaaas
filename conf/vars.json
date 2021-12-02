@@ -12,7 +12,7 @@
         "name": "Dust Surface Conc. (µg/m³)",
 	"name_sidebar": "Concentration",
 	"image_scale": "/home/fbeninca/interactive-forecast-viewer/assets/images/SurfaceConc.png",
-        "bounds": [5, 20, 50, 200, 500, 2000, 5000, 20000, 100000],
+        "bounds": [0, 5, 20, 50, 200, 500, 2000, 5000, 20000, 100000],
         "mul": 1e9,
         "title": "Dust Surface Conc. (µg/m³)<br>Run: %(rhour)sh %(rday)s %(rmonth)s %(ryear)s<br>Valid: %(shour)sh %(sday)s %(smonth)s %(syear)s (H+%(step)s)",
 	"models": "all"
@@ -21,7 +21,7 @@
         "name": "3h Acc. Dust Dry Deposition (mg/m²)",
 	"name_sidebar": "Dry deposition",
 	"image_scale": "/home/fbeninca/interactive-forecast-viewer/assets/images/DryDeposition.png",
-        "bounds": [0.5, 5, 10, 50, 100, 400, 800, 1600, 10000],
+        "bounds": [0, 0.5, 5, 10, 50, 100, 400, 800, 1600, 10000],
         "mul": 1e6,
         "title": "3h Acc. Dust Dry Deposition (mg/m²)<br>Run: %(rhour)sh %(rday)s %(rmonth)s %(ryear)s<br>Valid: %(shour)sh %(sday)s %(smonth)s %(syear)s (H+%(step)s)",
 	"models": "['monarch']"
@@ -30,7 +30,7 @@
         "name": "3h Acc. Dust Wet Deposition (mg/m²)",
 	"name_sidebar": "Wet deposition",
 	"image_scale": "/home/fbeninca/interactive-forecast-viewer/assets/images/WetDeposition.png",
-        "bounds": [0.5, 5, 10, 50, 100, 400, 800, 1600, 10000],
+        "bounds": [0, 0.5, 5, 10, 50, 100, 400, 800, 1600, 10000],
         "mul": 1e6,
         "title": "3h Acc. Dust Wet Deposition (mg/m²)<br>Run: %(rhour)sh %(rday)s %(rmonth)s %(ryear)s<br>Valid: %(shour)sh %(sday)s %(smonth)s %(syear)s (H+%(step)s)",
 	"models": "['monarch']"
@@ -39,7 +39,7 @@
         "name": "Dust load (g/m²)",
 	"name_sidebar": "Load",
 	"image_scale": "/home/fbeninca/interactive-forecast-viewer/assets/images/DustLoad.png",
-        "bounds": [0.1, 0.2, 0.4, 0.8, 1.2, 1.6, 3.2, 6.4, 10],
+        "bounds": [0, 0.1, 0.2, 0.4, 0.8, 1.2, 1.6, 3.2, 6.4, 10],
         "mul": 1e3,
         "title": "Dust Load (g/m²)<br>Run: %(rhour)sh %(rday)s %(rmonth)s %(ryear)s<br>Valid: %(shour)sh %(sday)s %(smonth)s %(syear)s (H+%(step)s)",
 	"models": "['monarch']"
@@ -48,7 +48,7 @@
         "name": "Dust Surface Extinction (Mm⁻¹)",
 	"name_sidebar": "Extinction",
 	"image_scale": "/home/fbeninca/interactive-forecast-viewer/assets/images/SurfaceExtintion.png",
-        "bounds": [5, 10, 25, 100, 250, 1000, 2500, 10000, 100000],
+        "bounds": [0, 5, 10, 25, 100, 250, 1000, 2500, 10000, 100000],
         "mul": 1e6,
         "title": "Dust Surface Extinction (Mm⁻¹)<br>Run: %(rhour)sh %(rday)s %(rmonth)s %(ryear)s<br>Valid: %(shour)sh %(sday)s %(smonth)s %(syear)s (H+%(step)s)",
 	"models": "['monarch']"

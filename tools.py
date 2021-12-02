@@ -234,7 +234,7 @@ def get_vis_figure(tstep=0, selected_date=end_date):
     if DEBUG: print('SERVER: NO VIS Figure')
     return VisFigureHandler().retrieve_var_tstep()
 
-def get_figure(model=None, var=None, selected_date=end_date, tstep=0, hour=None, static=True, aspect=(1, 1), center=None, view='carto-positron', zoom=None):
+def get_figure(model=None, var=None, selected_date=end_date, tstep=0, hour=None, static=True, aspect=(1, 1), center=None, view='carto-positron', zoom=None, layer=None):
     """ Retrieve figure """
     #if DEBUG: print("***", model, var, selected_date, tstep, hour, "***")
     try:
@@ -254,13 +254,13 @@ def get_figure(model=None, var=None, selected_date=end_date, tstep=0, hour=None,
 
         fh = FigureHandler(model, selected_date)
         if isinstance(hour, list):
-            return [fh.retrieve_var_tstep(var, tstep, h, static, aspect, center, view, zoom) for h in hour]
+            return [fh.retrieve_var_tstep(var, tstep, h, static, aspect, center, view, zoom, layer) for h in hour]
         elif isinstance(tstep, list):
-            return [fh.retrieve_var_tstep(var, ts, hour, static, aspect, center, view, zoom) for ts in tstep]
+            return [fh.retrieve_var_tstep(var, ts, hour, static, aspect, center, view, zoom, layer) for ts in tstep]
         elif hour == 'all' or tstep == 'all':
-            return [fh.retrieve_var_tstep(var, ts, hour, static, aspect, center, view, zoom) for ts in fh.tim]
+            return [fh.retrieve_var_tstep(var, ts, hour, static, aspect, center, view, zoom, layer) for ts in fh.tim]
 
         if DEBUG: print('SERVER: Figure generation ... ')
-        return fh.retrieve_var_tstep(var, tstep, hour, static, aspect, center, view, zoom)
+        return fh.retrieve_var_tstep(var, tstep, hour, static, aspect, center, view, zoom, layer)
     if DEBUG: print('SERVER: No Figure')
-    return FigureHandler().retrieve_var_tstep()
+    return FigureHandler().retrieve_var_tstep(layer=layer)

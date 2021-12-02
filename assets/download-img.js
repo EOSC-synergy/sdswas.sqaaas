@@ -29,20 +29,21 @@
 //});
 
 $(document).ready(function () {
-	$(document).on('click', "#btn-img-download", function () {
-		var element = document.getElementById("graph-collection"); // global variable
-		html2canvas(element, {
-                  allowTaint: true,
-		  useCORS: true,
-		    }).then(function (canvas) {
-		    var getCanvas = canvas;
-		    var imageData = getCanvas.toDataURL("image/png");
-		    // Now browser starts downloading it instead of just showing it
-		    var newData = imageData.replace(/^data:image\/png/, "data:application/octet-stream");
-		    // console.log("************ newData ************");
-		    // console.log(newData);
-		    $("#btn-img-download").attr("download", "image.png").attr("href", newData);
-	            //window.open(imageData);
-		});
+    $(document).on('click', "#btn-frame-download", function () {
+        var element = document.getElementById("graph-collection"); // global variable
+        html2canvas(element, {
+          //allowTaint: true,
+          useCORS: true,
+	  // width: 1024,
+	  // height: 768,
+	  logging: true,
+	  imageTimeout: 0
+	}).then(function (canvas) {
+            var getCanvas = canvas;
+            var imageData = getCanvas.toDataURL("image/png");
+            window.open(imageData);
+            //var newData = imageData.replace(/^data:image\/png/, "data:application/octet-stream");
+            //$("#btn-frame-download").attr("download", "image.png").attr("href", newData);
 	});
+    });
 });

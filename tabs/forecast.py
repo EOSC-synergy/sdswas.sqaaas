@@ -40,7 +40,7 @@ forecast_days = ('Today', 'Tomorrow')
 #                    duration=6000,
 #                    fade=True,
 #                    color="primary",
-#                    style={ 'overflow': 'auto', 'margin-bottom': 0 }
+#                    style={ 'overflow': 'auto', 'marginBottom': 0 }
 #                ),
 #                dbc.Alert(
 #                    "Sorry, you don't have permission to download the latest forecast. Please download a previous forecast or click outside the window to exit.",
@@ -49,7 +49,7 @@ forecast_days = ('Today', 'Tomorrow')
 #                    duration=6000,
 #                    fade=True,
 #                    color="primary",
-#                    style={ 'overflow': 'auto', 'margin-bottom': 0 }
+#                    style={ 'overflow': 'auto', 'marginBottom': 0 }
 #                ),
 #                dcc.Input(
 #                    id="input_username",
@@ -242,15 +242,15 @@ def tab_forecast(window='models'):
                     )
                 ),
 #        login_modal,
-#        dbc.Alert(
-#            "To ensure a better experience, please note that you cannot select more than 4 models at once.",
-#            id="alert-models-auto",
-#            is_open=False,
-#            duration=6000,
-#            fade=True,
-#            color="primary",
-#            style={ 'overflow': 'auto', 'margin-bottom': 0 }
-#        ),
+        dbc.Alert(
+            "To explore the forecast, please select a variable and click on APPLY.",
+            id="alert-forecast",
+            is_open=True,
+            duration=6000,
+            fade=True,
+            color="primary",
+            style={ 'overflow': 'auto', 'marginBottom': 0 }
+        ),
         html.Div(
             id='div-collection',
 #            children=[dbc.Spinner(
@@ -321,7 +321,7 @@ def tab_forecast(window='models'):
 #            duration=6000,
 #            fade=True,
 #            color="primary",
-#            style={ 'overflow': 'auto', 'margin-bottom': 0 }
+#            style={ 'overflow': 'auto', 'marginBottom': 0 }
 #        ),
         dbc.Spinner(
             html.Div(
@@ -355,7 +355,7 @@ def tab_forecast(window='models'):
 #            duration=6000,
 #            fade=True,
 #            color="primary",
-#            style={ 'overflow': 'auto', 'margin-bottom': 0 }
+#            style={ 'overflow': 'auto', 'marginBottom': 0 }
 ##        ),
         dbc.Spinner(
             html.Div(
@@ -520,9 +520,10 @@ def sidebar_forecast(variables, default_var, models, default_model):
               dbc.Collapse(
                 dbc.Card(dbc.CardBody(
                     [
-                        html.Button('PNG FRAME',
+                        dbc.Button('PNG FRAME',
                             id='btn-frame-download',
                             n_clicks=0,
+                            href="#",
                             className='download-section',
                             ),
                         # dbc.Spinner(
@@ -550,13 +551,12 @@ def sidebar_forecast(variables, default_var, models, default_model):
                             target="_blank",
                             className='download-section',
                             ),
-                        html.A('TEST',
-                            id='btn-img-download',
-                            n_clicks=0,
-                            href="#",
-                            # target="_blank",
-                            className='download-section',
-                            ),
+#                        html.A('TEST',
+#                            id='btn-img-download',
+#                            href="#",
+#                            # target="_blank",
+#                            className='download-section',
+#                            ),
 #                        dbc.Spinner(
 #                            dcc.Download(
 #                                id="netcdf-download",

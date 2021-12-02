@@ -147,14 +147,31 @@
 }
 
 .accordion>.card>.card-header:after {
-  font-family: FontAwesome;
+  display: inline-block;
+  font-variant: normal;
+  text-rendering: auto;
+  -webkit-font-smoothing: antialiased;
+  font-family: "Font Awesome 5 Brands","Font Awesome 5 Free";
+  font-size: 15px;
+  font-weight: 900;
+  font-style: normal;
   content: "\f107";
   float: right;
   color: grey;
 }
 
 .accordion>.card>.card-header[aria-expanded="true"]:after {
-  content: "\f106";
+  display: inline-block;
+  font-variant: normal;
+  text-rendering: auto;
+  -webkit-font-smoothing: antialiased;
+  font-family: "Font Awesome 5 Brands","Font Awesome 5 Free";
+  font-size: 15px;
+  font-weight: 900;
+  font-style: normal;
+  content: "\f107";
+  float: right;
+  color: grey;
 }
 
 .accordion .card {
@@ -248,6 +265,7 @@ span>#models-apply {
     font-size: Small;
     color:  #2b383e !important;
     border: 2px solid #2b383e !important;
+    text-decoration: none;
 }
 
 .sidebar-bottom .card-text>p>a {

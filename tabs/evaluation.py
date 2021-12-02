@@ -82,7 +82,7 @@ scores_maps = dbc.Spinner(
 eval_time_series = dbc.Spinner(
     id='loading-ts-eval-modal',
     fullscreen=True,
-    fullscreen_style={'opacity': '0.5'},
+    fullscreen_style={'opacity': '0.5', 'zIndex': 1000},
     children=[
         html.Div(
         id='open-eval-timeseries',
@@ -173,10 +173,21 @@ def tab_evaluation(window='nrt'):
             id='eval-graph',
             children=[],
         ),
+        dcc.Store(id="stations-clicked-coords"),
+        dcc.Store(id="stations-dataframe"),
         eval_time_series,
     ]
 
     scores_children = [
+        dbc.Alert(
+            "To explore the evaluation of the forecast, please make a selection of Network, Models, Statistics, Timescale and click on APPLY.",
+            id="alert-evaluation",
+            is_open=True,
+            duration=6000,
+            fade=True,
+            color="primary",
+            style={ 'overflow': 'auto', 'marginBottom': 0 }
+        ),
         html.Span(
             html.P(
                 "Statistics"

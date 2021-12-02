@@ -27,3 +27,13 @@ window.forecastTab = Object.assign({}, window.forecastTab, {
         }
     }
 });
+
+window.evaluationTab = Object.assign({}, window.evaluationTab, {  
+    evaluationMaps: {  
+	pointToLayer: function(feature, latlng, context){
+            const {circleOptions} = context.props.hideout;
+            // sender a simple circle marker.
+            return L.circleMarker(latlng, circleOptions);
+        },
+    }
+});
