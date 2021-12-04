@@ -175,6 +175,7 @@ def tab_evaluation(window='nrt'):
         ),
         dcc.Store(id="stations-clicked-coords"),
         dcc.Store(id="stations-dataframe"),
+        dcc.Store(id="modis-clicked-coords"),
         eval_time_series,
     ]
 

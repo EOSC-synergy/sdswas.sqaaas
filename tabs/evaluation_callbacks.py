@@ -304,36 +304,106 @@ def register_callbacks(app, cache, cache_timeout):
     @app.callback(
         [Output('ts-eval-modis-modal', 'children'),
          Output('ts-eval-modis-modal', 'is_open')],
-        [Input('graph-eval-modis-obs', 'clickData')],
-        [State('eval-date-picker', 'date'),
+        [Input('ts-eval-modis-button', 'n_clicks')],
+        [State('modis-clicked-coords', 'data'),
+         State('eval-date-picker', 'date'),
          State('obs-dropdown', 'value'),
          State('obs-mod-dropdown', 'value')],
         prevent_initial_call=True
     )
     # @cache.memoize(timeout=cache_timeout)
-    def show_eval_modis_timeseries(obs_cdata, date, obs, model):
+    def show_eval_modis_timeseries(nclicks, coords, date, obs, model):
         """ Retrieve MODIS evaluation timeseries according to station selected """
         from tools import get_timeseries
-        lat = lon = None
-        print(obs_cdata, date)
-        if obs_cdata:
-            lat = obs_cdata['points'][0]['lat']
-            lon = obs_cdata['points'][0]['lon']
+        if coords is None or nclicks == 0:
+            raise PreventUpdate
 
-            models = [obs, model]  # [model for model in MODELS]
-            if DEBUG: print('SHOW MODIS EVAL TS"""""', obs_cdata, lat, lon)
-            figure = get_timeseries(models, date, DEFAULT_VAR, lat, lon)
-            mb = MODEBAR_LAYOUT_TS
-            figure.update_layout(mb)
-            return dbc.ModalBody(
-                dcc.Graph(
-                    id='timeseries-eval-modal',
-                    figure=figure,
-                    config=MODEBAR_CONFIG_TS
-                )
-            ), True
+        ctxt = dash.callback_context.triggered[0]["prop_id"].split(".")[0]
+        if DEBUG: print("CTXT", ctxt, type(ctxt))
+        if not ctxt or ctxt is None or ctxt != 'ts-eval-modis-button':  #  or nclicks == 0:P:
+            raise PreventUpdate
+
+        if DEBUG: print('TRIGGER', ctxt, type(ctxt))
+        lat, lon, val = coords
+        print(coords, date)
+        models = [obs, model]  # [model for model in MODELS]
+        if DEBUG: print('SHOW MODIS EVAL TS"""""', coords)
+        figure = get_timeseries(models, date, DEFAULT_VAR, lat, lon)
+        mb = MODEBAR_LAYOUT_TS
+        figure.update_layout(mb)
+        return dbc.ModalBody(
+            dcc.Graph(
+                id='timeseries-eval-modal',
+                figure=figure,
+                config=MODEBAR_CONFIG_TS
+            )
+        ), True
  
-        return dash.no_update, False  # PreventUpdate
+        # return dash.no_update, False  # PreventUpdate
+
+    @app.callback(
+        [Output('modis-clicked-coords', 'data'),
+         Output(dict(tag='modis-map-layer', index='modis'), 'children')],
+        [Input(dict(tag='modis-map', index='modis'), 'click_lat_lng')],
+        [State('eval-date-picker', 'date'),
+         State('obs-dropdown', 'value'),
+         State('obs-mod-dropdown', 'value')],
+    )
+    def modis_popup(click_data, date, obs, model):
+        from tools import get_single_point
+        if DEBUG: print("CLICK:", str(click_data))
+        if not click_data:
+            raise PreventUpdate
+        ctxt = dash.callback_context.triggered[0]["prop_id"].split(".")[0]
+        ctxt = orjson.loads(dash.callback_context.triggered[0]["prop_id"].split(".")[0])
+        if DEBUG: print("CTXT", ctxt, type(ctxt))
+        if not ctxt or ctxt is None or ctxt != {'index': 'modis', 'tag': 'modis-map'}:
+            raise PreventUpdate
+
+        lat, lon = click_data
+        value = get_single_point(model, date, 0, DEFAULT_VAR, lat, lon)
+        if DEBUG: print("VALUE", value)
+        
+        if not value:
+            raise PreventUpdate
+
+        if DEBUG: print("VALUE", value)
+        try:
+            valid_dt = dt.strptime(date, '%Y%m%d') + timedelta(hours=12)
+        except:
+            valid_dt = dt.strptime(date, '%Y-%m-%d') + timedelta(hours=12)
+
+        marker = dl.Popup(
+            children=[
+                html.Div([
+                        html.Span(html.P(
+                            '{:.2f}'.format(value*VARS[DEFAULT_VAR]['mul'])),
+                            className='popup-map-value',
+                        ),
+                        html.Span([
+                            html.B("Lat {:.2f}, Lon {:.2f}".format(lat, lon)), html.Br(),
+                            "DATE {:02d} {} {} {:02d}UTC".format(valid_dt.day, dt.strftime(valid_dt, '%b'), valid_dt.year, valid_dt.hour),
+                            html.Br(),
+                            html.Button("EXPLORE TIMESERIES",
+                                id='ts-eval-modis-button',
+                                n_clicks=0,
+                                className='popup-ts-button'
+                            )],
+                            className='popup-map-body',
+                        )],
+                    )
+            ],
+            id='modis-map-point',
+            position=[lat, lon],
+            autoClose=False, 
+            closeOnEscapeKey=False,
+            closeOnClick=False,
+            closeButton=True,
+            className='popup-map-point'
+        )
+
+        return [lat, lon, value], marker
+
 
     @app.callback(
         [Output('stations-clicked-coords', 'data'),
@@ -464,7 +534,7 @@ def register_callbacks(app, cache, cache_timeout):
         from tools import get_obs1d
         if DEBUG: print('SERVER: calling figure from EVAL picker callback')
         if DEBUG: print('SERVER: SDATE', str(sdate))
-        if sdate is None:
+        if sdate is None or edate is None or obs != 'aeronet':
             raise PreventUpdate
 
         sdate = sdate.split()[0]
@@ -494,20 +564,24 @@ def register_callbacks(app, cache, cache_timeout):
 
 
     @app.callback(
-       [Output('graph-eval-modis-obs', 'figure'),
-        Output('graph-eval-modis-mod', 'figure')],
+       [Output('graph-eval-modis-obs', 'children'),
+        Output('graph-eval-modis-mod', 'children')],
        [Input('eval-date-picker', 'date'),
         Input('obs-mod-dropdown', 'value')],
        [State('obs-dropdown', 'value'),
-        State('graph-eval-modis-obs', 'relayoutData'),
-        State('graph-eval-modis-mod', 'relayoutData')],
+        State('graph-eval-modis-mod', 'children')],
         prevent_initial_call=True)
     # @cache.memoize(timeout=cache_timeout)
-    def update_eval_modis(date, mod, obs, relayoutdata_obs, relayoutdata_mod):
+    def update_eval_modis(date, mod, obs, mod_div):
         """ Update MODIS evaluation figure according to all parameters """
+        if date is None or mod is None or obs != 'modis':
+            raise PreventUpdate
+
         from tools import get_figure
         if DEBUG: print('SERVER: calling figure from EVAL picker callback')
-        # if DEBUG: print('SERVER: interval ' + str(n))
+        if DEBUG: print(mod_div)
+        mod_center = mod_div['props']['center']
+        mod_zoom = mod_div['props']['zoom']
 
         if date is not None:
             date = date.split()[0]
@@ -520,24 +594,11 @@ def register_callbacks(app, cache, cache_timeout):
         else:
             date = end_date
 
-        fig_mod = get_figure(model=mod, var=DEFAULT_VAR, selected_date=date, tstep=0, hour=12)
-        fig_mod.update_layout(MODEBAR_LAYOUT)
-        center = fig_mod['layout']['mapbox']['center']
-        fig_obs = get_figure(model=obs, var=DEFAULT_VAR, selected_date=date, tstep=0, center=center)
-        fig_obs.update_layout(MODEBAR_LAYOUT)
+        if DEBUG: print("ZOOM", mod_zoom, "CENTER", mod_center)
+        fig_mod = get_figure(model=mod, var=DEFAULT_VAR, selected_date=date, tstep=0, hour=12, center=mod_center, zoom=mod_zoom)
+        fig_obs = get_figure(model=obs, var=DEFAULT_VAR, selected_date=date, tstep=0, center=mod_center, zoom=mod_zoom)
 
-        if fig_obs and relayoutdata_obs:
-            relayoutdata_obs = {k: relayoutdata_obs[k]
-                            for k in relayoutdata_obs
-                            if k not in ('mapbox._derived',)}
-            fig_obs.layout.update(relayoutdata_obs)
-
-        if fig_mod and relayoutdata_mod:
-            relayoutdata_mod = {k: relayoutdata_mod[k]
-                            for k in relayoutdata_mod
-                            if k not in ('mapbox._derived',)}
-            fig_mod.layout.update(relayoutdata_mod)
-
+        if DEBUG: print("MODIS", fig_obs)
         return fig_obs, fig_mod
 
 
@@ -602,26 +663,24 @@ def register_callbacks(app, cache, cache_timeout):
             #center = fig_mod['layout']['mapbox']['center']
             fig_obs = get_figure(model=obs, var=DEFAULT_VAR,
                     selected_date=end_date, tstep=0)
-            graph_obs, graph_mod = [
-                    dbc.Spinner(html.Div([
-                        fig_obs,
-#                        get_graph(
-#                            gid='graph-eval-modis-obs',
-#                            figure=fig_obs,
-#                            ),
-                        html.Div(DISCLAIMER_OBS,
-                            className='disclaimer')
-                        ])),
-                    dbc.Spinner(html.Div([
-                        fig_mod,
-#                        get_graph(
-#                            gid='graph-eval-modis-mod',
-#                            figure=fig_mod,
-#                            ),
-                        html.Div(DISCLAIMER_MODELS,
-                            className='disclaimer')
-                        ])),
-                    ]
+            graph_obs = html.Div([
+                html.Div(
+                    fig_obs,
+                    id='graph-eval-modis-obs',
+                    ),
+                html.Div(DISCLAIMER_OBS,
+                    className='disclaimer')
+                ],
+                )
+            graph_mod = html.Div([
+                html.Div(
+                    fig_mod,
+                    id='graph-eval-modis-mod',
+                    ),
+                html.Div(DISCLAIMER_MODELS,
+                    className='disclaimer')
+                ],
+                )
             eval_graph = [dbc.Row([
                     dbc.Col(graph_obs, width=6),
                     dbc.Col(graph_mod, width=6)

@@ -37,3 +37,15 @@ window.evaluationTab = Object.assign({}, window.evaluationTab, {
         },
     }
 });
+
+window.observationsTab = Object.assign({}, window.observationsTab, {  
+    observationsMaps: {  
+	pointToLayer: function(feature, latlng, context){
+            const {colorscale, circleOptions, colorProp} = context.props.hideout;
+            const value = feature.properties[colorProp];
+            circleOptions.fillColor = colorscale[value];
+            // sender a simple circle marker.
+            return L.circleMarker(latlng, circleOptions);
+        },
+    }
+});

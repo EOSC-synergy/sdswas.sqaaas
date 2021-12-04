@@ -171,7 +171,8 @@ INFO_STYLE = {
         "left": "10px",
         "zIndex": "1000",
         "fontFamily": '"Roboto", sans-serif',
-        "fontSize": "16px",
+        "fontSize": "14px",
+        "fontWeight": "bold"
         }
 
 DISCLAIMER_MODELS = [html.Span(html.P("""FORECAST ISSUED"""), id='forecast-issued'), html.Span(html.P("""Dust data ©2021 WMO Barcelona Dust Regional Center."""), id='forecast-disclaimer')]
@@ -649,7 +650,6 @@ class FigureHandler(object):
             filepath = None
             self.bounds = None
 
-        if DEBUG: print("FILEPATH", filepath)
         if filepath is None or not os.path.exists(filepath):
             self.filedir = None
             self.filevars = None
@@ -712,6 +712,7 @@ class FigureHandler(object):
                 self.what = 'hours'
 
         self.fig = None
+        if DEBUG: print("FILEPATH", filepath)
         if DEBUG: print("FILEDIR", self.filedir)
 
     def get_mapbox_style_buttons(self):
@@ -824,14 +825,19 @@ class FigureHandler(object):
             bounds = self.bounds[varname.upper()]
         else:
             bounds = [0, 1]
+        if self.model in OBS:
+            data_path = os.path.basename(OBS[self.model]['path'][:-1])
+        else:
+            data_path = os.path.basename(MODELS[self.model]['path'])
 
-        if DEBUG: print(bounds)
+        if DEBUG: print(data_path)
         colorscale = COLORS_NEW
 
         geojson_url = app.get_asset_url(os.path.join('geojsons',
-            GEOJSON_TEMPLATE.format(os.path.basename(MODELS[self.model]['path']),
+            GEOJSON_TEMPLATE.format(data_path,
                 self.selected_date_plain, tstep, self.selected_date_plain,
                 varname)))
+        if DEBUG: print("MODEL", self.model, "GEOJSON_URL", geojson_url)
 
         style = dict(weight=0, opacity=0, color='white', dashArray='', fillOpacity=0.6)
 
@@ -848,7 +854,7 @@ class FigureHandler(object):
                 position='topleft',
                 width=250,
                 height=15,
-                style={ 'top': '70px' }
+                style={ 'top': '55px' }
                 )
 
         # Geojson rendering logic, must be JavaScript as it is executed in clientside.
@@ -1062,18 +1068,18 @@ class FigureHandler(object):
                 colorbar = None
         else:
             if DEBUG: print('Adding one point ...')
-            data = {
-                    "type": "FeatureCollection",
-                    "features": []
-                    }
-            geojson_contours = dl.GeoJSON(
-                data=data,
-            )
+#            data = {
+#                    "type": "FeatureCollection",
+#                    "features": []
+#                    }
+            geojson_contours = None
             colorbar = None
 
         if DEBUG: print("ASPECT", aspect)
-        center = self.get_center(center)
-        zoom = zoom is not None and zoom or 3.5-(aspect[0])
+        if center is None:
+            center = self.get_center(center)
+        if zoom is None:
+            zoom = 3.5-(aspect[0])
         if DEBUG: print("ZOOM", zoom)
         if DEBUG: print("CENTER", center)
 
@@ -1082,7 +1088,14 @@ class FigureHandler(object):
         if not varname:
             fig_title=html.P("")
         elif varname and not self.filedir:
-            fig_title = html.P(html.B("{} - DATA NOT AVAILABLE".format(MODELS[self.model]['name'])))
+            if self.model in MODELS:
+                curr_name = MODELS[self.model]['name']
+            elif self.model in OBS:
+                curr_name = OBS[self.model]['name']
+            else:
+                curr_name = ''
+
+            fig_title = html.P(html.B("{} - DATA NOT AVAILABLE".format(curr_name)))
         else:
             fig_title = html.P(html.B(
                 [
@@ -1117,7 +1130,9 @@ class FigureHandler(object):
             curr_tag = 'model'
         else:
             curr_tag = self.model
-        
+       
+        if not isinstance(layer, list):
+            layer = [layer]
         fig = dl.Map(children=[
             dl.TileLayer(
                 id=dict(
@@ -1138,10 +1153,9 @@ class FigureHandler(object):
                 position='topright',
             ),
             geojson_contours,
-            layer,
             colorbar,
             info
-            ],
+            ] + layer,
             zoom=zoom,
             center=center,
             id=dict(
@@ -1149,7 +1163,7 @@ class FigureHandler(object):
                 index=curr_index
                 )
         )
-        # if DEBUG: print("---", fig)
+        if DEBUG: print("---", fig)
         if DEBUG: print("*** FIGURE EXECUTION TIME: {} ***".format(str(time.time() - self.st_time)))
         return fig
 
@@ -1335,7 +1349,7 @@ class VisFigureHandler(object):
     def __init__(self, selected_date=None):
 
         self.path_tpl = '/data/daily_dashboard/obs/visibility/{year}/{month}/{year}{month}{day}{tstep0:02d}{tstep1:02d}_visibility.csv'
-        self.title = """Visibility reduced by airborne dust<br>{date} {tstep0:02d}-{tstep1:02d} UTC"""
+        self.title = ["Visibility reduced by airborne dust", html.Br(), "{date} {tstep0:02d}-{tstep1:02d} UTC"]
         self.xlon = np.array([-25, 60])
         self.ylat = np.array([0, 65])
         self.ec = 'none'
@@ -1343,6 +1357,7 @@ class VisFigureHandler(object):
         self.freq = 6
         self.colors = ('#714921', '#da7230', '#fcd775', 'CadetBlue')
         self.labels = ("<1 km", "1 - 2 km", "2 - 5 km", "uncertain")
+        self.values = (0, 1, 2, 3)
         self.markers = ('o', 'o', 'o', '^')
 
         if selected_date:
@@ -1418,7 +1433,12 @@ class VisFigureHandler(object):
         month = datetime.strptime(self.selected_date_plain, '%Y%m%d').strftime('%m')
         day = datetime.strptime(self.selected_date_plain, '%Y%m%d').strftime('%d')
 
-        data = pd.read_table(self.path_tpl.format(year=year, month=month, day=day, tstep0=tstep0, tstep1=tstep1))
+        filepath = self.path_tpl.format(year=year, month=month, day=day, tstep0=tstep0, tstep1=tstep1)
+        if DEBUG: print("VIS FILEPATH", filepath)
+        if not os.path.exists(filepath):
+            return [], [], [], ()
+
+        data = pd.read_table(filepath)
 
         # uncertain
         cx = np.where((data['WW'].astype(str) == "HZ") | (data['WW'].astype(str) == "5")| (data['WW'].astype(str) == "05"))
@@ -1442,6 +1462,7 @@ class VisFigureHandler(object):
         ylat = data['LAT'].values
         stats = data['STATION'].values
 
+        if DEBUG: print("VIS DATA", xlon, ylat, stats, (c0, c1, c2, cx))
         return xlon, ylat, stats, (c0, c1, c2, cx)
 
     def generate_var_tstep_trace(self, xlon, ylat, stats, value, color, label, marker, tstep=0):
@@ -1461,40 +1482,103 @@ class VisFigureHandler(object):
                 ),
             )
         name = 'visibility {}'.format(label)
-        if value[0].size == 0:
-            xlon_val = [-180]
-            ylat_val = [-90]
-            stat_val = 'none'
-        else:
-            xlon_val = xlon[value]
-            ylat_val = ylat[value]
-            stat_val = stats[value]
-        if DEBUG: print('VIS ___', xlon_val, ylat_val)
-        return dict(
-            type='scattermapbox',
-            lon=xlon_val,
-            lat=ylat_val,
-            text=stat_val,
-            name=name,
-            hovertemplate="lon: %{lon:.2f}<br>lat: %{lat:.2f}<br>station: %{text}",
-            opacity=0.7,
-            mode='markers',
-            showlegend=True,
-            marker=dict(
-                showscale=False,
-                color=color,
-                size=15,
-                colorbar=None,
-                #symbol='triangle',
-            ),
+#        if value[0].size == 0:
+#            xlon_val = [-180]
+#            ylat_val = [-90]
+#            stat_val = 'none'
+#        else:
+#        xlon_val = xlon[value]
+#        ylat_val = ylat[value]
+#        stat_val = stats[value]
+
+        legend = []
+        res = np.zeros((len(xlon)))
+        for i, (val, lab) in enumerate(zip(value, label)):
+            # assign a value from 0 to 3 to the different
+            res[val] = i
+            leg = html.Div([
+                    html.Span(
+                        "",
+                        className="vis-legend-point",
+                        style={
+                            'backgroundColor': self.colors[i],
+                            }
+                        ),
+                    html.Span(
+                        lab,
+                        className="vis-legend-label",
+                        )
+                    ],
+                    style={ 'display': 'block' })
+            legend.append(leg)
+
+        legend = html.Div(
+                legend,
+                className="vis-legend"
+            )
+
+        if DEBUG: print('VIS ___', xlon, ylat)
+        df = pd.DataFrame({
+            'lon': np.array(xlon).round(2),
+            'lat': np.array(ylat).round(2),
+            'stat': stats,
+            'value': res,
+            })
+        dicts = df.to_dict('rows')
+        for item in dicts:
+            item["tooltip"] = \
+                    "<span class='popup-map-body'><b>Lat {}, Lon {}</b><br>STATION <b>{}</b></span>".format(item['lat'], item['lon'], item['stat'])
+
+        geojson = dlx.dicts_to_geojson(dicts, lon="lon")
+        ns = Namespace("observationsTab", "observationsMaps")
+        point_to_layer = ns("pointToLayer")
+        geojson = dl.GeoJSON(data=geojson,
+                options=dict(
+                    pointToLayer=point_to_layer,
+                ),
+                hideout=dict(
+                    colorProp='value',
+                    colorscale=self.colors,
+                    circleOptions=dict(
+                        fillOpacity=0.6,
+                        stroke=False,
+                        #fillColor='#f0b450',
+                        radius=8),
+                )
+            )
+        
+        info = html.Div(
+            children=self.get_title(tstep),
+            id="vis-info",
+            className="info",
+            style=INFO_STYLE
         )
+        return df, [geojson, info, legend]
+#        return dict(
+#            type='scattermapbox',
+#            lon=xlon_val,
+#            lat=ylat_val,
+#            text=stat_val,
+#            name=name,
+#            hovertemplate="lon: %{lon:.2f}<br>lat: %{lat:.2f}<br>station: %{text}",
+#            opacity=0.7,
+#            mode='markers',
+#            showlegend=True,
+#            marker=dict(
+#                showscale=False,
+#                color=color,
+#                size=15,
+#                colorbar=None,
+#                #symbol='triangle',
+#            ),
+#        )
 
     def get_title(self, tstep=0):
         """ return title according to the date """
         tstep0 = tstep
         tstep1 = tstep + self.freq
         fdate = datetime.strptime(self.selected_date_plain, '%Y%m%d').strftime('%d %B %Y')
-        return self.title.format(date=fdate, tstep0=tstep0, tstep1=tstep1)
+        return [tit.format(date=fdate, tstep0=tstep0, tstep1=tstep1) if isinstance(tit, str) else tit for tit in self.title]
 
     def retrieve_var_tstep(self, tstep=0, hour=None, static=True, aspect=(1,1), center=None):
         """ run plot """
@@ -1502,55 +1586,56 @@ class VisFigureHandler(object):
         tstep = int(tstep)
 
         xlon, ylat, stats, vals = self.set_data(tstep)
-        self.fig = go.Figure()
         if tstep is not None:
-            for value, color, label, marker in zip(vals, self.colors, self.labels, self.markers):
-                if DEBUG: print('Adding VIS points ...', xlon, ylat, value, color, label, marker, tstep)
-                self.fig.add_trace(self.generate_var_tstep_trace(xlon, ylat, stats, value, color, label, marker, tstep))
+            return self.generate_var_tstep_trace(xlon, ylat, stats, vals, self.colors, self.labels, self.markers, tstep)
+#            for value, color, label, marker in zip(vals, self.colors, self.labels, self.markers):
+#                if DEBUG: print('Adding VIS points ...', xlon, ylat, value, color, label, marker, tstep)
         else:
             if DEBUG: print('Adding one point ...')
-            self.fig.add_trace(self.generate_var_tstep_trace())
+            return None
+            # self.fig.add_trace(self.generate_var_tstep_trace())
 
-        # axis_style = dict(
-        #     zeroline=False,
-        #     showline=False,
-        #     showgrid=True,
-        #     ticks='',
-        #     showticklabels=False,
-        # )
-
-        if DEBUG: print('Update layout ...', self.get_title(tstep))
-        if tstep is not None:
-            fig_title=dict(text='{}'.format(self.get_title(tstep)),
-                           xanchor='left',
-                           yanchor='top',
-                           x=0.01, y=0.95)
-        else:
-            fig_title={}
-
-        self.fig.update_layout(
-            title=fig_title,
-            uirevision=True,
-            autosize=True,
-            hovermode="closest",        # highlight closest point on hover
-            mapbox=self.get_mapbox(zoom=2.8-(0.5*aspect[0]), center=center),
-            font_size=12-(0.5*aspect[0]),
-            # width="100%",
-            legend=dict(
-                x=0.01,
-                y=0.9,
-                bgcolor="rgba(0,0,0,0)"
-            ),
-            updatemenus=[
-                # get_animation_buttons(),
-                # self.get_mapbox_style_buttons(),
-                # self.get_variable_dropdown_buttons(),
-            ],
-            margin={"r": 0, "t": 0, "l": 0, "b": 0},
-        )
-
-        # if DEBUG: print('Returning fig of size {}'.format(sys.getsizeof(self.fig)))
-        return self.fig
+#        self.fig = go.Figure()
+#        # axis_style = dict(
+#        #     zeroline=False,
+#        #     showline=False,
+#        #     showgrid=True,
+#        #     ticks='',
+#        #     showticklabels=False,
+#        # )
+#
+#        if DEBUG: print('Update layout ...', self.get_title(tstep))
+#        if tstep is not None:
+#            fig_title=dict(text='{}'.format(self.get_title(tstep)),
+#                           xanchor='left',
+#                           yanchor='top',
+#                           x=0.01, y=0.95)
+#        else:
+#            fig_title={}
+#
+#        self.fig.update_layout(
+#            title=fig_title,
+#            uirevision=True,
+#            autosize=True,
+#            hovermode="closest",        # highlight closest point on hover
+#            mapbox=self.get_mapbox(zoom=2.8-(0.5*aspect[0]), center=center),
+#            font_size=12-(0.5*aspect[0]),
+#            # width="100%",
+#            legend=dict(
+#                x=0.01,
+#                y=0.9,
+#                bgcolor="rgba(0,0,0,0)"
+#            ),
+#            updatemenus=[
+#                # get_animation_buttons(),
+#                # self.get_mapbox_style_buttons(),
+#                # self.get_variable_dropdown_buttons(),
+#            ],
+#            margin={"r": 0, "t": 0, "l": 0, "b": 0},
+#        )
+#
+#        # if DEBUG: print('Returning fig of size {}'.format(sys.getsizeof(self.fig)))
+#        return self.fig
 
 
 class ProbFigureHandler(object):
