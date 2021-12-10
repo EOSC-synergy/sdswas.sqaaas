@@ -1,7 +1,7 @@
 """ Dash Server """
 
-#import gevent.monkey
-#gevent.monkey.patch_all()
+import gevent.monkey
+gevent.monkey.patch_all()
 
 import dash
 import dash_bootstrap_components as dbc

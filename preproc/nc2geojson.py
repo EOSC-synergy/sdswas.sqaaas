@@ -63,6 +63,7 @@ def nc2geojson(datatype='', outdir='.', filelist=[], outfile_tpl=''):
             what, _, date, _ = tim.units.split()[:4]
         except:
             print("File", filename, "time units exception. Skipping.")
+            fp.close()
             continue
         if what.lower() == 'hours':
             date = datetime.strptime(date, "%Y-%m-%d") + relativedelta(hours=int(timevals[0]))

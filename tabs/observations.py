@@ -202,18 +202,18 @@ def tab_observations(window='rgb'):
                 ]),
             className="description-body"
         ),
-        dbc.Spinner(
-            html.Div(
-                id='obs-vis-graph',
-                children=[],
-            ),
+        html.Div(
+            id='obs-vis-graph',
+            children=[],
         ),
+#        dbc.Spinner(
+#        ),
         html.Div([
             obs_time_slider(div='obs-vis',
                 start=0,
                 end=18,
                 step=6),
-            layout_view,
+            #layout_view,
             html.Br(),
             html.Br(),
             html.Div(DISCLAIMER_MODELS,

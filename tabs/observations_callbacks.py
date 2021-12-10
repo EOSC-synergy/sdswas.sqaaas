@@ -263,15 +263,14 @@ def register_callbacks(app):
         Output('obs-vis-graph', 'children'),
         [Input('obs-vis-date-picker', 'date'),
          Input('obs-vis-slider-graph', 'value')],
-        [State({'tag': 'vis-view-style', 'index': ALL}, 'active'),
-         State('obs-vis-graph', 'zoom'),
+        [State('obs-vis-graph', 'zoom'),
          State('obs-vis-graph', 'center')],
         prevent_initial_call=False
     )
-    def update_vis_figure(date, tstep, view, zoom, center):
+    def update_vis_figure(date, tstep, zoom, center):
         from tools import get_vis_figure
         from tools import get_figure
-        if DEBUG: print("*************", date, tstep, view, zoom, center)
+        if DEBUG: print("*************", date, tstep, zoom, center)
         if date is not None:
             date = date.split(' ')[0]
             try:
@@ -282,11 +281,11 @@ def register_callbacks(app):
         else:
             date = end_date
 
-        view = list(STYLES.keys())[view.index(True)]
+        # view = list(STYLES.keys())[view.index(True)]
         if DEBUG: print('SERVER: VIS callback date {}, tstep {}'.format(date, tstep))
         df, points_layer = get_vis_figure(tstep=tstep, selected_date=date)
         if DEBUG: print("POINTS LAYER", points_layer)
-        fig = get_figure(model=None, var=None, layer=points_layer, view=view, zoom=zoom, center=center)
+        fig = get_figure(model=None, var=None, layer=points_layer, zoom=zoom, center=center)
         return html.Div(
             fig,
             id='obs-vis-graph',

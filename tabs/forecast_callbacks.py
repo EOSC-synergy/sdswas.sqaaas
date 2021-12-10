@@ -323,13 +323,24 @@ def register_callbacks(app, cache, cache_timeout):
         Output('was-graph', 'children'),
         [Input('was-date-picker', 'date'),
          Input('was-slider-graph', 'value'),
-         Input('was-dropdown', 'value'),],
+         Input('was-dropdown', 'value')],
+        [State('variable-dropdown-forecast', 'value'),
+         State('was-graph', 'zoom'),
+         State('was-graph', 'center')],
         prevent_initial_call=False
         )
     # @cache.memoize(timeout=cache_timeout)
-    def update_was_figure(date, day, was):
+    def update_was_figure(date, day, was, var, zoom, center):
         """ Update Warning Advisory Systems maps """
         from tools import get_was_figure
+        from tools import get_figure
+        if DEBUG: print('WAS', date, day, was)
+        ctx = dash.callback_context
+        if ctx.triggered:
+            button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+            if button_id != 'was-apply' and date is None and day is None:
+                raise PreventUpdate
+
         print('WAS', was)
         if date is not None:
             date = date.split(' ')[0]
@@ -342,11 +353,14 @@ def register_callbacks(app, cache, cache_timeout):
         else:
             date = end_date
 
+        if DEBUG: print("WAS figure " + date, was, day)
         if was:
             was = was[0]
-            return get_graph(index=was, figure=get_was_figure(was, day, selected_date=date))
-        if DEBUG: print("WAS figure " + date, was, day)
-        return get_graph(index='none', figure=get_was_figure(selected_date=date))
+            geojson, legend, info = get_was_figure(was, day, selected_date=date)
+            fig = get_figure(model=None, var=var, layer=[geojson, legend, info], zoom=zoom, center=center)
+            return fig
+
+        raise PreventUpdate 
 
 
     @app.callback(
@@ -356,14 +370,17 @@ def register_callbacks(app, cache, cache_timeout):
          Input('prob-slider-graph', 'value')],
         [State('prob-dropdown', 'value'),
          State('variable-dropdown-forecast', 'value'),
-         ],
+         State({'tag': 'view-style', 'index': ALL}, 'active'),
+         State('prob-graph', 'zoom'),
+         State('prob-graph', 'center')],
         prevent_initial_call=False
     )
     # @cache.memoize(timeout=cache_timeout)
-    def update_prob_figure(n_clicks, date, day, prob, var):
+    def update_prob_figure(n_clicks, date, day, prob, var, view, zoom, center):
         """ Update Warning Advisory Systems maps """
         from tools import get_prob_figure
-        if DEBUG: print('PROB', date, day, var, prob)
+        from tools import get_figure
+        if DEBUG: print('PROB', date, day, var, prob, var, view, zoom, center)
         ctx = dash.callback_context
         if ctx.triggered:
             button_id = ctx.triggered[0]["prop_id"].split(".")[0]
@@ -383,9 +400,19 @@ def register_callbacks(app, cache, cache_timeout):
 
         if prob:
             prob = prob.replace('prob_', '')
-            return get_graph(index=prob, figure=get_prob_figure(var, prob, day, selected_date=date))
-        if DEBUG: print("PROB figure " + date, prob, day)
-        return get_graph(index='none', figure=get_prob_figure(var, selected_date=date))
+            view = list(STYLES.keys())[view.index(True)]
+            # return get_graph(index=prob, figure=get_prob_figure(var, prob, day, selected_date=date))
+            geojson, colorbar, info = get_prob_figure(var, prob, day, selected_date=date)
+            fig = get_figure(model=None, var=var, layer=[geojson, colorbar, info], view=view, zoom=zoom, center=center)
+            if DEBUG: print("FIG", fig)
+            return fig
+#            return html.Div(
+#                fig,
+#                id='prob-graph',
+#                className='graph-with-slider'
+#                )
+        raise PreventUpdate
+        #return get_graph(index='none', figure=get_prob_figure(var, selected_date=date))
 
 
     @app.callback(

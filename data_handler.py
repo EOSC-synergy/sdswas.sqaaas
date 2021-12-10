@@ -37,19 +37,19 @@ DEBUG = True
 COLORS = ['#ffffff', '#a1ede3', '#5ce3ba', '#fcd775', '#da7230',
           '#9e6226', '#714921', '#392511', '#1d1309']
 
-COLORS_NEW = ['rgba(255,255,255,0.3)', '#a1ede3', '#5ce3ba', '#fcd775', '#da7230',
+COLORS_NEW = ['rgba(255,255,255,0.4)', '#a1ede3', '#5ce3ba', '#fcd775', '#da7230',
           '#9e6226', '#714921', '#392511', '#1d1309']
 
 COLORS_PROB = [  #(1,1,1),                                            \
-                (225/255.0,225/255.0,225/255.0),                    \
-                (205/255.0,205/255.0,205/255.0),                    \
-                (190/255.0,255/255.0, 51/255.0),                    \
-                (162/255.0,220/255.0, 51/255.0),                    \
-                (255/255.0,255/255.0,155/255.0),                    \
-                (255/255.0,255/255.0, 75/255.0),                    \
-                (255/255.0,210/255.0, 64/255.0),                    \
-                (255/255.0,139/255.0, 90/255.0),                    \
-                (255/255.0,102/255.0, 51/255.0)  ]
+                "rgba(225, 225, 225, 1)",                    \
+                "rgba(205, 205, 205, 1)",                    \
+                "rgba(190, 255, 51, 1)",                    \
+                "rgba(162, 220, 51, 1)",                    \
+                "rgba(255, 255, 155, 1)",                    \
+                "rgba(255, 255, 75, 1)",                    \
+                "rgba(255, 210, 64, 1)",                    \
+                "rgba(255, 139, 90, 1)",                    \
+                "rgba(255, 102, 51, 1)"  ]
 
 COLORMAP = ListedColormap(COLORS)
 COLORMAP_PROB = ListedColormap(COLORS_PROB)
@@ -1163,7 +1163,7 @@ class FigureHandler(object):
                 index=curr_index
                 )
         )
-        if DEBUG: print("---", fig)
+        # if DEBUG: print("---", fig)
         if DEBUG: print("*** FIGURE EXECUTION TIME: {} ***".format(str(time.time() - self.st_time)))
         return fig
 
@@ -1482,14 +1482,6 @@ class VisFigureHandler(object):
                 ),
             )
         name = 'visibility {}'.format(label)
-#        if value[0].size == 0:
-#            xlon_val = [-180]
-#            ylat_val = [-90]
-#            stat_val = 'none'
-#        else:
-#        xlon_val = xlon[value]
-#        ylat_val = ylat[value]
-#        stat_val = stats[value]
 
         legend = []
         res = np.zeros((len(xlon)))
@@ -1653,7 +1645,7 @@ class ProbFigureHandler(object):
         if prob is None:
             prob = probs[0]
 
-        self.bounds = range(10, 110, 10)
+        self.bounds = np.arange(10, 110, 10)
 
         self.prob = prob
 
@@ -1684,9 +1676,9 @@ class ProbFigureHandler(object):
             varlist = [var for var in self.input_file.variables if var in VARS]
             self.xlon, self.ylat = np.meshgrid(lon, lat)
 
-        self.colormaps = {
-            self.varname: get_colorscale(self.bounds, COLORMAP_PROB)
-        }
+#        self.colormaps = {
+#            self.varname: get_colorscale(self.bounds, COLORMAP_PROB)
+#        }
 
         if selected_date:
             self.selected_date_plain = selected_date
@@ -1760,7 +1752,9 @@ class ProbFigureHandler(object):
         return xlon, ylat, var
 
     def retrieve_cdatetime(self, tstep=0):
+        print("----------", tstep, self.tim)
         tim = int(self.tim[tstep])
+        tim += 1
         """ Retrieve data from NetCDF file """
         if self.what == 'days':
             cdatetime = self.rdatetime + relativedelta(days=tim)
@@ -1775,62 +1769,50 @@ class ProbFigureHandler(object):
 
     def generate_contour_tstep_trace(self, varname, tstep=0):
         """ Generate trace to be added to data, per variable and timestep """
+        from dash_server import app
         if varname is None:
             varname = self.varname
 
-        geojson_file = self.geojson.format(step=tstep)
+        if DEBUG: print("##############", tstep)
 
-        if os.path.exists(geojson_file):
-            if DEBUG: print('GEOJSON PROB', geojson_file)
-            geojson = json.load(open(geojson_file))
-        else:
-            if DEBUG: print('ERROR', geojson_file, 'not available')
-            geojson = {
-                    "type": "FeatureCollection",
-                    "features": []
-                    }
+        geojson_file = self.geojson.format(step=tstep)
+        geojson_url = app.get_asset_url(geojson_file.replace('/data/daily_dashboard', 'geojsons'))
 
         name = VARS[varname]['name']
         bounds = self.bounds
-        loc_val = [
-            (
-                feature['id'],
-                np.around(feature['properties']['value'], 2),
-            )
-            for feature in geojson['features']
-            if feature['geometry']['coordinates']
-        ]
-        locations, values = np.array(loc_val).T if loc_val else ([], [])
-        if DEBUG: print("*****", varname, self.colormaps[varname], values)
-        return dict(
-            type='choroplethmapbox',
-            name=name+'_contours',
-            geojson=geojson,
-            z=values,
-            ids=locations,
-            locations=locations,
-            zmin=bounds[0],
-            zmax=bounds[-1],
-            colorscale=self.colormaps[varname],
-            showscale=False,
-            showlegend=False,
-            hoverinfo='none',
-            marker=dict(
-                opacity=0.6,
-                line_width=0,
-            ),
-            colorbar=None,
-#                 {
-#                     "borderwidth": 0,
-#                     "outlinewidth": 0,
-#                     "thickness": 15,
-#                     "tickfont": {"size": 14},
-#                     "tickvals": self.bounds[varname][:-1],
-#                     "tickmode": "array",
-#                     "x": 0.95,
-#                     "y": 0.5,
-#                 },
-        )
+        colorscale = COLORS_PROB
+
+        if DEBUG: print("GEOJSON_URL", geojson_url)
+
+        style = dict(weight=0, opacity=0, color='white', dashArray='', fillOpacity=0.6)
+
+        # Create colorbar.
+        ctg = ["{:.1f}".format(cls) if '.' in str(cls) else "{:d}".format(cls)
+                for i, cls in enumerate(bounds[1:-1])]
+        indices = list(range(len(ctg) + 2))
+        colorbar = dl.Colorbar(
+                min=0, max=len(ctg)+1,
+                classes=indices,
+                colorscale=colorscale,
+                tickValues=indices[1:-1],
+                tickText=ctg,
+                position='topleft',
+                width=250,
+                height=15,
+                style={ 'top': '65px' }
+                )
+
+        # Geojson rendering logic, must be JavaScript as it is executed in clientside.
+        ns = Namespace("forecastTab", "forecastMaps")
+        style_handle = ns("styleHandle")
+
+        geojson = dl.GeoJSON(
+                url=geojson_url,
+                options=dict(style=style_handle),
+                hideout=dict(colorscale=colorscale, bounds=bounds, style=style, colorProp="value")
+                )  # url to geojson file
+
+        return geojson, colorbar
 
     def generate_var_tstep_trace(self, varname=None, tstep=0):
         """ Generate trace to be added to data, per variable and timestep """
@@ -1869,7 +1851,7 @@ class ProbFigureHandler(object):
                 color=val,
                 # opacity=0.6,
                 size=0,
-                colorscale=self.colormaps[varname],
+                #colorscale=self.colormaps[varname],
                 cmin=self.bounds[0],
                 cmax=self.bounds[-1],
                 colorbar=None,
@@ -1878,7 +1860,7 @@ class ProbFigureHandler(object):
 
     def get_title(self, varname, tstep=0):
         """ return title according to the date """
-        tstep += 1
+        # tstep += 1
         rdatetime = self.rdatetime
         cdatetime = self.retrieve_cdatetime(tstep)
         return PROB[varname]['title'].format(
@@ -1897,94 +1879,43 @@ class ProbFigureHandler(object):
         if varname is None:
             varname = self.varname
         if DEBUG: print("***", varname, day, static, self.geojson, self.filepath)
-        self.fig = go.Figure()
+
+        geojson = colorbar = None
+
         if varname and os.path.exists(self.geojson.format(step=day)):
             if DEBUG: print('Adding contours ...')
-            self.fig.add_trace(self.generate_contour_tstep_trace(varname, tstep))
+            geojson, colorbar = self.generate_contour_tstep_trace(varname, tstep)
         if varname and os.path.exists(self.filepath) and static:
             if DEBUG: print('Adding points ...')
-            self.fig.add_trace(self.generate_var_tstep_trace(varname, tstep))
+            # ret.append(self.generate_var_tstep_trace(varname, tstep))
         elif varname is None or not os.path.exists(self.filepath):
             if DEBUG: print('Adding one point ...')
-            self.fig.add_trace(self.generate_var_tstep_trace())
+            # ret.append(self.generate_var_tstep_trace())
 
-        # axis_style = dict(
-        #     zeroline=False,
-        #     showline=False,
-        #     showgrid=True,
-        #     ticks='',
-        #     showticklabels=False,
-        # )
 
         if DEBUG: print('Update layout ...')
         if not varname:
             if DEBUG: print('ONE')
-            fig_title=dict(text='',
-                           xanchor='center',
-                           yanchor='middle',
-                           x=0.5, y=0.5)
+            fig_title = ''
         elif varname and not os.path.exists(self.filepath):
             if DEBUG: print('TWO')
-            fig_title=dict(text='<b>DATA NOT AVAILABLE</b>',
-                           xanchor='center',
-                           yanchor='middle',
-                           x=0.5, y=0.5)
+            fig_title = html.P(html.B("DATA NOT AVAILABLE"))
         else:
             if DEBUG: print('THREE')
-            fig_title=dict(text='{}'.format(self.get_title(varname, tstep)),
-                           xanchor='left',
-                           yanchor='top',
-                           x=0.01, y=0.95)
-            if DEBUG: print('ADD IMAGES')
-            if varname and varname in VARS:
-                ypos = 0.9-(aspect[0]/30)
-                size = 0.18+(aspect[0]/6)
-                if DEBUG: print("YPOS", aspect[0], ypos)
-                self.fig.add_layout_image(
-                    dict(
-                        source=Image.open(PROB[varname]['image_scale']),
-                        xref="paper", yref="paper",
-                        x=0.01, y=ypos,
-                        sizex=size, sizey=size,
-                        xanchor="left", yanchor="top",
-                        layer='above',
-                    ))
-#        if varname and os.path.exists(self.filepath):
-#            fig_title=dict(text='{}'.format(self.get_title(varname, tstep)),
-#                           xanchor='left',
-#                           yanchor='top',
-#                           x=0.01, y=0.95)
-#        else:
-#            fig_title={}
-#        size = 0.5
-#        ypos = 1.05
-#        self.fig.add_layout_image(
-#            dict(
-#                source=Image.open(PROB[varname]['image_scale']),
-#                xref="paper", yref="paper",
-#                x=0.01, y=ypos,
-#                sizex=size, sizey=size,
-#                xanchor="left", yanchor="top",
-#                layer='above',
-#            ))
-        self.fig.update_layout(
-            title=fig_title,
-            uirevision=True,
-            autosize=True,
-            hovermode="closest",        # highlight closest point on hover
-            mapbox=self.get_mapbox(zoom=2.8-(0.5*aspect[0])),
-            font_size=12-(0.5*aspect[0]),
-            # width="100%",
-            updatemenus=[
-                # get_animation_buttons(),
-                # self.get_mapbox_style_buttons(),
-                # self.get_variable_dropdown_buttons(),
-            ],
-            margin={"r": 0, "t": 0, "l": 0, "b": 0},
-        )
+            fig_title = html.P(html.B(
+                [
+                    item for sublist in self.get_title(varname, tstep).split('<br>') for item in [sublist, html.Br()]
+                ][:-1]
+            ))
 
-        # if DEBUG: print('Returning fig of size {}'.format(sys.getsizeof(self.fig)))
-        return self.fig
+        info = html.Div(
+            children=fig_title,
+            id="prob-info",
+            className="info",
+            style=INFO_STYLE
+        )
+        return geojson, colorbar, info
+
 
 
 class WasFigureHandler(object):
@@ -2127,6 +2058,7 @@ class WasFigureHandler(object):
 
         input_path = os.path.join(input_dir, input_file)
 
+        if DEBUG: print("INPUT PATH")
         if os.path.exists(input_path):
             df = pd.read_hdf(input_path, 'was_{}'.format(self.selected_date_plain)).set_index('day')
 
@@ -2158,55 +2090,100 @@ class WasFigureHandler(object):
         """ Generate trace to be added to data, per variable and timestep """
 
         if hasattr(self, 'was_df'):
-            geojson = orjson.loads(self.was_df['geometry'].to_json())
+            geojson_data = orjson.loads(self.was_df.to_json())
         else:
-            geojson = {
-                    "type": "FeatureCollection",
-                    "features": []
-                    }
+            return None, None
 
-            return dict(
-                        type='choroplethmapbox',
-                        name='',  # str(self.was)+'_contours',
-                        geojson=geojson,
-                    )
-        colormap =  list(WAS[self.was]['colors'].keys())
         names, colors, definitions = self.get_regions_data(day=day)
-        loc_val = [
-            (
-                feature['id'],
-                colormap.index(color),
+        colors = np.array(colors)
+        if DEBUG: print("::::::::::", names, colors, definitions)
+        style = dict(weight=1, opacity=1, color='white', dashArray='3', fillOpacity=0.6)
+
+        # Create colorbar.
+        colormap = WAS[self.was]['colors']
+
+        legend = []
+        # res = np.zeros(len(colormap))
+        if DEBUG: print("^^^^^", colormap, type(colormap))
+        for color_idx, (color, definition) in enumerate(colormap.items()):
+            items_idxs = np.where(colors == color)[0]
+            if DEBUG: print('*******', items_idxs, colors, color)
+            for i in items_idxs:
+                geojson_data['features'][int(i)]['properties']['value'] = int(color_idx)
+                geojson_data['features'][int(i)]['properties']['tooltip'] = "Region: <b>{}</b><br>Level: <b>{}</b>".format(geojson_data['features'][int(i)]['properties']['NAME_1'], definition)
+            # assign a value from 0 to 3 to the different
+            leg = html.Div([
+                    html.Span(
+                        "",
+                        className="was-legend-point",
+                        style={
+                            'backgroundColor': color,
+                            }
+                        ),
+                    html.Span(
+                        definition, 
+                        className="was-legend-label",
+                        )
+                    ],
+                    style={ 'display': 'block' })
+            legend.append(leg)
+
+        legend = html.Div(
+                legend,
+                className="was-legend"
             )
-            for feature, color in zip(geojson['features'], colors)
-            if feature['geometry']['coordinates']
-        ]
-        locations, values = np.array(loc_val).T if loc_val else ([], [])
-        if DEBUG: print(locations, '--', values)
-        # if DEBUG: print(varname, self.colormaps[varname], values)
-        # colormap function of values
-        uniques = np.unique(values)
-        colormap = [colormap[int(i)] for i in np.unique(values)]
-        if DEBUG: print(colormap)
-        return dict(
-            type='choroplethmapbox',
-            name='',  # str(self.was)+'_contours',
-            geojson=geojson,
-            z=values,
-            ids=locations,
-            locations=locations,
-            showscale=False,
-            showlegend=True,
-            customdata=["Region: {}<br>Warning level: {}".format(name,
-                definition) for name, definition in zip(names, definitions)],
-            hovertemplate="%{customdata}",
-            colorscale=get_colorscale(np.arange(len(colormap)), ListedColormap(colormap), True),
-            marker=dict(
-                opacity=0.6,
-                line_width=0.5,
-                line_color='white',
-            ),
-            colorbar=None,
-        )
+
+        # Geojson rendering logic, must be JavaScript as it is executed in clientside.
+        ns = Namespace("forecastTab", "wasMaps")
+        style_handle = ns("styleHandle")
+
+        geojson = dl.GeoJSON(
+                data=geojson_data,
+                zoomToBounds=True,
+                hoverStyle=arrow_function(dict(weight=2, color='white', dashArray='', fillOpacity=1)),
+                options=dict(style=style_handle),
+                hideout=dict(colorscale=list(colormap.keys()),
+                    bounds=[i for i in range(len(colormap.keys()))],
+                    style=style,
+                    colorProp="value")
+                )  # url to geojson file
+
+        return geojson, legend
+#        loc_val = [
+#            (
+#                feature['id'],
+#                colormap.index(color),
+#            )
+#            for feature, color in zip(geojson['features'], colors)
+#            if feature['geometry']['coordinates']
+#        ]
+#        locations, values = np.array(loc_val).T if loc_val else ([], [])
+#        if DEBUG: print(locations, '--', values)
+#        # if DEBUG: print(varname, self.colormaps[varname], values)
+#        # colormap function of values
+#        uniques = np.unique(values)
+#        colormap = [colormap[int(i)] for i in np.unique(values)]
+#        if DEBUG: print(colormap)
+#        return dict(
+#            type='choroplethmapbox',
+#            name='',  # str(self.was)+'_contours',
+#            geojson=geojson,
+#            z=values,
+#            ids=locations,
+#            locations=locations,
+#            showscale=False,
+#            showlegend=True,
+#            customdata=["Region: {}<br>Warning level: {}".format(name,
+#                definition) for name, definition in zip(names, definitions)],
+#            hovertemplate="%{customdata}",
+#            colorscale=get_colorscale(np.arange(len(colormap)), ListedColormap(colormap), True),
+#            marker=dict(
+#                opacity=0.6,
+#                line_width=0.5,
+#                line_color='white',
+#            ),
+#            colorbar=None,
+#        )
 
     def get_title(self, day=1):
         """ return title according to the date """
@@ -2229,30 +2206,27 @@ class WasFigureHandler(object):
         self.fig = go.Figure()
         day = int(day)
         if DEBUG: print('Adding contours ...')
-        self.fig.add_trace(self.generate_contour_tstep_trace(day))
+        geojson, legend = self.generate_contour_tstep_trace(day)
         if DEBUG: print('Update layout ...')
-        try:
-            fig_title=dict(text='{}'.format(self.get_title(day)),
-                           xanchor='left',
-                           yanchor='top',
-                           x=0.01, y=0.95)
-        except:
-            fig_title={}
-        self.fig.update_layout(
-            legend=dict(
-                x=0.01,
-                y=0.85,
-                bgcolor="rgba(0,0,0,0)"
-            ),
-            title=fig_title,
-            uirevision=True,
-            autosize=True,
-            hovermode="closest",        # highlight closest point on hover
-            mapbox=self.get_mapbox(zoom=4.5-(0.5*aspect[0])),
-            font_size=12-(0.5*aspect[0]),
-            #height=800,
-            margin={"r": 0, "t": 0, "l": 0, "b": 0},
+#        if not varname:
+#            if DEBUG: print('ONE')
+#            fig_title = ''
+#        elif varname and not os.path.exists(self.filepath):
+#            if DEBUG: print('TWO')
+#            fig_title = html.P(html.B("DATA NOT AVAILABLE"))
+#        else:
+        fig_title = html.P(html.B(
+            [
+                item for sublist in self.get_title(day).split('<br>') for item in [sublist, html.Br()]
+            ][:-1]
+        ))
+
+        info = html.Div(
+            children=fig_title,
+            id="was-info",
+            className="info",
+            style=INFO_STYLE
         )
+        return geojson, legend, info
 
         # if DEBUG: print('Returning fig of size {}'.format(sys.getsizeof(self.fig)))
-        return self.fig

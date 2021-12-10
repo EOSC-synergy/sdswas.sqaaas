@@ -13,7 +13,7 @@ mpl.use('agg')
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import numpy as np
-import json
+import orjson as json
 
 
 def ncl_colors(path, rev=False, n=None):
@@ -161,12 +161,15 @@ def contourf(lon, lat, values, levels=None, cmap=None, cmap_file=None, cmap_rev=
         'features': features
     }
 
-    if pretty_print:
-        res = json.dumps(geojson, indent=2)
-    else:
-        res = json.dumps(geojson, separators=(',', ':'))
+#    if pretty_print:
+#        res = json.dumps(geojson, indent=2)
+#    else:
+#        res = json.dumps(geojson, separators=(',', ':'))
 
-    return res
+    return json.dumps(
+            geojson,
+            option=json.OPT_SERIALIZE_NUMPY,
+            ).decode('utf-8')
 
 
 def pcolormesh(x, y, values, levels=12, proj=None, gridded_metadata={},

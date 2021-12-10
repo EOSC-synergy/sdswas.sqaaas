@@ -25,6 +25,16 @@ window.forecastTab = Object.assign({}, window.forecastTab, {
             // delete props.cluster;
             layer.bindTooltip(JSON.stringify(props.value), { opacity: 1.0 })
         }
+    },
+    wasMaps: {
+        styleHandle: function(feature, context){
+            // get props from hideout
+	    const {bounds, colorscale, style, colorProp} = context.props.hideout;
+            // get value the determines the color
+            const value = feature.properties[colorProp];
+	    style.fillColor = colorscale[value];
+            return style;
+        },
     }
 });
 

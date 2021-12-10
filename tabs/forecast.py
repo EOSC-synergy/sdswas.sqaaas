@@ -323,14 +323,11 @@ def tab_forecast(window='models'):
 #            color="primary",
 #            style={ 'overflow': 'auto', 'marginBottom': 0 }
 #        ),
-        dbc.Spinner(
-            html.Div(
-                id='was-graph',
-                children=[
-                    # get_was_figure('burkinafaso')
-                ],
-            ),
-        ),
+        html.Div(
+            id='was-graph',
+            className='graph-with-slider'),
+#        dbc.Spinner(
+#        ),
         html.Div([
             was_time_slider,
             layout_view,
@@ -357,14 +354,9 @@ def tab_forecast(window='models'):
 #            color="primary",
 #            style={ 'overflow': 'auto', 'marginBottom': 0 }
 ##        ),
-        dbc.Spinner(
-            html.Div(
-                id='prob-graph',
-                children=[
-                    # get_prob_figure(DEFAULT_VAR, PROB[DEFAULT_VAR]['prob_thresh'][0])
-                ],
-            )
-        ),
+        html.Div(
+            id='prob-graph',
+            className='graph-with-slider'),
         html.Div([
             prob_time_slider,
             layout_view,
