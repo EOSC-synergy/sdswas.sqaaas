@@ -41,6 +41,7 @@ COLORS_NEW = ['rgba(255,255,255,0.4)', '#a1ede3', '#5ce3ba', '#fcd775', '#da7230
           '#9e6226', '#714921', '#392511', '#1d1309']
 
 COLORS_PROB = [  #(1,1,1),                                            \
+                "rgba(225, 225, 225, 0.4)",                    \
                 "rgba(225, 225, 225, 1)",                    \
                 "rgba(205, 205, 205, 1)",                    \
                 "rgba(190, 255, 51, 1)",                    \
@@ -842,8 +843,10 @@ class FigureHandler(object):
         style = dict(weight=0, opacity=0, color='white', dashArray='', fillOpacity=0.6)
 
         # Create colorbar.
-        ctg = ["{:.1f}".format(cls) if '.' in str(cls) else "{:d}".format(cls)
-                for i, cls in enumerate(bounds[1:-1])]
+        if varname in ('SCONC_DUST', 'sconc_dust'):
+            ctg = ["{:d}".format(int(cls)) for i, cls in enumerate(bounds[1:-1])]
+        else:
+            ctg = ["{:.1f}".format(cls) for i, cls in enumerate(bounds[1:-1])]
         indices = list(range(len(ctg) + 2))
         colorbar = dl.Colorbar(
                 min=0, max=len(ctg)+1,
@@ -1645,7 +1648,7 @@ class ProbFigureHandler(object):
         if prob is None:
             prob = probs[0]
 
-        self.bounds = np.arange(10, 110, 10)
+        self.bounds = np.arange(0, 110, 10)
 
         self.prob = prob
 
@@ -1788,13 +1791,13 @@ class ProbFigureHandler(object):
 
         # Create colorbar.
         ctg = ["{:.1f}".format(cls) if '.' in str(cls) else "{:d}".format(cls)
-                for i, cls in enumerate(bounds[1:-1])]
-        indices = list(range(len(ctg) + 2))
+                for i, cls in enumerate(bounds)]
+        indices = list(range(len(ctg)))
         colorbar = dl.Colorbar(
-                min=0, max=len(ctg)+1,
+                min=0, max=len(ctg)-1,
                 classes=indices,
                 colorscale=colorscale,
-                tickValues=indices[1:-1],
+                tickValues=indices,
                 tickText=ctg,
                 position='topleft',
                 width=250,

@@ -324,6 +324,10 @@ def tab_forecast(window='models'):
 #            style={ 'overflow': 'auto', 'marginBottom': 0 }
 #        ),
         html.Div(
+            children=[
+                html.Div(
+                    id="{'index':'None', 'tag': 'empty-map'}")
+                ],
             id='was-graph',
             className='graph-with-slider'),
 #        dbc.Spinner(

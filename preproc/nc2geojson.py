@@ -38,7 +38,7 @@ def nc2geojson(datatype='', outdir='.', filelist=[], outfile_tpl=''):
         VARS = ['od550aero',]
     elif datatype == 'PROB':
         # PROBABILITY MAPS
-        bounds = range(10, 110, 10)
+        bounds = range(0, 110, 10)
         mul = 1  #None
     else:
         bounds = None

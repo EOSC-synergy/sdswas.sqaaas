@@ -21,3 +21,6 @@ do
             $PYTHON $HOME/interactive-forecast-viewer/preproc/nc2geojson.py PROB $thresh/geojson/ $thresh/netcdf/$curdate/$curdate*nc
 	done
 done
+
+wait
+rm /data/daily_dashboard/prob/tmp/interpolated/${curdate}*nc

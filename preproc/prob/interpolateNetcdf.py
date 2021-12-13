@@ -34,7 +34,7 @@ if __name__=="__main__":
     #ncModelsDir = "/home/administrador/webpolvo/DustEpsgrams/ncModelFiles/"
     ncModelsDir = "/data/thredds/models-repos/"
     #LonW, LonE, LatN, LatS
-    lonlatRegional = "-25,60,0,65"
+    lonlatRegional = "-25,60,5,65"
     main_output_path = '/data/daily_dashboard/prob/tmp/'
     curdate = sys.argv[1]
     InterpolateNetcdf(curdate, ncModelsDir, main_output_path, lonlatRegional)
