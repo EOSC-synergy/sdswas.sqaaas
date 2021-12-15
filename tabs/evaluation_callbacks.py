@@ -32,6 +32,7 @@ from tabs.evaluation import STATS
 
 from datetime import datetime as dt
 from datetime import timedelta
+from dateutil.relativedelta import relativedelta
 import pandas as pd
 import orjson
 import os.path
@@ -100,10 +101,17 @@ def register_callbacks(app, cache, cache_timeout):
             ret = [{
                 'label' : '{} {}'.format(seasons[mon.strftime('%m')],
                     mon.strftime('%Y')),
-                'value' : '{}{}'.format(seasons[mon.strftime('%m')],
-                    mon.strftime('%Y'))
+                'value' : '{}-{}'.format(
+                    mon.strftime('%Y%m'), (mon + relativedelta(months=2)).strftime('%Y%m'))
                 }
                 for mon in pd.date_range(start_date, end_date, freq='Q')[::-1]]
+#            ret = [{
+#                'label' : '{} {}'.format(seasons[mon.strftime('%m')],
+#                    mon.strftime('%Y')),
+#                'value' : '{}{}'.format(seasons[mon.strftime('%m')],
+#                    mon.strftime('%Y'))
+#                }
+#                for mon in pd.date_range(start_date, end_date, freq='Q')[::-1]]
         elif timescale == 'annual':
             ret = [{
                 'label': mon.strftime('%Y'),

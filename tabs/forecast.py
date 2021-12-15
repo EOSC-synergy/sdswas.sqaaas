@@ -323,15 +323,15 @@ def tab_forecast(window='models'):
 #            color="primary",
 #            style={ 'overflow': 'auto', 'marginBottom': 0 }
 #        ),
-        html.Div(
-            children=[
-                html.Div(
-                    id="{'index':'None', 'tag': 'empty-map'}")
-                ],
-            id='was-graph',
-            className='graph-with-slider'),
-#        dbc.Spinner(
-#        ),
+        dbc.Spinner(
+            html.Div(
+                children=[
+                    html.Div(
+                        id="{'index':'None', 'tag': 'empty-map'}")
+                    ],
+                id='was-graph',
+                className='graph-with-slider'),
+        ),
         html.Div([
             was_time_slider,
             layout_view,
@@ -516,6 +516,7 @@ def sidebar_forecast(variables, default_var, models, default_model):
               dbc.Collapse(
                 dbc.Card(dbc.CardBody(
                     [
+                        html.Label("CURRENT SELECTION"),
                         dbc.Button('PNG FRAME',
                             id='btn-frame-download',
                             n_clicks=0,
@@ -539,6 +540,19 @@ def sidebar_forecast(variables, default_var, models, default_model):
                                 base64=True,
                                 )
                             ),
+                        html.Label("ALL MODELS"),
+                        dbc.Button('PNG FRAME',
+                            id='btn-all-frame-download',
+                            n_clicks=0,
+                            href="#",
+                            className='download-section',
+                            ),
+                        html.Button('GIF ANIM',
+                            id='btn-all-anim-download',
+                            n_clicks=0,
+                            className='download-section',
+                            ),
+                        html.Label("NUMERICAL DATA"),
                         dbc.Button('NETCDF',
                             id='btn-netcdf-download',
                             n_clicks=0,

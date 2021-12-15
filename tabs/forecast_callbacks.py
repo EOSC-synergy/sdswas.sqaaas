@@ -325,12 +325,13 @@ def register_callbacks(app, cache, cache_timeout):
          Input('was-slider-graph', 'value'),
          Input('was-dropdown', 'value')],
         [State('variable-dropdown-forecast', 'value'),
-         State('was-graph', 'zoom'),
-         State('was-graph', 'center')],
+         State({'tag': 'view-style', 'index': ALL}, 'active')],
+#         State('was-graph', 'zoom'),
+#         State('was-graph', 'center')],
         prevent_initial_call=False
         )
     # @cache.memoize(timeout=cache_timeout)
-    def update_was_figure(date, day, was, var, zoom, center):
+    def update_was_figure(date, day, was, var, view):  # zoom, center):
         """ Update Warning Advisory Systems maps """
         from tools import get_was_figure
         from tools import get_figure
@@ -355,9 +356,11 @@ def register_callbacks(app, cache, cache_timeout):
 
         if DEBUG: print("WAS figure " + date, was, day)
         if was:
+            view = list(STYLES.keys())[view.index(True)]
             was = was[0]
             geojson, legend, info = get_was_figure(was, day, selected_date=date)
-            fig = get_figure(model=None, var=var, layer=[geojson, legend, info], zoom=zoom, center=center)
+            fig = get_figure(model=None, var=var, layer=[geojson, legend, info], view=view, zoom=6.5, center=[12.30, -1.20])
+            # fig = get_figure(model=None, var=var, layer=[geojson, legend, info], zoom=zoom, center=center)
             return fig
 
         raise PreventUpdate 
@@ -416,6 +419,43 @@ def register_callbacks(app, cache, cache_timeout):
 
 
     @app.callback(
+        [Output({'tag': 'empty-tile-layer', 'index': ALL}, 'url'),
+         Output({'tag': 'empty-tile-layer', 'index': ALL}, 'attribution')],
+        [Input({'tag': 'view-style', 'index': ALL}, 'n_clicks')],
+        [State({'tag': 'view-style', 'index': ALL}, 'active'),
+         State({'tag': 'empty-tile-layer', 'index': ALL}, 'url')],
+        prevent_initial_call=True
+    )
+    # @cache.memoize(timeout=cache_timeout)
+    def update_styles_button(*args):
+        """ Function updating styles button """
+        ctx = dash.callback_context
+        if ctx.triggered:
+            button_id = orjson.loads(ctx.triggered[0]["prop_id"].split(".")[0])
+            if DEBUG: print("BUTTON ID", str(button_id), type(button_id))
+            if button_id['index'] in STYLES:
+                active = args[-2]
+                graphs = args[-1]
+                num_graphs = len(graphs)
+                # if DEBUG: print("CURRENT ARGS", str(args))
+                # if DEBUG: print("NUM GRAPHS", num_graphs)
+
+                res = [False for i in active]
+                st_idx = list(STYLES.keys()).index(button_id['index'])
+                if active[st_idx] is False:
+                    res[st_idx] = True
+                url = [STYLES[button_id['index']]['url'] for x in range(num_graphs)]
+                attr = [STYLES[button_id['index']]['attribution'] for x in range(num_graphs)]
+                if DEBUG:
+                    print(res, url, attr)
+                return url, attr
+                # return [True if i == button_id['index'] else False for i in active]
+
+        if DEBUG: print('NOTHING TO DO')
+        raise PreventUpdate
+
+
+    @app.callback(
         [Output({'tag': 'model-tile-layer', 'index': ALL}, 'url'),
          Output({'tag': 'model-tile-layer', 'index': ALL}, 'attribution'),
          Output({'tag': 'view-style', 'index': ALL}, 'active')],
@@ -425,7 +465,7 @@ def register_callbacks(app, cache, cache_timeout):
         prevent_initial_call=True
     )
     # @cache.memoize(timeout=cache_timeout)
-    def update_styles_button(*args):
+    def update_models_styles_button(*args):
         """ Function updating styles button """
         ctx = dash.callback_context
         if ctx.triggered:

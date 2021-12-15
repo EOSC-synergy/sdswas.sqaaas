@@ -263,4 +263,4 @@ def get_figure(model=None, var=None, selected_date=end_date, tstep=0, hour=None,
         if DEBUG: print('SERVER: Figure generation ... ')
         return fh.retrieve_var_tstep(var, tstep, hour, static, aspect, center, view, zoom, layer)
     if DEBUG: print('SERVER: No Figure')
-    return FigureHandler().retrieve_var_tstep(layer=layer)
+    return FigureHandler().retrieve_var_tstep(layer=layer, center=center, selected_tiles=view, zoom=zoom)

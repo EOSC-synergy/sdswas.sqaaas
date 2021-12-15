@@ -355,7 +355,8 @@ def convert2timeseries(model, obs=None, months=None):
     if flt_ds:
         flt_ds.close()
 
-    mod_ds.close()
+    if mod_ds:
+        mod_ds.close()
 
     if len(months) == 1:
         fname = "{}".format(months[0])

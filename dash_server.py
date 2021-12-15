@@ -1,7 +1,7 @@
 """ Dash Server """
 
-import gevent.monkey
-gevent.monkey.patch_all()
+#import gevent.monkey
+#gevent.monkey.patch_all()
 
 import dash
 import dash_bootstrap_components as dbc
@@ -110,6 +110,7 @@ app.index_string = """
         <script>
             L_PREFER_CANVAS = true;
             L_DIABLE_3D=true;
+            L_SCROLL_WHEEL_ZOOM=false;
 
             HTMLCanvasElement.prototype.getContext = function(origFn) {
             return function(type, attribs) {

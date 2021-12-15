@@ -656,6 +656,10 @@ div.SingleDatePickerInput {
     z-index: 10000;
 }
 
+.leaflet-control-colorbar {
+    font-size: 10px !important;
+}
+
 /*
 .graph-with-slider {
     height: 93vh !important; 

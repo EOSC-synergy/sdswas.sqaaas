@@ -765,7 +765,7 @@ class FigureHandler(object):
         """ Returns center of map """
         if center is None and hasattr(self, 'ylat'):
             center =  [
-                    (self.ylat.max()-self.ylat.min())/2 + self.ylat.min(),
+                    (self.ylat.max()-self.ylat.min())/2 + self.ylat.min() + (self.ylat.max()-self.ylat.min())/6,
                     (self.xlon.max()-self.xlon.min())/2 + self.xlon.min(),
             ]
         elif center is None:
@@ -1082,7 +1082,9 @@ class FigureHandler(object):
         if center is None:
             center = self.get_center(center)
         if zoom is None:
-            zoom = 3.5-(aspect[0])
+            if colorbar is not None:
+                colorbar.width = 300 - 25 * aspect[0]
+            zoom = 3.5-(aspect[0]-aspect[0]*0.4)
         if DEBUG: print("ZOOM", zoom)
         if DEBUG: print("CENTER", center)
 
@@ -1188,10 +1190,10 @@ class ScoresFigureHandler(object):
         filename = "{}_{}.h5".format(selection, statistic)
         tab_name = "{}_{}".format(statistic, selection)
         filepath = os.path.join(filedir, "h5", filename)
-        if DEBUG: print('SCORES filepath', filepath, 'SELECTION', tab_name)
+        if DEBUG: print('SCORES filepath', filepath, 'SELECTION', selection, 'TAB', tab_name)
         self.dframe = pd.read_hdf(filepath, tab_name).replace('_', ' ', regex=True)
 
-        months = ' - '.join([datetime.strptime(sel, '%Y%m').strftime("%B %Y") for sel in selection.split('_')])
+        months = ' - '.join([datetime.strptime(sel, '%Y%m').strftime("%B %Y") for sel in selection.split('-')])
 
         self.title = """{model} {score}<br>{selection}""".format(
                 score=STATS[statistic], model='{model}', selection=months)
@@ -2142,8 +2144,8 @@ class WasFigureHandler(object):
 
         geojson = dl.GeoJSON(
                 data=geojson_data,
-                zoomToBounds=True,
-                hoverStyle=arrow_function(dict(weight=2, color='white', dashArray='', fillOpacity=1)),
+                # zoomToBounds=True,
+                hoverStyle=arrow_function(dict(weight=2, color='white', dashArray='', fillOpacity=0.7)),
                 options=dict(style=style_handle),
                 hideout=dict(colorscale=list(colormap.keys()),
                     bounds=[i for i in range(len(colormap.keys()))],
