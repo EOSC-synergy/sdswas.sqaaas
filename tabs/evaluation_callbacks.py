@@ -513,7 +513,7 @@ def register_callbacks(app, cache, cache_timeout):
         lat = cdata.lat.round(2).values[0]
         stat = cdata.stations.values[0]
         if idx != 0:
-            figure = get_eval_timeseries(obs, start_date, end_date, DEFAULT_VAR, idx, stat)
+            figure = get_eval_timeseries(obs, start_date, end_date, DEFAULT_VAR, idx, stat, model)
             mb = MODEBAR_LAYOUT_TS
             figure.update_layout(mb)
             if DEBUG: print('SHOW AERONET EVAL TS"""""', obs, idx, stat)
@@ -635,7 +635,7 @@ def register_callbacks(app, cache, cache_timeout):
                 max_date_allowed=dt.strptime(end_date, "%Y%m%d"),
                 initial_visible_month=dt.strptime(end_date, "%Y%m%d"),
                 display_format='DD MMM YYYY',
-                end_date=end_date,
+                # end_date=end_date,
                 updatemode='bothdates',
             )]
 

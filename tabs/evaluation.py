@@ -12,7 +12,7 @@ from data_handler import STYLES
 from data_handler import DATES
 from data_handler import STATS
 from data_handler import MODEBAR_CONFIG
-from data_handler import DISCLAIMER_MODELS
+from data_handler import DISCLAIMER_NO_FORECAST
 
 from datetime import datetime as dt
 from datetime import timedelta
@@ -66,7 +66,7 @@ scores_maps = dbc.Spinner(
                         figure={},
                         config=MODEBAR_CONFIG,  # {"displayModeBar": False}
                     ),
-                    html.Div(DISCLAIMER_MODELS,
+                    html.Div(DISCLAIMER_NO_FORECAST,
                         className='disclaimer')
                     ]
                 )],

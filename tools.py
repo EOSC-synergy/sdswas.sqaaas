@@ -140,12 +140,12 @@ def download_image(models, variable, curdate, tstep=0, anim=False):
                 composite_fp.name,
                 filename=fname)
 
-def get_eval_timeseries(obs, start_date, end_date, var, idx, name):
+def get_eval_timeseries(obs, start_date, end_date, var, idx, name, model):
     """ Retrieve timeseries """
     if DEBUG: print('SERVER: OBS TS init for obs {} ... '.format(str(obs)))
     th = ObsTimeSeriesHandler(obs, start_date, end_date, var)
     if DEBUG: print('SERVER: OBS TS generation ... ')
-    return th.retrieve_timeseries(idx, name)
+    return th.retrieve_timeseries(idx, name, model)
 
 
 def get_timeseries(model, date, var, lat, lon, forecast=False):

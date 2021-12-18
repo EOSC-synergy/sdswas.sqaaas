@@ -52,7 +52,7 @@ def ret_scores(mod_df, obs_df, grp=None, grpname=None, obs='aeronet'):
         obs_stat = obs_df.dropna().set_index('time')
     else:
         obs_stat = obs_df.get_group(grp).set_index('time')
-    print("OBS STAT", obs_stat.head(), obs_stat.size)
+    print("OBS STAT", obs_stat.head(), obs_stat.size, 'TIME', obs_stat.columns, obs_stat.index)
     if obs_stat.size == 0 and grpname is None:
         return 'Total', {'BIAS':  np.nan, 'CORR': np.nan, 'RMSE': np.nan, 'FRGE': np.nan, 'TOTN': np.nan}
     elif obs_stat.size == 0:
@@ -61,7 +61,7 @@ def ret_scores(mod_df, obs_df, grp=None, grpname=None, obs='aeronet'):
         mod_stat = mod_df.dropna().set_index('time')
     else:
         mod_stat = mod_df.get_group(grp).set_index('time')
-    print("MOD STAT", mod_stat.head(), mod_stat.size)
+    print("MOD STAT", mod_stat.head(), mod_stat.size, 'TIME', mod_stat.columns, mod_stat.index)
     tot = obs_stat.merge(mod_stat, on='time')
     print("TOT DONE" )
     mvar, ovar = OBS[obs]['mod_var'], OBS[obs]['obs_var']

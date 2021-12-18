@@ -176,6 +176,8 @@ INFO_STYLE = {
         "fontWeight": "bold"
         }
 
+DISCLAIMER_NO_FORECAST = [html.Span(html.P("""Dust data ©2021 WMO Barcelona Dust Regional Center."""), id='forecast-disclaimer')]
+
 DISCLAIMER_MODELS = [html.Span(html.P("""FORECAST ISSUED"""), id='forecast-issued'), html.Span(html.P("""Dust data ©2021 WMO Barcelona Dust Regional Center."""), id='forecast-disclaimer')]
 
 DISCLAIMER_OBS = html.P("""Aerosol data ©2021 WMO Barcelona Dust Regional Center, NASA.""")
@@ -360,7 +362,7 @@ class ObsTimeSeriesHandler(object):
             self.dataframe.append(mod_df)
 
 
-    def retrieve_timeseries(self, idx, st_name):
+    def retrieve_timeseries(self, idx, st_name, model):
 
         old_indexes = self.dataframe[0]['station'].unique()
         new_indexes = np.arange(old_indexes.size)
@@ -392,7 +394,7 @@ class ObsTimeSeriesHandler(object):
                 sc_mode = 'lines'
                 marker = {}
                 line = { 'color': MODELS[mod]['color'] }
-                visible = 'legendonly'
+                visible = (mod == model) and True or 'legendonly'
                 cur_lat = round(timeseries[lat_col][0], 2)
                 cur_lon = round(timeseries[lon_col][0], 2)
                 name = "{}".format(
@@ -409,7 +411,8 @@ class ObsTimeSeriesHandler(object):
                 mode=sc_mode,
                 marker=marker,
                 line=line,
-                visible=visible
+                visible=visible,
+                connectgaps=False
                 )
             )
 
@@ -843,7 +846,7 @@ class FigureHandler(object):
         style = dict(weight=0, opacity=0, color='white', dashArray='', fillOpacity=0.6)
 
         # Create colorbar.
-        if varname in ('SCONC_DUST', 'sconc_dust'):
+        if varname not in ('OD550_DUST', 'od550_dust', 'DUST_LOAD', 'dust_load'):
             ctg = ["{:d}".format(int(cls)) for i, cls in enumerate(bounds[1:-1])]
         else:
             ctg = ["{:.1f}".format(cls) for i, cls in enumerate(bounds[1:-1])]
@@ -855,7 +858,7 @@ class FigureHandler(object):
                 tickValues=indices[1:-1],
                 tickText=ctg,
                 position='topleft',
-                width=250,
+                width=270,
                 height=15,
                 style={ 'top': '55px' }
                 )
@@ -1082,9 +1085,9 @@ class FigureHandler(object):
         if center is None:
             center = self.get_center(center)
         if zoom is None:
-            if colorbar is not None:
-                colorbar.width = 300 - 25 * aspect[0]
             zoom = 3.5-(aspect[0]-aspect[0]*0.4)
+        if colorbar is not None:
+            colorbar.width = 320 - 25 * aspect[0]
         if DEBUG: print("ZOOM", zoom)
         if DEBUG: print("CENTER", center)
 

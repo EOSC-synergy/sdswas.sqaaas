@@ -8,7 +8,7 @@ from data_handler import VARS
 from data_handler import MODELS
 from data_handler import DATES
 from data_handler import STYLES
-from data_handler import DISCLAIMER_MODELS
+from data_handler import DISCLAIMER_NO_FORECAST
 # from tabs.forecast import layout_view
 
 from datetime import datetime as dt
@@ -115,7 +115,7 @@ def tab_observations(window='rgb'):
             html.P([
                 html.B(
                     """
-                    You can explore key observations that can be used to track dust events.
+                    You can explore key observations that can be used to track dust events. 
                     """
                     ),
                 """ All observations are kindly offered by Partners of the WMO Barcelona Dust Regional Center. RGB is a qualitative satellite product that indicates desert dust in the entire atmospheric column (represented by pink colour).""",
@@ -157,13 +157,13 @@ def tab_observations(window='rgb'):
     aod_children = [
         html.Span(
             html.P(
-                "UK METOFFICE AOD"
+                "MetOffice AOD"
                 ),
             className="description-title"
         ),
         html.Span(
             html.P([
-                html.B("""You can explore key observations that can be used to track dust events."""),
+                html.B("""You can explore key observations that can be used to track dust events. """),
                 """All observations are kindly offered by Partners of the WMO Barcelona Dust Regional Center. AOD is a quantitative measure of the aerosol content in the entire atmospheric column."""]
                 ),
             className="description-body"
@@ -172,7 +172,7 @@ def tab_observations(window='rgb'):
             html.Img(
                 id='aod-image',
                 src='./assets/metoffice/{date}/MSG_{date}{tstep:02}00_AOD_444x278.gif'.format(date=aod_end_date, tstep=0),
-                alt='UK METOFFICE AOD - NOT AVAILABLE',
+                alt='MetOffice AOD - NOT AVAILABLE',
                 ),
             html.Div(
                 obs_time_slider(div='obs-aod'),
@@ -191,13 +191,13 @@ def tab_observations(window='rgb'):
     visibility_children = [
         html.Span(
             html.P(
-                "NOAA Visibility"
+                "Visibility"
                 ),
             className="description-title"
         ),
         html.Span(
             html.P([
-                html.B("""You can explore key observations that can be used to track dust events."""),
+                html.B("""You can explore key observations that can be used to track dust events. """),
                 """All observations are kindly offered by Partners of the WMO Barcelona Dust Regional Center. The reduction of VISIBILITY is an indirect measure of the occurrence of sand and dust storms on the surface.""",
                 ]),
             className="description-body"
@@ -216,7 +216,7 @@ def tab_observations(window='rgb'):
             #layout_view,
             html.Br(),
             html.Br(),
-            html.Div(DISCLAIMER_MODELS,
+            html.Div(DISCLAIMER_NO_FORECAST,
                 className='disclaimer'),
             ],
             className="layout-dropdown",
@@ -257,22 +257,22 @@ def sidebar_observations():
     ),
     html.Label("Column integrated"),
     html.Div([
-        dbc.Button("EUMETSAT - RGB",
+        dbc.Button("EUMETSAT RGB",
             color="link",
             id='rgb'
         )],
         className="sidebar-item",
     ),
     html.Div([
-        dbc.Button("UK METOFFICE - AOD",
+        dbc.Button("MetOffice AOD",
             color="link",
             id='aod'
         )],
         className="sidebar-item",
     ),
-    html.Label("Surface level"),
+    html.Label("Surface"),
     html.Div([
-        dbc.Button("NOAA - Visibility",
+        dbc.Button("Visibility",
             color="link",
             id='visibility'
         )],

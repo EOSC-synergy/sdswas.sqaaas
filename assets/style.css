@@ -102,7 +102,9 @@ a.modebar-btn {
 }
 
 .disclaimer>p, .disclaimer>span>p {
+  position: relative;
   opacity: 0.8;
+  background-color: #ffffff !important;
   color: #2B383E;
   font-family: "Roboto", sans-serif !important;
   font-size: 14px;
@@ -110,8 +112,9 @@ a.modebar-btn {
   line-height: 22px;
   margin-left: .5rem;
   margin-top: .1rem;
-  bottom: .5rem;
+  bottom: .1rem;
   display: block;
+  z-index: 1000 !important;
 }
 
 .disclaimer>span#forecast-issued>p {
@@ -363,7 +366,7 @@ div.SingleDatePickerInput {
 }
 
 .Select-menu-outer {
-   z-index: 10000;
+   z-index: 10000 !important;
 }
 
 .linetool #eval-date-picker {

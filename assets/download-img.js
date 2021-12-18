@@ -57,7 +57,7 @@ $(document).ready(function () {
                }
             }
             getCanvas(element);
-        }, 1500);
+        }, 1700);
     });
 });
 

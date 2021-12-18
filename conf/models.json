@@ -35,7 +35,7 @@
 	"start": 0
     },
     "metoffice": {
-        "name": "UK-MetOffice",
+        "name": "MetOffice-UM",
         "template": "00_3H_UKMET",
         "path": "/data/products/msg-metoffice",
 	"color": "#6674f8",

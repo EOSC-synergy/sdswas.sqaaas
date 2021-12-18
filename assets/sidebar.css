@@ -32,6 +32,10 @@
     border: none;
 }
 
+#app-sidebar>label {
+    color: #8A959F;
+}
+
 #evaluation-variable.sidebar-first-item, #observations-variable.sidebar-first-item {
     background-color: #6C7B82 !important;
 }
