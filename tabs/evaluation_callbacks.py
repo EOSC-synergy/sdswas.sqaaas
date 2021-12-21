@@ -179,7 +179,7 @@ def register_callbacks(app, cache, cache_timeout):
          State('obs-selection-dropdown', 'value')],
         prevent_initial_call=True
     )
-    # @cache.memoize(timeout=cache_timeout)
+    @cache.memoize(timeout=cache_timeout)
     def scores_maps_retrieve(n_clicks, model, score, network, selection):
         """ Read scores tables and plot maps """
         from tools import get_scores_figure
@@ -319,7 +319,7 @@ def register_callbacks(app, cache, cache_timeout):
          State('obs-mod-dropdown', 'value')],
         prevent_initial_call=True
     )
-    # @cache.memoize(timeout=cache_timeout)
+    @cache.memoize(timeout=cache_timeout)
     def show_eval_modis_timeseries(nclicks, coords, date, obs, model):
         """ Retrieve MODIS evaluation timeseries according to station selected """
         from tools import get_timeseries
@@ -490,7 +490,7 @@ def register_callbacks(app, cache, cache_timeout):
          State('obs-mod-dropdown', 'value')],
         prevent_initial_call=True
     )
-    # @cache.memoize(timeout=cache_timeout)
+    @cache.memoize(timeout=cache_timeout)
     def show_eval_aeronet_timeseries(nclicks, cdata, start_date, end_date, obs, model):
         """ Retrieve AERONET evaluation timeseries according to station selected """
         from tools import get_eval_timeseries
@@ -535,7 +535,7 @@ def register_callbacks(app, cache, cache_timeout):
          Input('eval-date-picker', 'end_date')],
         [State('obs-dropdown', 'value')],
         prevent_initial_call=True)
-    # @cache.memoize(timeout=cache_timeout)
+    @cache.memoize(timeout=cache_timeout)
     def update_eval_aeronet(sdate, edate, obs):
         """ Update AERONET evaluation figure according to all parameters """
         from tools import get_figure
@@ -579,7 +579,7 @@ def register_callbacks(app, cache, cache_timeout):
        [State('obs-dropdown', 'value'),
         State('graph-eval-modis-mod', 'children')],
         prevent_initial_call=True)
-    # @cache.memoize(timeout=cache_timeout)
+    @cache.memoize(timeout=cache_timeout)
     def update_eval_modis(date, mod, obs, mod_div):
         """ Update MODIS evaluation figure according to all parameters """
         if date is None or mod is None or obs != 'modis':
@@ -617,7 +617,7 @@ def register_callbacks(app, cache, cache_timeout):
          Output('obs-mod-dropdown-span', 'style')],
         [Input('obs-dropdown', 'value')],
          prevent_initial_call=True)
-    # @cache.memoize(timeout=cache_timeout)
+    @cache.memoize(timeout=cache_timeout)
     def update_eval(obs):
         """ Update evaluation figure according to all parameters """
         from tools import get_figure

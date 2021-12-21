@@ -35,7 +35,7 @@ start_date = DATES['start_date']
 end_date = DATES['end_date'] or dt.now().strftime("%Y%m%d")
 
 
-def register_callbacks(app):
+def register_callbacks(app, cache, cache_timeout):
     """ Registering callbacks """
 
     @app.callback(

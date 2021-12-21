@@ -32,7 +32,7 @@ from utils import get_colorscale
 
 DIR_PATH = os.path.dirname(os.path.realpath(__file__))
 
-DEBUG = True
+DEBUG = False   # True
 
 COLORS = ['#ffffff', '#a1ede3', '#5ce3ba', '#fcd775', '#da7230',
           '#9e6226', '#714921', '#392511', '#1d1309']
@@ -846,10 +846,9 @@ class FigureHandler(object):
         style = dict(weight=0, opacity=0, color='white', dashArray='', fillOpacity=0.6)
 
         # Create colorbar.
-        if varname not in ('OD550_DUST', 'od550_dust', 'DUST_LOAD', 'dust_load'):
-            ctg = ["{:d}".format(int(cls)) for i, cls in enumerate(bounds[1:-1])]
-        else:
-            ctg = ["{:.1f}".format(cls) for i, cls in enumerate(bounds[1:-1])]
+        ctg = ["{:d}".format(int(cls)) if cls.as_integer_ratio()[1] == 1 else "{:.1f}".format(cls) for i, cls in enumerate(bounds[1:-1])]
+        if DEBUG: print("BOUNDS", bounds)
+        if DEBUG: print("CTG", ctg)
         indices = list(range(len(ctg) + 2))
         colorbar = dl.Colorbar(
                 min=0, max=len(ctg)+1,

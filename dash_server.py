@@ -15,7 +15,7 @@ from dash.dependencies import MATCH
 from dash.exceptions import PreventUpdate
 import flask
 from flask import g, make_response, request
-#from flask_caching import Cache
+from flask_caching import Cache
 #from pyinstrument import Profiler
 from pathlib import Path
 
@@ -69,17 +69,17 @@ app.config.update({
 app.config.suppress_callback_exceptions = True
 server = app.server
 
-#cache_dir = "/dev/shm"
-#Path(cache_dir).mkdir(parents=True, exist_ok=True)
-#
-#cache_config = {
-#    "DEBUG": True,
-#    "CACHE_TYPE": "FileSystemCache",
-#    "CACHE_DIR": cache_dir,
-#}
-#
-#cache = Cache(server, config=cache_config)
-#cache_timeout = 86400
+cache_dir = "/dev/shm"
+Path(cache_dir).mkdir(parents=True, exist_ok=True)
+
+cache_config = {
+    "DEBUG": True,
+    "CACHE_TYPE": "FileSystemCache",
+    "CACHE_DIR": cache_dir,
+}
+
+cache = Cache(server, config=cache_config)
+cache_timeout = 86400
 #
 #try:
 #    cache.clear()
@@ -106,7 +106,6 @@ app.index_string = """
 <!DOCTYPE html>
 <html>
     <head>
-        {%metas%}
         <script>
             L_PREFER_CANVAS = true;
             L_DIABLE_3D=true;
@@ -120,6 +119,16 @@ app.index_string = """
              };
             }(HTMLCanvasElement.prototype.getContext);
         </script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-5V3R8V4021"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+
+          gtag('config', 'G-5V3R8V4021');
+        </script>
+        {%metas%}
         <title>{%title%}</title>
         {%favicon%}
         {%css%}
@@ -182,9 +191,9 @@ def render_sidebar(tab):
     return tabs[tab][0](*tabs[tab][1])
 
 
-fcst_callbacks(app, cache=None, cache_timeout=None)
-eval_callbacks(app, cache=None, cache_timeout=None)
-obs_callbacks(app)
+fcst_callbacks(app, cache=cache, cache_timeout=cache_timeout)
+eval_callbacks(app, cache=cache, cache_timeout=cache_timeout)
+obs_callbacks(app, cache=cache, cache_timeout=cache_timeout)
 
 
 if __name__ == '__main__':

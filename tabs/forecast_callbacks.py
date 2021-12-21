@@ -330,7 +330,7 @@ def register_callbacks(app, cache, cache_timeout):
 #         State('was-graph', 'center')],
         prevent_initial_call=False
         )
-    # @cache.memoize(timeout=cache_timeout)
+    @cache.memoize(timeout=cache_timeout)
     def update_was_figure(date, day, was, var, view):  # zoom, center):
         """ Update Warning Advisory Systems maps """
         from tools import get_was_figure
@@ -378,7 +378,7 @@ def register_callbacks(app, cache, cache_timeout):
          State('prob-graph', 'center')],
         prevent_initial_call=False
     )
-    # @cache.memoize(timeout=cache_timeout)
+    @cache.memoize(timeout=cache_timeout)
     def update_prob_figure(n_clicks, date, day, prob, var, view, zoom, center):
         """ Update Warning Advisory Systems maps """
         from tools import get_prob_figure
@@ -464,7 +464,7 @@ def register_callbacks(app, cache, cache_timeout):
          State({'tag': 'model-tile-layer', 'index': ALL}, 'url')],
         prevent_initial_call=True
     )
-    # @cache.memoize(timeout=cache_timeout)
+    @cache.memoize(timeout=cache_timeout)
     def update_models_styles_button(*args):
         """ Function updating styles button """
         ctx = dash.callback_context
@@ -682,7 +682,7 @@ def register_callbacks(app, cache, cache_timeout):
          State('model-clicked-coords', 'data')],
         prevent_initial_call=True
     )
-    # @cache.memoize(timeout=cache_timeout)
+    @cache.memoize(timeout=cache_timeout)
     def show_timeseries(ts_button, mod, date, variable, coords):
         """ Renders model comparison timeseries """
         from tools import get_timeseries
@@ -751,7 +751,7 @@ def register_callbacks(app, cache, cache_timeout):
         [Input('slider-interval', 'n_intervals')],
         prevent_initial_call=True
     )
-    # @cache.memoize(timeout=cache_timeout)
+    @cache.memoize(timeout=cache_timeout)
     def update_slider(n):
         """ Update slider value according to the number of intervals """
         if DEBUG: print('SERVER: updating slider-graph ' + str(n))
@@ -773,7 +773,7 @@ def register_callbacks(app, cache, cache_timeout):
         [State({'tag': 'tab-name', 'index': ALL}, 'id')],
         prevent_initial_call=True
         )
-    # @cache.memoize(timeout=cache_timeout)
+    @cache.memoize(timeout=cache_timeout)
     def update_tab_content(models_clicks, prob_clicks, was_clicks, curtab):
         ctx = dash.callback_context
 
@@ -826,7 +826,7 @@ def register_callbacks(app, cache, cache_timeout):
          ],
         prevent_initial_call=False
         )
-    # @cache.memoize(timeout=cache_timeout)
+    @cache.memoize(timeout=cache_timeout)
     def update_models_figure(n_clicks, tstep, date, model, variable, static, view, zoom, center, ids):  # graphs, ids, static):
         """ Update mosaic of maps figures according to all parameters """
         from tools import get_figure
