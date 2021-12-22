@@ -404,15 +404,14 @@ class ObsTimeSeriesHandler(object):
                 marker = {}
                 line = { 'color': MODELS[mod]['color'] }
                 visible = (mod == model) and True or 'legendonly'
-                cur_lat = round(timeseries[lat_col][0], 2)
-                cur_lon = round(timeseries[lon_col][0], 2)
+                cur_lat = round(timeseries[lat_col].dropna()[0], 2)
+                cur_lon = round(timeseries[lon_col].dropna()[0], 2)
                 name = "{}".format(
                     MODELS[mod]['name'])
 
             if mod == 'median':
                 line['dash'] = 'dash'
 
-            print("****", timeseries.size)
             fig.add_trace(dict(
                 type='scatter',
                 name=name,
