@@ -32,7 +32,7 @@ from utils import get_colorscale
 
 DIR_PATH = os.path.dirname(os.path.realpath(__file__))
 
-DEBUG = False   # True
+DEBUG = True
 
 COLORS = ['#ffffff', '#a1ede3', '#5ce3ba', '#fcd775', '#da7230',
           '#9e6226', '#714921', '#392511', '#1d1309']
@@ -346,7 +346,12 @@ class ObsTimeSeriesHandler(object):
 
         months = np.unique([d.strftime("%Y%m") for d in self.date_range.to_pydatetime()])
 
+        self.date_index = pd.date_range('{}01'.format(months[0]),
+                '{}01'.format((datetime.strptime(months[-1], '%Y%m') +
+                    relativedelta(days=31)).strftime('%Y%m')), freq='3H')
+
         if DEBUG: print('MONTHS', months)
+        if DEBUG: print('DATE_INDEX', self.date_index)
 #         if not months:
 #             months = [datetime.strptime(end_date, "%Y-%m-%d").strftime("%Y%m")]
 
@@ -374,8 +379,12 @@ class ObsTimeSeriesHandler(object):
             if DEBUG: print("MOD", mod, "COLS", df.columns)
             if df.columns[-1].upper() == self.variable:
                 df = df.rename(columns = { df.columns[-1]: self.variable })
-            timeseries = \
-                df[df['station']==dict_idx[idx]].set_index('time')
+            if mod in ('cams', 'ema-regcm4'):
+                timeseries = \
+                    df[df['station']==dict_idx[idx]].set_index('time')
+            else:
+                timeseries = \
+                    df[df['station']==dict_idx[idx]].set_index('time').reindex(self.date_index)
 
             if 'lat' in df.columns:
                 lat_col = 'lat'
@@ -403,6 +412,7 @@ class ObsTimeSeriesHandler(object):
             if mod == 'median':
                 line['dash'] = 'dash'
 
+            print("****", timeseries.size)
             fig.add_trace(dict(
                 type='scatter',
                 name=name,
@@ -551,12 +561,21 @@ class TimeSeriesHandler(object):
                 if DEBUG: print("NOT retrieving", fpath, "ERROR:", str(e))
                 continue
 
+            if forecast is True or mod in ('cams', 'ema-regcm4'):
+                ts = pd.Series(index=ts_index, data=ts_values)
+            else:
+                date_index = pd.date_range('{}01'.format(self.month),
+                        '{}01'.format((datetime.strptime(self.month, '%Y%m') +
+                            relativedelta(days=31)).strftime('%Y%m')), freq='3H')
+                ts = pd.Series(index=ts_index, data=ts_values).reindex(date_index)
+
             if isinstance(ts_lat, np.ndarray):
                 ts_lat = float(ts_lat)
                 ts_lon = float(ts_lon)
-                ts_values = (ts_values*mul).round(2)
+            if isinstance(ts.values, np.ndarray):
+                ts_values = (ts.values*mul).round(2)
             else:
-                ts_values = round((ts_values*mul), 2)
+                ts_values = round((ts.values*mul), 2)
 
             if obs_eval and mod == model[0]:
                 sc_mode = 'markers'
@@ -592,8 +611,8 @@ class TimeSeriesHandler(object):
             fig.add_trace(dict(
                     type='scattergl',
                     name=name,
-                    x=ts_index,
-                    y=ts_values,
+                    x=ts.index,
+                    y=ts.values,
                     mode=sc_mode,
                     marker=marker,
                     line=line,

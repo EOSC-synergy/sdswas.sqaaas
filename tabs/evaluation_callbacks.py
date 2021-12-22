@@ -81,7 +81,8 @@ def register_callbacks(app, cache, cache_timeout):
         #raise PreventUpdate
 
     @app.callback(
-        [Output('obs-selection-dropdown','options')],
+        [Output('obs-selection-dropdown','options'),
+         Output('obs-selection-dropdown','placeholder')],
         [Input('obs-timescale-dropdown', 'value')],
         prevent_initial_call=True
     )
@@ -105,6 +106,7 @@ def register_callbacks(app, cache, cache_timeout):
                     mon.strftime('%Y%m'), (mon + relativedelta(months=2)).strftime('%Y%m'))
                 }
                 for mon in pd.date_range(start_date, end_date, freq='Q')[::-1]]
+            placeholder = 'Select season'
 #            ret = [{
 #                'label' : '{} {}'.format(seasons[mon.strftime('%m')],
 #                    mon.strftime('%Y')),
@@ -118,28 +120,30 @@ def register_callbacks(app, cache, cache_timeout):
                 'value': mon.strftime('%Y'),
                 } for mon in 
                 pd.date_range(start_date, end_date, freq='A')[::-1]]
+            placeholder = 'Select year'
         else:   # timescale == 'monthly':
             ret = [{
                 'label': mon.strftime('%B %Y'),
                 'value': mon.strftime('%Y%m'),
                 } for mon in 
                 pd.date_range(start_date, end_date, freq='M')[::-1]]
+            placeholder = 'Select month'
     
-        return [ret]
+        return ret, placeholder
 
     @app.callback(
         [Output('modis-scores-table', 'columns'),
          Output('modis-scores-table', 'data'),
          Output('modis-scores-table', 'style_table')],
-        [Input('obs-models-dropdown', 'value'),
-         Input('obs-statistics-dropdown', 'value'),
-         Input('obs-network-dropdown', 'value'),
-         Input('obs-timescale-dropdown', 'value'),
-         Input('obs-selection-dropdown', 'value'),
-         Input('scores-apply', 'n_clicks')],
+        [Input('scores-apply', 'n_clicks')],
+        [State('obs-models-dropdown', 'value'),
+         State('obs-statistics-dropdown', 'value'),
+         State('obs-network-dropdown', 'value'),
+         State('obs-timescale-dropdown', 'value'),
+         State('obs-selection-dropdown', 'value')],
         prevent_initial_call=True
     )
-    def modis_scores_tables_retrieve(models, stat, network, timescale, selection, n):
+    def modis_scores_tables_retrieve(n, models, stat, network, timescale, selection):
         """ Read scores tables and show data """
 
         if not n or network != 'modis':
@@ -206,34 +210,48 @@ def register_callbacks(app, cache, cache_timeout):
 
 
     @app.callback(
-        extend_l([[Output('aeronet-scores-table-{}'.format(score), 'columns'),
+        extend_l([
+          [Output('aeronet-scores-table-{}'.format(score), 'columns'),
            Output('aeronet-scores-table-{}'.format(score), 'data'),
-           Output('aeronet-scores-table-{}'.format(score), 'style_table')]
+           Output('aeronet-scores-table-{}'.format(score), 'style_table'),
+           Output('aeronet-scores-table-{}'.format(score), 'selected_cells'),
+           Output('aeronet-scores-table-{}'.format(score), 'active_cell')]
             for score in SCORES]),
-        [Input('obs-models-dropdown', 'value'),
-         Input('obs-statistics-dropdown', 'value'),
-         Input('obs-network-dropdown', 'value'),
-         Input('obs-timescale-dropdown', 'value'),
-         Input('obs-selection-dropdown', 'value'),
-         Input('scores-apply', 'n_clicks'),
+        [Input('scores-apply', 'n_clicks'),
         *[Input('aeronet-scores-table-{}'.format(score), 'active_cell')
             for score in SCORES]],
+        [State('obs-models-dropdown', 'value'),
+         State('obs-statistics-dropdown', 'value'),
+         State('obs-network-dropdown', 'value'),
+         State('obs-timescale-dropdown', 'value'),
+         State('obs-selection-dropdown', 'value')] +
         extend_l([[State('aeronet-scores-table-{}'.format(score), 'columns'),
            State('aeronet-scores-table-{}'.format(score), 'data'),
            State('aeronet-scores-table-{}'.format(score), 'style_table')]
             for score in SCORES]),
         prevent_initial_call=True
     )
-    def aeronet_scores_tables_retrieve(models, stat, network, timescale, selection, n, *tables):
+    def aeronet_scores_tables_retrieve(n, *args):  # *activel_cells, models, stat, network, timescale, selection, *tables):
         """ Read scores tables and show data """
 
+        ctx = dash.callback_context
+        active_cells = list(args[:len(SCORES)])
+        tables = list(args[-len(SCORES)*3:])
+        if DEBUG: print("ACTIVES", active_cells)
+
+        if DEBUG: print("###########", args[len(SCORES):-len(SCORES)*3])
+        models, stat, network, timescale, selection = args[len(SCORES):-len(SCORES)*3]
+
+        if ctx.triggered:
+            button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+            if DEBUG: print("BUTTON", button_id)
+            if button_id not in ['scores-apply'] + ['aeronet-scores-table-{}'.format(score) for score in SCORES]:
+                raise PreventUpdate
+
         if not n or network != 'aeronet':
-            return extend_l([[dash.no_update, dash.no_update, { 'display': 'none' }] for score in SCORES])
+            return extend_l([[dash.no_update, dash.no_update, { 'display': 'none' }, dash.no_update, dash.no_update] for score in SCORES])
 
         areas = ['Mediterranean', 'Middle East', 'Sahel/Sahara', 'Total']
-
-        active_cells = list(tables[:len(SCORES)])
-        tables = list(tables[len(SCORES):])
 
         if isinstance(models, str):
             models = [models]
@@ -248,8 +266,13 @@ def register_callbacks(app, cache, cache_timeout):
 
         stat_idxs = [SCORES.index(st) for st in stat]
 
+        ret_tables = [None for _ in range(len(SCORES)*5)]
         for table_idx in range(int(len(tables)/3)):
             obj_idx = table_idx * 3
+            ret_idx = table_idx * 5
+            ret_tables[ret_idx] = tables[obj_idx]
+            ret_tables[ret_idx+1] = tables[obj_idx+1]
+            ret_tables[ret_idx+2] = tables[obj_idx+2]
             curr_columns = tables[obj_idx]
             curr_data = tables[obj_idx+1]
             if active_cells[table_idx] is not None and \
@@ -261,9 +284,19 @@ def register_callbacks(app, cache, cache_timeout):
                 filename = "{}_{}.h5".format(selection, SCORES[table_idx])
                 tab_name = "{}_{}".format(SCORES[table_idx], selection)
                 filepath = os.path.join(filedir, "h5", filename)
+                if not os.path.exists(filepath):
+                    if DEBUG: print ("TABLES 0", tables)
+                    for i, table in enumerate(tables):
+                        if isinstance(table, dict):
+                            tables[i] = { 'display': 'none' }
+                            tables.insert(i+1, dash.no_update)
+                            tables.insert(i+2, dash.no_update)
+                    if DEBUG: print ("TABLES 1", tables)
+                    return tables
+
                 df = pd.read_hdf(filepath, tab_name).replace('_', ' ', regex=True)  # .round(decimals=2).fillna('-')
                 # replace "tables" columns
-                tables[obj_idx] = [{'name': i in MODELS and
+                ret_tables[ret_idx] = [{'name': i in MODELS and
                     [STATS[SCORES[table_idx]], MODELS[i]['name']] or
                     [STATS[SCORES[table_idx]], ''], 'id': i} for
                     i in models]
@@ -295,18 +328,27 @@ def register_callbacks(app, cache, cache_timeout):
                                 print("---", foll_area)
                             foll_idx = curr_data.index([row for row in curr_data if row['station'] == foll_area][0])
                             tables[obj_idx+1] = [table_row for table_row in curr_data if curr_data.index(table_row) <= row_number] +  [table_row for table_row in curr_data if curr_data.index(table_row) >= foll_idx]
-
+                    ret_tables[ret_idx+1] = tables[obj_idx+1]
+                    ret_tables[ret_idx+2] = { 'display': 'block' }
+                    ret_tables[ret_idx+3] = []
+                    ret_tables[ret_idx+4] = None
                 else:
-                    tables[obj_idx+1] = df.loc[df['station'].isin(areas), models].to_dict('records')
+                    ret_tables[ret_idx+1] = df.loc[df['station'].isin(areas), models].to_dict('records')
+                    ret_tables[ret_idx+2] = { 'display': 'block' }
+                    ret_tables[ret_idx+3] = dash.no_update
+                    ret_tables[ret_idx+4] = dash.no_update
 
             else:
-                tables[obj_idx] = []
-                tables[obj_idx+1] = []
+                ret_tables[ret_idx] = []
+                ret_tables[ret_idx+1] = []
+                ret_tables[ret_idx+2] = { 'display': 'block' }
+                ret_tables[ret_idx+3] = dash.no_update
+                ret_tables[ret_idx+4] = dash.no_update
 
-            tables[obj_idx+2] = { 'display': 'block' }
 
-        print('LEN', len(tables))
-        return tables
+        if DEBUG: print('LEN', len(ret_tables))
+        if DEBUG: print ("TABLES RET", ret_tables)
+        return ret_tables
 
 
     @app.callback(
