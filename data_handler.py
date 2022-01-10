@@ -2240,11 +2240,14 @@ class WasFigureHandler(object):
 #            if DEBUG: print('TWO')
 #            fig_title = html.P(html.B("DATA NOT AVAILABLE"))
 #        else:
-        fig_title = html.P(html.B(
-            [
-                item for sublist in self.get_title(day).split('<br>') for item in [sublist, html.Br()]
-            ][:-1]
-        ))
+        if self.input_file is not None:
+            fig_title = html.P(html.B(
+                [
+                    item for sublist in self.get_title(day).split('<br>') for item in [sublist, html.Br()]
+                ][:-1]
+            ))
+        else:
+            fig_title = html.P(html.B("DATA NOT AVAILABLE"))
 
         info = html.Div(
             children=fig_title,

@@ -109,7 +109,7 @@ layout_view = html.Div([
                     ),
                     active=active
                 )
-                for style, active in zip(STYLES, [True if i == 'carto-positron'
+                for style, active in zip(list(STYLES.keys()), [True if i == 'carto-positron'
                     else False for i in STYLES])
                 ],
             direction="up",

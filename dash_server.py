@@ -80,13 +80,13 @@ cache_config = {
 
 cache = Cache(server, config=cache_config)
 cache_timeout = 86400
-#
-#try:
-#    cache.clear()
-#except Exception as e:
-#    print('CACHE CLEAR ERROR:', str(e))
-#    pass
-#
+
+try:
+    cache.clear()
+except Exception as e:
+    print('CACHE CLEAR ERROR:', str(e))
+    pass
+
 #@srv.before_request
 #def before_request():
 #    if "profile" in request.args:

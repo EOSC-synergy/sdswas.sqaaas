@@ -160,20 +160,22 @@ def convert2timeseries(model, obs=None, months=None):
             continue
 
     try:
-        # read observations and transform to a dataframe with only needed stations
-        obs_ds = xr.open_mfdataset(obs_paths,
+        # read observations and transform to a dataframe with only needed points 
+        obs_ds = xr.open_mfdataset([obs_file for obs_file in obs_paths if os.path.exists(obs_file)],
                                concat_dim='time',
                                combine='nested',
                                )
 
-        # retrieve lat and lon only with 'station' dimension to perform the interpolation
+        # retrieve lat and lon to perform the interpolation
         obs_lat = obs_ds['lat']
         obs_lon = obs_ds['lon']
 
     except Exception as err:
         print('Error', str(obs_paths), str(err))
-
+        obs_ds = False
+    
     variable = OBS[obs]['mod_var']
+    obs_var = OBS[obs]['obs_var']
     print('v', variable)
     # if observation perform interpolation
     print('mod var', OBS[obs]['mod_var'])
@@ -183,21 +185,26 @@ def convert2timeseries(model, obs=None, months=None):
     print(model)
     for mod_idx, (mod_ds, mod) in enumerate(zip(models_ds, model)):
         print('MOD', mod, 'IDX', mod_idx)
-        if variable in mod_ds.variables:
+        print('VARIABLE', variable, mod_ds.variables.keys())
+        if variable in mod_ds.variables or variable.lower() in mod_ds.variables:
+            if variable.lower() in mod_ds.variables:
+                curr_var = variable.lower()
+            else:
+                curr_var = variable
             if obs_ds:
                 print('interpolating to observations ...')
                 try:
-                    mod_interp = mod_ds[variable].interp(longitude=obs_lon, latitude=obs_lat)
+                    mod_interp = mod_ds[curr_var].interp(longitude=obs_lon, latitude=obs_lat)
                 except:
-                    mod_interp = mod_ds[variable].interp(lon=obs_lon, lat=obs_lat)
+                    mod_interp = mod_ds[curr_var].interp(lon=obs_lon, lat=obs_lat)
                 print('converting to df  ...')
             else:
-                mod_interp = mod_ds[variable]
+                mod_interp = mod_ds[curr_var]
                 print('converting dataset to df ...')
 
-            obs_timesteps = np.unique(obs_ds[OBS[obs]['obs_var']][obs_ds[OBS[obs]['obs_var']].time.isin(mod_interp.time)].time)
+            obs_timesteps = np.unique(obs_ds[obs_var][obs_ds[obs_var].time.isin(mod_interp.time)].time)
             print("timesteps", obs_timesteps, type(obs_timesteps))
-            obs_da = obs_ds[OBS[obs]['obs_var']].sel(time=obs_timesteps)
+            obs_da = obs_ds[obs_var].sel(time=obs_timesteps)
             #print(obs_da)
             mod_da = mod_interp.sel(time=obs_timesteps)
             #print(mod_da)
@@ -237,11 +244,12 @@ def convert2timeseries(model, obs=None, months=None):
     else:
         fname = "{}-{}".format(months[0], months[-1])
 
-    print("Writing h5 ...")
+    print("Writing h5 tables for maps ...")
     bias_df_out = os.path.join(OBS[obs]['path'], "h5", "{}_bias.h5")
     corr_df_out = os.path.join(OBS[obs]['path'], "h5", "{}_corr.h5")
     rmse_df_out = os.path.join(OBS[obs]['path'], "h5", "{}_rmse.h5")
     frge_df_out = os.path.join(OBS[obs]['path'], "h5", "{}_frge.h5")
+    print("Writing h5 tables for scores ...")
     total_df_out = os.path.join(OBS[obs]['path'], "h5", "{}_scores.h5")
 
     print("BIAS", bias_df_out.format(fname), bias_df.size)
