@@ -40,25 +40,25 @@ $(document).ready(function () {
         getCanvas(element);
     });
 
-    $(document).on('click', "#btn-all-frame-download", function () {
-    var models = document.getElementsByClassName("custom-control-input");
-        for (var i=0; i<models.length; i++) {
-      if (models[i].checked == false)
-            models[i].click();
-        }
-        var btn = document.getElementById("models-apply");
-        btn.click();
-        setTimeout (function () {
-            var element = document.getElementById("graph-collection"); // global variable
-            if (element == null) {
-               element = document.getElementById("prob-graph"); // global variable
-               if (element == null) {
-                   element = document.getElementById("was-graph"); // global variable
-               }
-            }
-            getCanvas(element);
-        }, 1700);
-    });
+//    $(document).on('click', "#btn-all-frame-download", function () {
+//    var models = document.getElementsByClassName("custom-control-input");
+//        for (var i=0; i<models.length; i++) {
+//      if (models[i].checked == false)
+//            models[i].click();
+//        }
+//        var btn = document.getElementById("models-apply");
+//        btn.click();
+//        setTimeout (function () {
+//            var element = document.getElementById("graph-collection"); // global variable
+//            if (element == null) {
+//               element = document.getElementById("prob-graph"); // global variable
+//               if (element == null) {
+//                   element = document.getElementById("was-graph"); // global variable
+//               }
+//            }
+//            getCanvas(element);
+//        }, 1700);
+//    });
 });
 
 function getCanvas(element) {

@@ -645,7 +645,11 @@ def register_callbacks(app, cache, cache_timeout):
             date = end_date
 
         if DEBUG: print("ZOOM", mod_zoom, "CENTER", mod_center)
-        fig_mod = get_figure(model=mod, var=DEFAULT_VAR, selected_date=date, tstep=0, hour=12, center=mod_center, zoom=mod_zoom)
+        if MODELS[mod]['start'] == 12:
+            tstep = 4
+        else:
+            tstep = 0
+        fig_mod = get_figure(model=mod, var=DEFAULT_VAR, selected_date=date, tstep=tstep, hour=12, center=mod_center, zoom=mod_zoom)
         fig_obs = get_figure(model=obs, var=DEFAULT_VAR, selected_date=date, tstep=0, center=mod_center, zoom=mod_zoom)
 
         if DEBUG: print("MODIS", fig_obs)
@@ -709,7 +713,7 @@ def register_callbacks(app, cache, cache_timeout):
             )]
 
             fig_mod = get_figure(model='median', var=DEFAULT_VAR,
-                    selected_date=end_date, tstep=0)
+                    selected_date=end_date, tstep=4)
             #center = fig_mod['layout']['mapbox']['center']
             fig_obs = get_figure(model=obs, var=DEFAULT_VAR,
                     selected_date=end_date, tstep=0)

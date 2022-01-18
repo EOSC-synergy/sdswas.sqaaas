@@ -119,13 +119,15 @@ def register_callbacks(app, cache, cache_timeout):
     @app.callback(
         [  # Output('alert-models-auto', 'is_open'),
          Output('model-dropdown', 'options'),
-         Output('model-dropdown', 'value')],
+         Output('model-dropdown', 'value'),
+         Output('btn-anim-download', 'style')],
         [Input('variable-dropdown-forecast', 'value')],
         [Input('model-dropdown', 'value'),],
         prevent_initial_call=True
         )
     def update_models_dropdown(variable, checked):
 
+        btn_style = { 'display' : 'block' }
         models = VARS[variable]['models']
         if models == 'all':
             models = list(MODELS.keys())
@@ -139,6 +141,8 @@ def register_callbacks(app, cache, cache_timeout):
             } for model in MODELS]
 
         checked = [c for c in models if c in checked or len(models)==1]
+        if len(checked) > 1:
+            btn_style = { 'display' : 'none' }
         if DEBUG: print('MODELS', models, 'OPTS', type(options), options)
 #        if len(checked) >= 16:
 #            options = [{
@@ -149,7 +153,7 @@ def register_callbacks(app, cache, cache_timeout):
 #
 #            return True, options, checked
 
-        return options, checked
+        return options, checked, btn_style
 
 
     @app.callback(
@@ -255,31 +259,128 @@ def register_callbacks(app, cache, cache_timeout):
 #        raise PreventUpdate
 
     @app.callback(
-        Output('anim-download', 'data'),
-        [Input('btn-anim-download', 'n_clicks')],
-        [State('model-dropdown', 'value'),
-         State('variable-dropdown-forecast', 'value'),
-         State('model-date-picker', 'date')],
+        [Output('btn-anim-download', 'href'),
+         Output('btn-all-frame-download', 'href'),
+         Output('btn-all-anim-download', 'href')],
+        [#Input('btn-anim-download', 'n_clicks'),
+         Input('model-dropdown', 'value'),
+         Input('variable-dropdown-forecast', 'value'),
+         Input('model-date-picker', 'date'),
+         Input('slider-graph', 'value')],
+         prevent_initial_call=False,
+    )
+    def download_anim_link(models, variable, date, tstep):
+        """ Download PNG frame """
+        # from tools import get_figure
+        from tools import download_image_link
+
+#        ctx = dash.callback_context
+#
+#        if ctx.triggered:
+#            button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+#            if button_id == 'btn-anim-download':
+        if DEBUG: print('GIF', models, variable, date)
+        try:
+            curdate = dt.strptime(date, '%Y-%m-%d').strftime('%Y%m%d')
+        except:
+            curdate = date
+        anim = download_image_link(models, variable, curdate, anim=True)
+        all_frame = download_image_link(['all',], variable, curdate, tstep=int(tstep/3), anim=False)
+        all_anim = download_image_link(['all',], variable, curdate, anim=True)
+        if DEBUG: print('DOWNLOAD LINK', anim, all_frame, all_anim)
+        return anim, all_frame, all_anim
+
+
+#    @app.callback(
+#        Output('anim-download', 'data'),
+#        [Input('btn-anim-download', 'n_clicks')],
+#        [State('model-dropdown', 'value'),
+#         State('variable-dropdown-forecast', 'value'),
+#         State('model-date-picker', 'date')],
+#         prevent_initial_call=True,
+#    )
+#    def download_anim(btn, models, variable, date):
+#        """ Download PNG frame """
+#        # from tools import get_figure
+#        from tools import download_image
+#
+#        ctx = dash.callback_context
+#
+#        if ctx.triggered:
+#            button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+#            if button_id == 'btn-anim-download':
+#                if DEBUG: print('GIF', btn, models, variable, date)
+#                try:
+#                    curdate = dt.strptime(date, '%Y-%m-%d').strftime('%Y%m%d')
+#                except:
+#                    curdate = date
+#                data = download_image(models, variable, curdate, anim=True)
+#                if DEBUG: print('DATA', type(data), data.keys(), [data[k] for k in data if k != 'content'])
+#                return data
+#
+#        raise PreventUpdate
+#
+
+    @app.callback(
+        Output('all-frame-download', 'data'),
+        [Input('btn-all-frame-download', 'n_clicks')],
+        [State('variable-dropdown-forecast', 'value'),
+         State('model-date-picker', 'date'),
+         State('slider-graph', 'value')
+         ],
          prevent_initial_call=True,
     )
-    def download_anim(btn, models, variable, date):
+    def download_all_frame(btn, models, variable, date, tstep):
         """ Download PNG frame """
-        from tools import get_figure
+        # from tools import get_figure
         from tools import download_image
 
         ctx = dash.callback_context
 
         if ctx.triggered:
             button_id = ctx.triggered[0]["prop_id"].split(".")[0]
-            if button_id == 'btn-anim-download':
+            if button_id == 'btn-all-frame-download':
                 if DEBUG: print('GIF', btn, models, variable, date)
                 try:
                     curdate = dt.strptime(date, '%Y-%m-%d').strftime('%Y%m%d')
                 except:
                     curdate = date
+                data = download_image(models, variable, curdate, tstep=tstep, anim=False)
+                if DEBUG: print('DATA', type(data), data.keys(), [data[k] for k in data if k != 'content'])
+                return data
 
-                return download_image(models, variable, curdate, anim=True)
+        raise PreventUpdate
 
+    @app.callback(
+        Output('all-anim-download', 'data'),
+        [Input('btn-all-anim-download', 'n_clicks')],
+        [State('variable-dropdown-forecast', 'value'),
+         State('model-date-picker', 'date')],
+         prevent_initial_call=True,
+    )
+    def download_all_anim(btn, variable, date):
+        """ Download PNG frame """
+        # from tools import get_figure
+        from tools import download_image
+
+        ctx = dash.callback_context
+
+        if ctx.triggered:
+            button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+            if button_id == 'btn-all-anim-download':
+                if DEBUG: print('GIF', btn, variable, date)
+                try:
+                    curdate = dt.strptime(date, '%Y-%m-%d').strftime('%Y%m%d')
+                except:
+                    curdate = date
+                data = download_image(['all'], variable, curdate, anim=True)
+                if DEBUG: print('DATA', type(data), data.keys(), [data[k] for k in data if k != 'content'])
+                return data
+
+        raise PreventUpdate
+
+
+    
 #    app.clientside_callback(
 #        ClientsideFunction(
 #            namespace='clientside',

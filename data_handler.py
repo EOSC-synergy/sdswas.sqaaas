@@ -176,11 +176,11 @@ INFO_STYLE = {
         "fontWeight": "bold"
         }
 
-DISCLAIMER_NO_FORECAST = [html.Span(html.P("""Dust data ©2021 WMO Barcelona Dust Regional Center."""), id='forecast-disclaimer')]
+DISCLAIMER_NO_FORECAST = [html.Span(html.P("""Dust data ©2022 WMO Barcelona Dust Regional Center."""), id='forecast-disclaimer')]
 
-DISCLAIMER_MODELS = [html.Span(html.P("""FORECAST ISSUED"""), id='forecast-issued'), html.Span(html.P("""Dust data ©2021 WMO Barcelona Dust Regional Center."""), id='forecast-disclaimer')]
+DISCLAIMER_MODELS = [html.Span(html.P("""FORECAST ISSUED"""), id='forecast-issued'), html.Span(html.P("""Dust data ©2022 WMO Barcelona Dust Regional Center."""), id='forecast-disclaimer')]
 
-DISCLAIMER_OBS = html.P("""Aerosol data ©2021 WMO Barcelona Dust Regional Center, NASA.""")
+DISCLAIMER_OBS = html.P("""Aerosol data ©2022 WMO Barcelona Dust Regional Center, NASA.""")
 
 GEOJSON_TEMPLATE = "{}/geojson/{}/{:02d}_{}_{}.geojson"
 NETCDF_TEMPLATE = "{}/netcdf/{}{}.nc"
@@ -608,10 +608,10 @@ class TimeSeriesHandler(object):
                 line['dash'] = 'solid'
 
             fig.add_trace(dict(
-                    type='scattergl',
+                    type='scatter',
                     name=name,
                     x=ts.index,
-                    y=ts.values,
+                    y=ts_values,
                     mode=sc_mode,
                     marker=marker,
                     line=line,
@@ -621,6 +621,7 @@ class TimeSeriesHandler(object):
 
         fig.update_layout(
             title=dict(text=title, x=0.45, y=.99),
+            yaxis=dict(exponentformat="none"),
             # uirevision=True,
             autosize=True,
             showlegend=True,
@@ -1058,7 +1059,7 @@ class FigureHandler(object):
         """ Convert hour to relative tstep """
         cdatetime = self.rdatetime.date() + relativedelta(hours=hour)
 
-        for step in range(self.tim.size):
+        for step in range(len(self.tim)):
             if self.retrieve_cdatetime(step) == cdatetime:
                 return step
 

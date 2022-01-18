@@ -22,11 +22,11 @@ from utils import calc_matrix
 from datetime import datetime as dt
 from datetime import timedelta
 from PIL import Image
-from wand.image import Image as wimage
 import tempfile
 import gif
 import os.path
 import subprocess
+import base64
 
 start_date = DATES['start_date']
 end_date = DATES['end_date'] or (dt.now() - timedelta(days=1)).strftime("%Y%m%d")
@@ -82,63 +82,137 @@ def get_composite(models, variable, curdate, tstep):
         return composite_img
 
 
-def download_image(models, variable, curdate, tstep=0, anim=False):
+def download_image_link(models, variable, curdate, tstep=0, anim=False, allmodels=False):
     """ """
+    # /data/daily_dashboard/comparison/aladin/sconc_dust/2022/01/20220116_aladin_00.png
+    if DEBUG: print('CURRDIR', os.getcwd())
+    filepath = "assets/comparison/{model}/{variable}/{year}/{month}/{curdate}_{model}_{tstep}.{ext}"
+    # filepath = "/data/daily_dashboard/comparison/{model}/{variable}/{year}/{month}/{curdate}_{model}_{tstep}.{ext}"
+
     if len(models) == 1:
         model = models[0]
-        download_dir = os.path.join(MODELS[model]['path'],
-                'images',
-                dt.strptime(curdate, '%Y%m%d').strftime('%Y'),
-                dt.strptime(curdate, '%Y%m%d').strftime('%m'))
-        if anim:
-            fname = "{date}_LOOP_{model}_{variable}.gif".format(date=curdate, model=model, variable=variable)
-            filename = os.path.join(download_dir, fname)
-            if not os.path.exists(filename):
-                frames = [get_gif_figure(model, variable, curdate, ts) for ts in range(25)]
-                frames = [f for f in frames if f is not None]
-                gif.save(frames, filename, duration=120)
-            return dcc.send_file(
-                    filename,
-                    filename=os.path.basename(filename))
+        if DEBUG: print('DOWNLOAD MODELS', model)
+#        download_dir = os.path.join(MODELS[model]['path'],
+#                'images',
+#                dt.strptime(curdate, '%Y%m%d').strftime('%Y'),
+#                dt.strptime(curdate, '%Y%m%d').strftime('%m'))
+    else:
+        if DEBUG: print('DOWNLOAD ALL MODELS')
+        model = "all"
+    if anim:
+        tstep = "loop"
+        ext = "gif"
+        if DEBUG: print('DOWNLOAD LOOP')
+    else:
+        tstep = "%02d" % tstep
+        ext = "png"
+        if DEBUG: print('DOWNLOAD PNG', tstep)
+#            fname = "{date}_{model}_{variable}.gif".format(date=curdate, model=model, variable=variable)
+        # filename = os.path.join(download_dir, fname)
+    filename = filepath.format(
+                model=model,
+                variable=variable.lower(),
+                year=curdate[:4],
+                month=curdate[4:6],
+                curdate=curdate,
+                tstep=tstep,
+                ext=ext
+            )
+#            if not os.path.exists(filename):
+#                frames = [get_gif_figure(model, variable, curdate, ts) for ts in range(25)]
+#                frames = [f for f in frames if f is not None]
+#                gif.save(frames, filename, duration=120)
+    if DEBUG: print('DOWNLOAD FILENAME', filename)
+    return filename 
 
-        fname = "{date}{tstep:02d}_{model}_{variable}.png".format(date=curdate, tstep=tstep, model=model, variable=variable)
-        filename = os.path.join(download_dir, fname)
-        if not os.path.exists(filename):
-            try:
-                fig = get_figure(model, variable, curdate, tstep=tstep, static=False)
-                fig.write_image(filename, format='png', engine='kaleido')
-            except Exception as e:
-                if DEBUG: print('PNG IMAGE GENERATION: ERROR', str(e))
 
-        if DEBUG: print('DOWNLOAD SINGLE PNG', filename)
+def download_image(models, variable, curdate, tstep=0, anim=False, allmodels=False):
+    """ """
+    # /data/daily_dashboard/comparison/aladin/sconc_dust/2022/01/20220116_aladin_00.png
+    if DEBUG: print('CURRDIR', os.getcwd())
+    # filepath = "./assets/comparison/{model}/{variable}/{year}/{month}/{curdate}_{model}_{tstep}.{ext}"
+    filepath = "/data/daily_dashboard/comparison/{model}/{variable}/{year}/{month}/{curdate}_{model}_{tstep}.{ext}"
+
+    if len(models) == 1:
+        model = models[0]
+        if DEBUG: print('DOWNLOAD MODELS', model)
+#        download_dir = os.path.join(MODELS[model]['path'],
+#                'images',
+#                dt.strptime(curdate, '%Y%m%d').strftime('%Y'),
+#                dt.strptime(curdate, '%Y%m%d').strftime('%m'))
+    else:
+        if DEBUG: print('DOWNLOAD ALL MODELS')
+        model = "all"
+    if anim:
+        tstep = "loop"
+        ext = "gif"
+        if DEBUG: print('DOWNLOAD LOOP')
+    else:
+        tstep = "%02d" % tstep
+        ext = "png"
+        if DEBUG: print('DOWNLOAD PNG', tstep)
+#            fname = "{date}_{model}_{variable}.gif".format(date=curdate, model=model, variable=variable)
+        # filename = os.path.join(download_dir, fname)
+    filename = filepath.format(
+                model=model,
+                variable=variable.lower(),
+                year=curdate[:4],
+                month=curdate[4:6],
+                curdate=curdate,
+                tstep=tstep,
+                ext=ext
+            )
+#            if not os.path.exists(filename):
+#                frames = [get_gif_figure(model, variable, curdate, ts) for ts in range(25)]
+#                frames = [f for f in frames if f is not None]
+#                gif.save(frames, filename, duration=120)
+    if DEBUG: print('DOWNLOAD FILENAME', filename)
+    if os.path.exists(filename):
         return dcc.send_file(
                 filename,
-                filename=os.path.basename(filename))
-    else:
-        if anim:
-            fname = "{date}_LOOP_MULTIMODEL_{variable}.gif".format(date=curdate, variable=variable)
-            frames = [get_composite(models, variable, curdate, ts) for ts in range(25)]
-            frames = [f for f in frames if f is not None]
-            with tempfile.NamedTemporaryFile() as anim_fp:
-                anim_fp.name = anim_fp.name + '.gif'
-                frames[0].save(anim_fp.name, save_all=True, append_images=frames[1:],
-                   optimize=True, duration=120, loop=0)
-                return dcc.send_file(
-                        anim_fp.name,
-                        filename=fname)
+            #    base64=True,
+            )
+    # raise 
+            
 
-        composite_fp = tempfile.NamedTemporaryFile()
-        composite_img = get_composite(models, variable, curdate, tstep)
-        if composite_img is not None:
-            composite_fp.name = composite_fp.name + '.png'
-            composite_img.save(composite_fp.name)
-
-        fname = "{date}{tstep:02d}_MULTIMODEL_{variable}.png".format(date=curdate, tstep=tstep, variable=variable)
-
-        if DEBUG: print('DOWNLOAD PNG', composite_fp.name)
-        return dcc.send_file(
-                composite_fp.name,
-                filename=fname)
+#    # fname = "{date}{tstep:02d}_{model}_{variable}.png".format(date=curdate, tstep=tstep, model=model, variable=variable)
+#    filename = os.path.join(download_dir, fname)
+#    if not os.path.exists(filename):
+#        try:
+#            fig = get_figure(model, variable, curdate, tstep=tstep, static=False)
+#            fig.write_image(filename, format='png', engine='kaleido')
+#        except Exception as e:
+#            if DEBUG: print('PNG IMAGE GENERATION: ERROR', str(e))
+#
+#    if DEBUG: print('DOWNLOAD SINGLE PNG', filename)
+#    return dcc.send_file(
+#            filename,
+#            filename=os.path.basename(filename))
+#    else:
+#        if anim:
+#            fname = "{date}_LOOP_MULTIMODEL_{variable}.gif".format(date=curdate, variable=variable)
+#            frames = [get_composite(models, variable, curdate, ts) for ts in range(25)]
+#            frames = [f for f in frames if f is not None]
+#            with tempfile.NamedTemporaryFile() as anim_fp:
+#                anim_fp.name = anim_fp.name + '.gif'
+#                frames[0].save(anim_fp.name, save_all=True, append_images=frames[1:],
+#                   optimize=True, duration=120, loop=0)
+#                return dcc.send_file(
+#                        anim_fp.name,
+#                        filename=fname)
+#
+#        composite_fp = tempfile.NamedTemporaryFile()
+#        composite_img = get_composite(models, variable, curdate, tstep)
+#        if composite_img is not None:
+#            composite_fp.name = composite_fp.name + '.png'
+#            composite_img.save(composite_fp.name)
+#
+#        fname = "{date}{tstep:02d}_MULTIMODEL_{variable}.png".format(date=curdate, tstep=tstep, variable=variable)
+#
+#        if DEBUG: print('DOWNLOAD PNG', composite_fp.name)
+#        return dcc.send_file(
+#                composite_fp.name,
+#                filename=fname)
 
 def get_eval_timeseries(obs, start_date, end_date, var, idx, name, model):
     """ Retrieve timeseries """

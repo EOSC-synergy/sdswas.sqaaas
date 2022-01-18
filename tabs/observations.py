@@ -107,7 +107,7 @@ def tab_observations(window='rgb'):
     rgb_children = [
         html.Span(
             html.P(
-                "EUMETSTAT RGB"
+                "EUMETSAT RGB"
                 ),
             className="description-title"
         ),
@@ -139,6 +139,7 @@ def tab_observations(window='rgb'):
             html.Img(
                 id='rgb-image',
                 src='./assets/eumetsat/FullDiscHD/archive/{date}/FRAME_OIS_RGB-dust-all_{date}{tstep:02d}00.gif'.format(date=end_date, tstep=0),
+                alt='EUMETSAT RGB - NOT AVAILABLE',
                 ),
             html.Div(
                 obs_time_slider(div='obs'),
