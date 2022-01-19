@@ -259,9 +259,9 @@ def register_callbacks(app, cache, cache_timeout):
 #        raise PreventUpdate
 
     @app.callback(
-        [Output('btn-anim-download', 'href'),
-         Output('btn-all-frame-download', 'href'),
-         Output('btn-all-anim-download', 'href')],
+        Output('btn-anim-download', 'href'),
+#         Output('btn-all-frame-download', 'href'),
+#         Output('btn-all-anim-download', 'href')],
         [#Input('btn-anim-download', 'n_clicks'),
          Input('model-dropdown', 'value'),
          Input('variable-dropdown-forecast', 'value'),
@@ -285,10 +285,10 @@ def register_callbacks(app, cache, cache_timeout):
         except:
             curdate = date
         anim = download_image_link(models, variable, curdate, anim=True)
-        all_frame = download_image_link(['all',], variable, curdate, tstep=int(tstep/3), anim=False)
-        all_anim = download_image_link(['all',], variable, curdate, anim=True)
-        if DEBUG: print('DOWNLOAD LINK', anim, all_frame, all_anim)
-        return anim, all_frame, all_anim
+        #all_frame = download_image_link(['all',], variable, curdate, tstep=int(tstep/3), anim=False)
+        #all_anim = download_image_link(['all',], variable, curdate, anim=True)
+        if DEBUG: print('DOWNLOAD LINK', anim)
+        return anim  #, all_frame, all_anim
 
 
 #    @app.callback(

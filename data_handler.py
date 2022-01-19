@@ -32,7 +32,7 @@ from utils import get_colorscale
 
 DIR_PATH = os.path.dirname(os.path.realpath(__file__))
 
-DEBUG = True
+DEBUG = False  # True
 
 COLORS = ['#ffffff', '#a1ede3', '#5ce3ba', '#fcd775', '#da7230',
           '#9e6226', '#714921', '#392511', '#1d1309']
