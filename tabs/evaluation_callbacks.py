@@ -84,12 +84,18 @@ def register_callbacks(app, cache, cache_timeout):
         [Output('obs-selection-dropdown','options'),
          Output('obs-selection-dropdown','placeholder')],
         [Input('obs-timescale-dropdown', 'value')],
+        [State('obs-network-dropdown', 'value')],
         prevent_initial_call=True
     )
-    def update_time_selection(timescale):
+    def update_time_selection(timescale, network):
 
         if timescale is None:
             raise PreventUpdate
+
+        if network == 'modis':
+            start_date = '20180101'
+        elif network == 'aeronet':
+            start_date = '20210101'
 
         seasons = {
                '03': 'Spring',
@@ -105,15 +111,8 @@ def register_callbacks(app, cache, cache_timeout):
                 'value' : '{}-{}'.format(
                     mon.strftime('%Y%m'), (mon + relativedelta(months=2)).strftime('%Y%m'))
                 }
-                for mon in pd.date_range(start_date, end_date, freq='Q')[::-1]]
+                for mon in pd.date_range(start_date, end_date, freq='Q')[::-1]][1:]
             placeholder = 'Select season'
-#            ret = [{
-#                'label' : '{} {}'.format(seasons[mon.strftime('%m')],
-#                    mon.strftime('%Y')),
-#                'value' : '{}{}'.format(seasons[mon.strftime('%m')],
-#                    mon.strftime('%Y'))
-#                }
-#                for mon in pd.date_range(start_date, end_date, freq='Q')[::-1]]
         elif timescale == 'annual':
             ret = [{
                 'label': mon.strftime('%Y'),

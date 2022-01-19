@@ -28,11 +28,11 @@ cd $DASH_HOME
 ${PYTHON_EXEC}/gunicorn \
     --error-logfile ${LOGDIR}/${TODAY}.error.log \
     --access-logfile ${LOGDIR}/${TODAY}.access.log \
-    --capture-output --log-level debug \
+    --capture-output --log-level error \
     -w $workers --preload \
         --threads `expr $workers - 1` \
     --worker-class=$mod \
-    --worker-connections=100 \
+    --worker-connections=10 \
     -b bscesdust03.bsc.es:9000 \
     dash_server:server -D
 wait
