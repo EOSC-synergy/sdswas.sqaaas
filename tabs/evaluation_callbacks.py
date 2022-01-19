@@ -95,7 +95,7 @@ def register_callbacks(app, cache, cache_timeout):
         if network == 'modis':
             start_date = '20180101'
         elif network == 'aeronet':
-            start_date = '20210101'
+            start_date = '20120101'
 
         seasons = {
                '03': 'Spring',

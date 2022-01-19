@@ -754,7 +754,7 @@ def register_callbacks(app, cache, cache_timeout):
                     position=[lat, lon],
                     #autoClose=False, 
                     #closeOnEscapeKey=False,
-                    #closeOnClick=False,
+                    closeOnClick=False,
                     closeButton=True,
                     className='popup-map-point'
                 )

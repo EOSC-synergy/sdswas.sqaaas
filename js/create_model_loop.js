@@ -163,7 +163,7 @@ const RunCluster = async (anim, curmodel, seldate, variable) => {
 
       //await page.waitForSelector(".graph-with-slider");
       process.stdout.write("TAKE SCREENSHOT" + "\n");
-      await graph.screenshot({ path: './tmp/' + seldate + '_' + curmodel + '_' + num + '.png' });
+      await graph.screenshot({ path: './tmp/' + variable + '/' + seldate + '_' + curmodel + '_' + num + '.png' });
 
     });
 
