@@ -46,7 +46,23 @@ const RunCluster = async (anim, curmodel, seldate, variable) => {
 		for (const option of await page.$$('.VirtualizedSelectOption')) {
 			const curopt = await option.evaluate(elem => elem.innerHTML);
 			process.stdout.write("****" +  curopt + "****\n");
-			if (curopt === 'Concentration') {
+			if ((variable === 'SCONC_DUST') && (curopt === 'Concentration')) {
+				option.click();
+				break;
+			}
+			else if ((variable === 'DUST_DEPD') && (curopt === 'Dry deposition')) {
+				option.click();
+				break;
+			}
+			else if ((variable === 'DUST_DEPW') && (curopt === 'Wet deposition')) {
+				option.click();
+				break;
+			}
+			else if ((variable === 'DUST_LOAD') && (curopt === 'Load')) {
+				option.click();
+				break;
+			}
+			else if ((variable === 'DUST_EXT_SFC') && (curopt === 'Extinction')) {
 				option.click();
 				break;
 			}
@@ -163,7 +179,7 @@ const RunCluster = async (anim, curmodel, seldate, variable) => {
 
       //await page.waitForSelector(".graph-with-slider");
       process.stdout.write("TAKE SCREENSHOT" + "\n");
-      await graph.screenshot({ path: './tmp/' + variable + '/' + seldate + '_' + curmodel + '_' + num + '.png' });
+      await graph.screenshot({ path: './tmp/' + variable.toLowerCase() + '/' + seldate + '_' + curmodel + '_' + num + '.png' });
 
     });
 
