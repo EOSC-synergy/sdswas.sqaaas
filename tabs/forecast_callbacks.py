@@ -666,7 +666,8 @@ def register_callbacks(app, cache, cache_timeout):
 
 
     @app.callback(
-        [Output('model-clicked-coords', 'data'),
+        [Output('alert-popup', 'is_open'),
+         Output('model-clicked-coords', 'data'),
          Output(dict(tag='model-map-layer', index=ALL), 'children')],
         [Input(dict(tag='model-map', index=ALL), 'click_lat_lng'),
          Input(dict(tag='model-map', index=ALL), 'id')],
@@ -766,7 +767,7 @@ def register_callbacks(app, cache, cache_timeout):
                 coords = [lat, lon]
                 if DEBUG: print("COORDS:", str(coords))
                 if DEBUG: print("RES:", str(res))
-                return coords, res
+                return True, coords, res
 
         raise PreventUpdate
 

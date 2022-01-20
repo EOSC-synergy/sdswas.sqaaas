@@ -251,6 +251,15 @@ def tab_forecast(window='models'):
             color="primary",
             style={ 'overflow': 'auto', 'marginBottom': 0 }
         ),
+        dbc.Alert(
+            "If you close the location tooltip, please refresh the page before clicking on another specific location on the map.",
+            id="alert-popup",
+            is_open=False,
+            duration=6000,
+            fade=True,
+            color="primary",
+            style={ 'overflow': 'auto', 'marginBottom': 0 }
+        ),
         html.Div(
             id='div-collection',
 #            children=[dbc.Spinner(
@@ -500,9 +509,10 @@ def sidebar_forecast(variables, default_var, models, default_model):
               dbc.Collapse(
                 dbc.Card(dbc.CardBody(
                     [
-                        html.Button('USER GUIDE',
+                        dbc.Button('USER GUIDE',
                             id='btn-userguide-download',
                             n_clicks=0,
+                            href="https://dust.aemet.es/products/overview/user-guide/@@download",
                             className='download-section',
                             ),
                         html.P("""

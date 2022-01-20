@@ -118,6 +118,24 @@ eval_time_series = dbc.Spinner(
 
 def tab_evaluation(window='nrt'):
     nrt_children = [
+        dbc.Alert(
+            "If you close the location tooltip, please refresh the page before clicking on another specific location on the map.",
+            id="alert-eval-popup",
+            is_open=False,
+            duration=6000,
+            fade=True,
+            color="primary",
+            style={ 'overflow': 'auto', 'marginBottom': 0 }
+        ),
+        dbc.Alert(
+            "If you close the location tooltip, please refresh the page before clicking on another specific location on the map.",
+            id="alert-eval-popup2",
+            is_open=False,
+            duration=6000,
+            fade=True,
+            color="primary",
+            style={ 'overflow': 'auto', 'marginBottom': 0 }
+        ),
         html.Span(
             html.P(
                 "Visual comparison"

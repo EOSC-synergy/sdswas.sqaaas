@@ -46,6 +46,7 @@ do
 	    model="monarch"
 	    node js/create_model_loop.js $anim $model $curdate ${variable^^}
 	    wait
+	    sleep 1
 	    convert -loop 0 -delay 25 ${tmpdir}/${curdate}_${model}_??.png ${tmpdir}/${curdate}_${model}_loop.gif
 	    currepo=${repodir}/${model}/${variable}/${curyear}/${curmon}/
 	    mkdir -p $currepo
@@ -57,6 +58,7 @@ do
 		do
 		    node js/create_model_loop.js $anim $mod $curdate ${variable^^}
 		    wait
+	    	    sleep 1
 		    convert -loop 0 -delay 25 ${tmpdir}/${curdate}_${mod}_??.png ${tmpdir}/${curdate}_${mod}_loop.gif
 		    currepo=${repodir}/${mod}/${variable}/${curyear}/${curmon}/
 		    mkdir -p $currepo
@@ -66,6 +68,7 @@ do
 	else
 	    node js/create_model_loop.js $anim $model $curdate ${variable^^}
 	    wait
+	    sleep 1
 	    convert -loop 0 -delay 25 ${tmpdir}/${curdate}_${model}_??.png ${tmpdir}/${curdate}_${model}_loop.gif
 	    currepo=${repodir}/${model}/${variable}/${curyear}/${curmon}/
 	    mkdir -p $currepo
@@ -77,10 +80,13 @@ do
 	    model="all"
 	    node js/create_model_loop.js $anim $model $curdate ${variable^^}
 	    wait
+	    sleep 1
 	    convert -loop 0 -delay 25 ${tmpdir}/${curdate}_${model}_??.png ${tmpdir}/${curdate}_${model}_loop.gif
 	    currepo=${repodir}/${model}/${variable}/${curyear}/${curmon}/
 	    mkdir -p $currepo
 	    wait
 	    mv ${tmpdir}/${curdate}_${model}_* $currepo
 	fi
+	wait
+	sleep 1
 done

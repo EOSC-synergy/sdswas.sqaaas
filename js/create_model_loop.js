@@ -38,39 +38,44 @@ const RunCluster = async (anim, curmodel, seldate, variable) => {
       await page.waitForSelector("#graph-collection");
       await page.waitForSelector(".graph-with-slider");
       // select variable
-      if (variable !== "OD550_DUST") {
         try {            
       		const sel = await page.$('#variable-dropdown-forecast');
-		sel.click();
+		await sel.click();
 		await page.waitForSelector(".Select-menu-outer");
 		for (const option of await page.$$('.VirtualizedSelectOption')) {
 			const curopt = await option.evaluate(elem => elem.innerHTML);
 			process.stdout.write("****" +  curopt + "****\n");
 			if ((variable === 'SCONC_DUST') && (curopt === 'Concentration')) {
-				option.click();
+				await option.click();
 				break;
 			}
 			else if ((variable === 'DUST_DEPD') && (curopt === 'Dry deposition')) {
-				option.click();
+				await option.click();
 				break;
 			}
 			else if ((variable === 'DUST_DEPW') && (curopt === 'Wet deposition')) {
-				option.click();
+				await option.click();
 				break;
 			}
 			else if ((variable === 'DUST_LOAD') && (curopt === 'Load')) {
-				option.click();
+				await option.click();
 				break;
 			}
 			else if ((variable === 'DUST_EXT_SFC') && (curopt === 'Extinction')) {
-				option.click();
+				await option.click();
 				break;
+			}
+			else if ((variable === 'OD550_DUST') && (curopt === 'AOD')) {
+				await option.click();
+				break;
+			}
+			else {
+				continue;
 			}
 		}
 	} catch (err) {
             process.stdout.write("ERR0: " + err + "\n");
 	}
-      }
       // select all models 
       if (curmodel === "all") {
         try {            

@@ -391,7 +391,8 @@ def register_callbacks(app, cache, cache_timeout):
         # return dash.no_update, False  # PreventUpdate
 
     @app.callback(
-        [Output('modis-clicked-coords', 'data'),
+        [Output('alert-eval-popup2', 'is_open'),
+         Output('modis-clicked-coords', 'data'),
          Output(dict(tag='modis-map-layer', index='modis'), 'children')],
         [Input(dict(tag='modis-map', index='modis'), 'click_lat_lng')],
         [State('eval-date-picker', 'date'),
@@ -451,11 +452,12 @@ def register_callbacks(app, cache, cache_timeout):
             className='popup-map-point'
         )
 
-        return [lat, lon, value], marker
+        return True, [lat, lon, value], marker
 
 
     @app.callback(
-        [Output('stations-clicked-coords', 'data'),
+        [Output('alert-eval-popup', 'is_open'),
+         Output('stations-clicked-coords', 'data'),
          Output(dict(tag='empty-map-layer', index='None'), 'children')],
         [Input(dict(tag='empty-map', index='None'), 'click_lat_lng')],
         [State('stations-dataframe', 'data')],
@@ -517,7 +519,7 @@ def register_callbacks(app, cache, cache_timeout):
 
         curr_data = df_stations[(df_stations['lon'].round(2) == round(lon, 2)) | \
             (df_stations['lat'] == round(lat, 2))]
-        return curr_data.to_dict(), marker
+        return True, curr_data.to_dict(), marker
 
 
     @app.callback(
