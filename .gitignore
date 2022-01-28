@@ -11,6 +11,7 @@ venv
 .DS_Store
 .env
 log
+.log
 *.log
 *.swp
 *.swo

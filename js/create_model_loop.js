@@ -105,6 +105,7 @@ const RunCluster = async (anim, curmodel, seldate, variable) => {
                 }
                 if (checked && value !== curmodel) {
                 await model.click();
+                await delay(500);
                 }
               }
         } catch (err) {
